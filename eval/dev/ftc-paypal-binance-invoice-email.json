@@ -1,0 +1,13 @@
+{
+ "id": "ftc-paypal-binance-invoice-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2023/05/those-urgent-emails-metamask-paypal-are-phishing-scams",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/paypal-binance_phishinggraphic.jpg",
+ "published": "2023-05-09",
+ "text_is": "transcribed_from_image",
+ "text": "Hello, You authorized a payment of $497. 00 USD to Binance Holdings Ltd. . Call +1 (801) 317-8874 for more information.\nBNC Billing canceled your invoice\nInvoice number: 102937130\nInvoice total: $497.00 USD\nView Invoice\nSeller note to customer\nThank you for choosing PayPal. Your have sent a payment of 497 USD to Binance Holdings Ltd. If you did not make this transaction, please contact PayPal at +1 (801) 317-8874 to cancel and claim refund. If this is not the case, you will be charged 497 USD today. This transaction will reflect on PayPal activity after 24 hours.",
+ "notes": "Callback phishing: fake PayPal invoice with a scam phone number. Image alt text 'PayPal Binance Phishing Sample Email'. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Hard case: no link, no payment method, only a phone number and 'today'."
+}

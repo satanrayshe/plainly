@@ -54,6 +54,19 @@
         }
       },
       {
+        "rule": "link_bait",
+        "severity": "strong",
+        "title": "Asks you to click a link to claim money, pay, or \"verify\" details",
+        "quote": "Visit www.irs-refund-verify.com",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "It asks you to use a link, and irs-refund-verify.com imitates an official web address.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
         "rule": "urgency_short",
         "severity": "medium",
         "title": "Gives you less than 3 days to act",
@@ -91,7 +104,7 @@
         "step": "extract",
         "status": "done",
         "ms": 2,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 807 in / 195 out tokens)"
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 944 in / 223 out tokens)"
       },
       {
         "step": "registry",
@@ -172,9 +185,57 @@
         "ms": 0
       },
       {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "flag",
+        "detail": "Asks you to use a link (strong)",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "pass",
+        "detail": "No pressure to call a number that isn't official",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "pass",
+        "detail": "No \"press 1\" instruction",
+        "ms": 0
+      },
+      {
         "step": "rule:unknown_contact",
         "status": "unknown",
         "detail": "No agency to compare contacts against",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "pass",
+        "detail": "No official name paired with someone else's contact details",
         "ms": 0
       },
       {
@@ -198,7 +259,7 @@
       {
         "step": "verdict",
         "status": "done",
-        "detail": "Score 10 (3 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
+        "detail": "Score 13 (4 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
         "ms": 0
       }
     ],
@@ -222,9 +283,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 31,
-      "input_tokens": 807,
-      "output_tokens": 195
+      "ms": 36,
+      "input_tokens": 944,
+      "output_tokens": 223
     }
   },
   "explanations": {
@@ -256,7 +317,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 899,
+        "input_tokens": 955,
         "output_tokens": 149
       }
     },
@@ -288,7 +349,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 899,
+        "input_tokens": 954,
         "output_tokens": 149
       }
     },
@@ -320,10 +381,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 899,
+        "input_tokens": 955,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T15:27:15+00:00"
+  "generated_at": "2026-09-30T17:29:37+00:00"
 }

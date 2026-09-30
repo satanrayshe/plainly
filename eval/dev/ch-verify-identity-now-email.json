@@ -1,0 +1,13 @@
+{
+ "id": "ch-verify-identity-now-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "UK",
+ "source_name": "Companies House, GOV.UK guidance 'Reporting scams pretending to be from Companies House'",
+ "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+ "image_url": "https://assets.publishing.service.gov.uk/media/6989b0edc106cc5501b6e4c2/Scam_email_example_15.png",
+ "published": "2026-07-16 (page last updated)",
+ "text_is": "transcribed_from_image",
+ "text": "From 28 January 2026, if you're a company director or a person with significant control (PSC), you must verify your identity by your due date.\nThe Companies House register will be updated on 28 January 2026 to show the due dates for each role you hold.\nWhat you need to do\nIdentity verification is a 2-step process:\n1. Verify your identity and get your Companies House personal code.\n2. Provide your personal code to confirm you are verified for each role you hold.\nWatch our understanding identity verification video and read our guidance for more information on when you need to verify and provide your personal code.\nIf you've already verified your identity for Companies House, you do not need to do it again but you will need to provide us with your personal code for each role you hold.",
+ "notes": "Page caption: 'Email impersonating our emails to registered email addresses, telling you to verify your identity now'. The screenshot shows only the body (no sender), and the wording copies Companies House's genuine emails; the scam is in the links, which the text alone does not show. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Very hard case: expect cant_tell at best; a likely_scam verdict here would be a surprise."
+}

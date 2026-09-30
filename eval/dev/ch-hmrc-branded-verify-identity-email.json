@@ -1,0 +1,13 @@
+{
+ "id": "ch-hmrc-branded-verify-identity-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "UK",
+ "source_name": "Companies House, GOV.UK guidance 'Reporting scams pretending to be from Companies House'",
+ "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+ "image_url": "https://assets.publishing.service.gov.uk/media/691ddb9dd140bbbaa59a2a69/Scam_email_example_5.jpg",
+ "published": "2019-02 (date in the email; page last updated 2026-07-16)",
+ "text_is": "transcribed_from_image",
+ "text": "GOV.UK\nHM Revenue & Customs\nVerify your identity by Friday, Feb 8\nYou are getting this email because Companies House needs to verify your identity by Friday, February 8, 2019 at 10:09am GMT.\nIf you don't verify your identity, your company account will be put on hold. To confirm your identity, click this link:\n/verify-your-company/post-sign-in",
+ "notes": "Page caption: 'Email featuring the HMRC logo telling you that Companies House needs to verify your identity'. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined."
+}

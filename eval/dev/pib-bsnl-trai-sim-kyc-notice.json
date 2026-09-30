@@ -1,0 +1,13 @@
+{
+ "id": "pib-bsnl-trai-sim-kyc-notice",
+ "label": "scam",
+ "kind": "sim_block",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 15,
+ "published": "2024-01-10",
+ "text_is": "transcribed_from_image",
+ "text": "BSNL\nAN ISO 9001:2008 CERTIFICATES TELECOM COMPANY\nTelecom Regulatory Authority of India\nNOTICE\nDear Customer, Your Sim KYC has been suspended by Telecom Regulatory Authority of India. Your Sim card will be blocked within 24 hours. Call Immediately\nKYC VERIFICATION EXECUTIVE\nNAME:- ABHINASH SHARMA\nCALL: 8961216971\nNote:- CONTACT THE SERVICE PROVIDER IMMEDIATEL[…] BEFORE S[…]\nYours Truly\nDev Aman[…]\nCustomer Support\nGOVN. OF INDIA\nMinistry of Communication\nGOVERNMENT OF INDIA",
+ "notes": "SIM-block / TRAI KYC scam letter in BSNL's name. Also on PDF pages 64, 255 and 400. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

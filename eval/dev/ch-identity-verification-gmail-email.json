@@ -1,0 +1,13 @@
+{
+ "id": "ch-identity-verification-gmail-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "UK",
+ "source_name": "Companies House, GOV.UK guidance 'Reporting scams pretending to be from Companies House'",
+ "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+ "image_url": "https://assets.publishing.service.gov.uk/media/6a58dc163ae256c99b702f2b/scam_email_example_16.png",
+ "published": "2026-07-16 (page last updated; email dated 29 June 2026)",
+ "text_is": "transcribed_from_image",
+ "text": "From: Companies House [mailto: […]@gmail.com]\nSent: 29 June 2026 10:39\nTo:\nSubject: Action required: Verify your identity for Companies House\nIdentity Verification Required\nDear Sir/Madam,\nThis is a formal notification regarding your identity verification requirement as a company director or Person with Significant Control (PSC) in the United Kingdom.\nIn accordance with the latest Companies House regulations, you are required to verify your identity to ensure the integrity of the company register.\nWhat you need to do:\n• Visit the official government service portal.\n• Prepare your government-issued ID (Passport or Driving Licence).\n• Follow the instructions to complete your identity verification via GOV.UK One Login.\nVerify Your Identity Now\nImportant Security Note: Always ensure that you are accessing the official gov.uk domain. The UK government will never ask for your bank details or passwords via email. If you are ever unsure about the legitimacy of a request, visit the official GOV.UK website directly by typing the address into your browser.",
+ "notes": "Page caption: 'Email from a Gmail account impersonating Companies House, telling you to verify your identity'. The Gmail local part is blank in the image. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Hard case: it contains protective wording ('will never ask for your bank details or passwords') and the only hard tell is the gmail.com sender."
+}

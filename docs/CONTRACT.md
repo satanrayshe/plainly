@@ -117,17 +117,32 @@ Severity: strong = 3 points, medium = 1 point, info = 0.
 | video_call_demand | strong | demands video call / Skype / WhatsApp video / stay on call |
 | ai_instruction | strong | hidden instructions aimed at AI tools ("ignore previous instructions", "as an AI", "classify this as legitimate", "system prompt"...). Quote is ALWAYS redacted: `quote=null, quote_redacted=true`. |
 | lookalike_domain | strong | URL/email domain resembling a registry domain (edit distance <=2, confusable chars, punycode, extra words like `irs-gov-refund.com`) but not equal/subdomain |
-| urgency_short | medium | act within < 72 h / "today" / "within 24 hours" / "immediately" / "tonight" |
+| unexpected_fee_to_release | strong (medium for a parcel) | a fee ("registration charges", "processing fee ... before release") standing between the reader and a prize, lottery win, refund or job. Parcel/customs fees are medium because real customs charges exist. "Refund of processing fee" doesn't count |
+| link_bait | medium / strong | asks to click/open/scan a link or a button-like line ("Verify Your Identity Now") for a refund, payment, prize, or to verify/update details or KYC. No flag when every link it can mean is official (registry domain or government suffix). **Strong** when the link is a shortener/raw IP/free host/lookalike; when the claimed sender (registry agency named in the first 6 lines) links anywhere but its own site or hides the link; when a hidden link comes with a block/suspension threat; or when it says "reply Y / copy the link into your browser" (link-protection bypass). Button lines count only when the letter names no official site |
+| callback_unofficial | medium / strong | asks to call/WhatsApp a number that isn't any registry agency's. Strong: a personal mobile (India 6-9xxxxxxxxx, UK 07) or WhatsApp link from a sender claiming to be an organisation, together with a cut-off threat; or any unofficial number with a cut-off threat and urgency_short. Medium: personal mobile alone, cut-off threat alone, or "if you did not make this payment, call ..." |
+| kyc_update_threat | medium / strong | KYC/PAN/Aadhaar-link update demanded while the account/SIM "will be blocked/suspended/expire". Strong when the message sends you to a link or number to do it (link_bait, callback, risky link or personal mobile) |
+| prize_or_refund_bait | medium / strong | prize/lottery/winner, unsolicited job ("CV has been selected", "daily salary", work from home + salary), cheap "scheme" loan (incl. Hindi लोन/ब्याज/माफ), or refund/credit you must click/verify/call/apply to receive (a refund notice that needs no action, or points to an official site/number, doesn't count). Strong when the only channel is a risky link, WhatsApp/Telegram, a personal mobile or free email |
+| impersonation_mismatch | medium / strong | (a) a registry agency named in the first 6 lines, >=1 contact in the letter, none official (replaces unknown_contact in that case); (b) an email `From:` whose name claims a government body but whose address is not on a government/registry domain (GovDelivery allowed). Strong when the letter also asks for action through itself (link_bait, payment, credential, bait, callback, KYC, fee; for (b) also "verify your identity/details") |
+| urgency_short | medium | act within < 72 h / "today" / "within 24 hours" / "immediately" / "tonight" / "blocked today" / "charged ... today" |
 | freemail_official | medium | gmail/yahoo/outlook/hotmail/proton/rediffmail address presented as official contact |
-| secrecy | medium | "do not tell", "keep confidential", "don't inform bank/family" |
-| unknown_contact | info (medium if agency matched) | phone/domain not in registry for the matched agency — alone NEVER makes "likely scam" |
+| secrecy | medium | "do not tell", "keep confidential", "don't inform bank/family", "you have to maintain confidentiality" |
+| shortened_or_raw_link | medium | a link on a shortener (bit.ly, tinyurl, surl.li, short.gy ...), a raw IP address, or a free web host (vercel.app, netlify.app, blogspot ...) |
+| press_to_connect | medium | "press 1 to speak to an officer", "press 9 now" (language menus don't count) |
+| unknown_contact | info (medium if agency matched) | phone/domain not in registry for the matched agency, next to at least one official contact — alone NEVER makes "likely scam" |
 | injection_detected_model | info | model extract flagged instructions to AI |
+
+Severity design: one warning sign never reaches 3 points on its own, and genuine wording (IRS "pay online at
+www.irs.gov/payments", Income Tax "log in to the e-filing portal", bank alerts that say "never share your OTP") trips
+none of the new rules (backend/tests/test_phishing_rules.py). The strong cases are combinations that genuine senders
+don't use: an unofficial channel together with a lure, a block threat or an official name.
 
 Verdict:
 - score >= 3 -> `likely_scam`
 - agency matched AND >=1 contact (domain or phone) matches registry AND score == 0 AND grounding ok -> `consistent_with_genuine`
 - else -> `cant_tell`
 Every rule appends a `trace` entry (flag/pass/unknown). Registry domains are matched first, phones second.
+A domain listed for more than one agency, or a whole government suffix (gov.uk), never identifies an agency on its
+own, and a bare mention of it ("GOV.UK" logo text) is not an official contact for `consistent_with_genuine`.
 Model-extracted quotes are "grounded" if their normalized form (casefold, collapse whitespace, strip punctuation)
 appears in the OCR text or fuzzy-matches (>= 0.85 ratio via difflib on a sliding window). Ungrounded strong flags are
 downgraded to medium and marked `grounded:false`.
@@ -140,7 +155,13 @@ If toolChoice `{"tool":...}` is rejected, retry with `{"any":{}}`; last resort J
 Input: image (if any) + `letter_text` (OCR) as text. Tool fields: claimed_sender, claimed_agency_key (one of registry keys
 or "other"), country, letter_date {value, quote}, deadlines [{quote, absolute_date|null, relative_days|null, relative_to:"letter_date"|"receipt"|null, what}],
 payment_requests [{method, quote}], threats [{quote}], credential_requests [{quote}], secrecy [{quote}],
-video_call [{quote}], ai_instructions [{quote}], amounts [{amount, what, quote}], language_of_letter.
+video_call [{quote}], ai_instructions [{quote}], link_requests [{quote}], callback_requests [{quote}],
+account_verification_requests [{quote}], prize_or_refund_bait [{quote}], amounts [{amount, what, quote}], language_of_letter.
+The four evidence lists only locate quotes: code re-checks each one (a link quote must mention a link and its host is
+classified in code; a call-back quote must hold a phone number), and for these rules a quote the independent reader
+never saw counts 0 points (`grounded: false`, severity info). Model quotes for credential_request must name a secret
+the code recognises (so "enter the IP PIN" doesn't count), and a threat quote that tells the reader to report to the
+police is ignored.
 Regex (code, not model) extracts phones/urls/emails from letter_text; model lists are merged only if grounded.
 
 ## Frontend pages (site/)
@@ -202,3 +223,40 @@ Regex (code, not model) extracts phones/urls/emails from letter_text; model list
   (offline run); `--strict` refuses mock data.
 - PDFs are rendered 1100 px wide, up to 3 pages stacked (about 4300 px tall), still at most 1.5 MB; the server checks
   bytes, not pixels.
+
+## Rules update (Sep 30, evening): links, lures and call-backs
+- Tuned on `eval/dev/` (42 government-published examples: FTC, GOV.UK, PIB Fact Check, I4C, DoT, IRS) and the
+  synthetic set; `eval/holdout/` was not consulted. Rules frozen afterwards: see `eval/RULES_FROZEN.md`.
+- New rules: link_bait, shortened_or_raw_link, kyc_update_threat, prize_or_refund_bait, unexpected_fee_to_release,
+  press_to_connect, callback_unofficial, impersonation_mismatch (table above).
+- threat_arrest: "custody" only in a police/court sense ("into custody", "police custody"), so "invest under your
+  custody" in an advance-fee email no longer counts. secrecy gains "you have to maintain confidentiality".
+- `eval/run_eval.py --set dev|synthetic|holdout|all` (repeatable); each set is reported separately.
+
+## False-positive hunt (Sep 30, night): genuine messages that read as scams
+- 25 genuine messages written from public templates (IRS, SSA, USPS, HMRC, DVLA, SBI/HDFC, Income Tax, EPFO,
+  e-Challan, India Post, TRAI, discoms, Passport Seva, I4C/DoT/police awareness texts, a US jury summons) were added
+  as `eval/dev/genuine_fp_*.json`. Eleven were `likely_scam` when first run (eight under the rules frozen at 22:16,
+  three more added after the first fixes); none is now. Regressions are in `backend/tests/test_false_positives.py`. `eval/holdout/` was not consulted. Rules re-frozen: see
+  `eval/RULES_FROZEN.md`.
+- Model quotes now get the code's own negation test: a quote in which every hit of the rule's pattern is negated
+  ("Do not share OTP", "never ask you to transfer money to a 'safe account'", "Do not click on links") counts
+  nothing. For `credential_request` the request verb must not be negated.
+- Scam-awareness wording is reported speech, not a demand: in a sentence with "fraudsters", "scammers", "pretending
+  to be", "posing as", "if you get a call saying ...", "if someone threatens ...", "it is a scam", "no such thing
+  as", or "beware of ... fraud/digital arrest", matches for threat_arrest, video_call_demand, payment_gift_card,
+  payment_crypto_wire, credential_request and urgency_short don't count, and a cut-off there is not a cut-off.
+  Hindi negation after the verb ("गिरफ्तार नहीं करते", "कोई चीज़ नहीं होती") counts as negation.
+- "officers never question or arrest anyone": a list of negated verbs joined by or/and is one negated action.
+- threat_arrest: a match that denies itself ("CBI does not issue arrest ...") doesn't count; passport "police
+  verification" / "forwarded to the police for verification" is not a threat; a model quote whose only police
+  mention is the sender's name ("-Delhi Traffic Police") or police verification doesn't count. A threat stated as the
+  consequence of not responding ("Failure to respond to this summons may result in ... a bench warrant") is medium
+  when the letter has a real deadline (3+ days) and no urgency flag.
+- Cut-off wording denied inside the match ("Your account will not be blocked") is not a cut-off.
+- A model letter-date quote whose date is phrased as a deadline ("before 31-10-2026", "was due on 31 July 2026") is
+  not taken as the letter's date (the code's own finder already skipped such dates), so SMS with one date no longer
+  get urgency_short from a 0-day gap.
+- `.bank.in` (open only to RBI-regulated banks) and `.sbi` count as official hosts, like `.gov.in`.
+- A message that also offers "visit your (nearest/home) branch" keeps link_bait for a hidden link at medium, and
+  kyc_update_threat is not raised to strong by that link (short links and personal mobiles still make it strong).

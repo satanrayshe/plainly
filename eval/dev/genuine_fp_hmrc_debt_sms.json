@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_hmrc_debt_sms",
+ "label": "genuine",
+ "kind": "hmrc_sms",
+ "country": "UK",
+ "source_name": "GOV.UK, Check if a text message you've received from HMRC is genuine (Debt Recovery)",
+ "source_url": "https://www.gov.uk/guidance/check-if-a-text-message-youve-received-from-hmrc-is-genuine",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "HMRC\nWe have not got your payment of £1,286.40 for Self Assessment, which was due on 31 July 2026. We'd like to help you avoid any further penalties or interest. Pay now through your HMRC online account or search 'pay Self Assessment' on GOV.UK. If you cannot pay in full, call us on 0300 200 3822 to discuss a payment plan.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

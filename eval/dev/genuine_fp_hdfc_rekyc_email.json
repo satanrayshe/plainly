@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_hdfc_rekyc_email",
+ "label": "genuine",
+ "kind": "bank_email",
+ "country": "IN",
+ "source_name": "HDFC Bank (official site, now on the RBI-restricted .bank.in domain); RBI Kehta Hai KYC advice",
+ "source_url": "https://www.hdfc.bank.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "HDFC Bank\nDear Customer,\nYour KYC is due for update as per RBI guidelines. Update it easily through NetBanking or visit your nearest branch.\nClick here to update KYC\nFailing which, your account may be put on hold. HDFC Bank never asks for your OTP, PIN or password.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

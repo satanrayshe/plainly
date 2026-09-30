@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_itd_143_1_intimation",
+ "label": "genuine",
+ "kind": "itd_notice",
+ "country": "IN",
+ "source_name": "Income Tax Department e-Filing portal (help for individuals)",
+ "source_url": "https://www.incometax.gov.in/iec/foportal/help/individual-business-profession",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Income Tax Department\nCentralized Processing Centre, Bengaluru\nIntimation under section 143(1) of the Income-tax Act, 1961\nDate of issue: 24-09-2026\nAssessment Year: 2026-27\n\nDear Taxpayer,\nYour return of income for AY 2026-27 has been processed. A refund of Rs. 12,340 has been determined and will be credited to your pre-validated bank account.\nIf there is a difference between the income you returned and the income computed under section 143(1), the details are given in the attached computation.\nIf you disagree, you can file a rectification request after logging in to the e-Filing portal https://www.incometax.gov.in.\nFor queries call 1800 103 0025 or 1800 419 0025.\nThis is a system generated intimation and does not require a signature.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

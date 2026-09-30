@@ -1,0 +1,13 @@
+{
+ "id": "ftc-sunpass-toll-text",
+ "label": "scam",
+ "kind": "toll_sms",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2024/05/text-about-overdue-toll-charges-probably-scam",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/tolltextscam_1200x630_en.png",
+ "published": "2024-05-08",
+ "text_is": "transcribed_from_image",
+ "text": "New York SUNPASS: We've noticed a balance of $11.69 remaining on your record. To prevent a late fee of $50.00, please visit […] to settle your invoice.",
+ "notes": "Toll smishing text shown in the FTC graphic; the link is blurred on the page. Different source and wording from the IC3 toll text in the holdout. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in."
+}

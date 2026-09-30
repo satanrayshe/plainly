@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_irs_5071c_identity",
+ "label": "genuine",
+ "kind": "irs_notice",
+ "country": "US",
+ "source_name": "IRS, Identity and tax return verification service (CP5071 series letters)",
+ "source_url": "https://www.irs.gov/identity-theft-fraud-scams/identity-and-tax-return-verification-service",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Department of the Treasury\nInternal Revenue Service\nLetter 5071C\nDate: September 18, 2026\nTax year: 2025\n\nWe received a federal income tax return with your name and taxpayer identification number. To protect you from identity theft, we need to verify your identity before we can process the return.\n\nWhat you need to do\nVerify your identity online at www.irs.gov/verifyreturn. You will sign in with your IRS account. Have this letter, your 2025 tax return and your prior-year return ready.\nIf you can't verify online, call us at 800-830-5084. Our hours are Monday through Friday, 7 a.m. to 7 p.m. local time.\nIf you did not file this return, tell us so we can protect your account.\n\nWe can't process the return until you verify your identity. Please respond within 30 days from the date of this letter.\nWait 2 to 3 weeks after you verify before checking your refund at www.irs.gov/refunds.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

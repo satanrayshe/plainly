@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_trai_dnd_registered",
+ "label": "genuine",
+ "kind": "trai_sms",
+ "country": "IN",
+ "source_name": "TRAI, Unsolicited Commercial Communication (DND / 1909)",
+ "source_url": "https://trai.gov.in/consumer-info/telecom/unsolicited-commercial-communication",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Your request for Fully Blocked (DND) preference has been registered with ref no 1909260930123. It will be effective within 7 days. To change your preference SMS START to 1909 or use the TRAI DND app. To report spam calls or SMS, SMS the details to 1909.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

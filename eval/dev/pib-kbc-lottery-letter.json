@@ -1,0 +1,13 @@
+{
+ "id": "pib-kbc-lottery-letter",
+ "label": "scam",
+ "kind": "prize_scam",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 80,
+ "published": "2023-10-10",
+ "text_is": "transcribed_from_image",
+ "text": "KBC LOTTERY PROMOTION 2023\n(CERTIFIED PROGRAMME)\nCONGRATULATION :\nYOU ARE THE BONAFIED WINNER OF (25,00,000 RS/-\nSUBJECT : LETTER TO KBC WINNER TO GET LEGAL REGISTERATION.\nNAME : [recipient]\nLOTTERY AMOUNT: 25,00,000/-\nDEAR CUSTUMOR,\nYOU ARE ALREADY INFORMED THAT YOU ARE SELECTED AS WINNER OF 25,00,000 RS/-....($ 34,880 US DOLLARS).\nNOW TO COLLECT YOUR WINNING AMOUNT YOU HAVE TO REGISTER Y[…]\nFROM 'KBC LOTTERY PAYMENT BOARD', SO YOU ARE ADVISED TO […]P IN […]TACT\nWITH YOUR CLAIM OFFICER , MR. RANA PRATAP SINGH\nAND FOR LEGAL REGISTERATION FOLLOW AS PER DIRECTION .\nKBC REGISTRATION CHARG[…]: 6,[…]\nA. BACHAN / MUKESH AMBANI\nKBC. ADMIN---JIO. CHAIRMAN",
+ "notes": "KBC lottery / advance-fee prize letter (PIB caption: lottery of Rs 25 lakh on payment of a Rs 6,100 registration fee). The recipient's name is replaced with [recipient]; the small account/file/serial table and the address footer were left out because they are not legible. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

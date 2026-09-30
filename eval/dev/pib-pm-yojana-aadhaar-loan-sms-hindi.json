@@ -1,0 +1,13 @@
+{
+ "id": "pib-pm-yojana-aadhaar-loan-sms-hindi",
+ "label": "scam",
+ "kind": "loan_scam_sms",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 4,
+ "published": "2024-01-27",
+ "text_is": "transcribed_from_image",
+ "text": "प्रधानमंत्री योजना आधारकार्ड लोन 2% ब्याज, 50% माफ Call 8595311955",
+ "notes": "Hindi SMS offering a 'Pradhan Mantri Yojana' Aadhaar-card loan; PIB caption 'यह मैसेज फ़र्ज़ी है'. Hard case: short, Hindi, only a phone number. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

@@ -1,0 +1,13 @@
+{
+ "id": "pib-sbi-yono-pan-kyc-sms",
+ "label": "scam",
+ "kind": "kyc_update_sms",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 36,
+ "published": "2023-12-13",
+ "text_is": "transcribed_from_image",
+ "text": "Please wait...\nsayv-ayec-2af.vercel.app\nDear SBI-User-YONO {A\\c} will be blocked Today_immediately' Update Your PANCARD Self' KYC login YONO Netbankig click here\nhttps://cm91.short.gy/KYC_PAN",
+ "notes": "Bank KYC/PAN-update smishing impersonating SBI. The first two lines are the link preview shown above the SMS. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

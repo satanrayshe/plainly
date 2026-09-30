@@ -7,7 +7,7 @@ import unicodedata
 
 # Second-level suffixes that behave like TLDs, so "incometax.gov.in" has registrable label "incometax".
 MULTI_SUFFIXES = {
-    "gov.in", "nic.in", "co.in", "org.in", "net.in", "ac.in", "edu.in", "res.in", "firm.in", "gen.in", "ind.in",
+    "gov.in", "nic.in", "bank.in", "co.in", "org.in", "net.in", "ac.in", "edu.in", "res.in", "firm.in", "gen.in", "ind.in",
     "gov.uk", "co.uk", "org.uk", "ac.uk", "nhs.uk", "police.uk", "ltd.uk", "plc.uk", "me.uk",
     "com.au", "gov.au", "co.nz", "com.sg", "com.br", "co.za",
 }
@@ -26,7 +26,7 @@ FREEMAIL = {
 _TLDS = (
     "com|net|org|info|biz|gov|mil|edu|in|uk|us|co|io|me|ai|app|xyz|top|online|site|live|shop|club|vip|cc|tk|ml|"
     "ga|cf|gq|icu|cn|ru|pw|link|click|support|help|services|pro|ly|to|ws|tv|website|space|store|tech|fun|"
-    "today|world|cloud|digital|email|global|page|win|bid|loan|work|review|country|stream|download|zip|mov"
+    "today|world|cloud|digital|email|global|page|win|bid|loan|work|review|country|stream|download|zip|mov|li|gy|gd"
 )
 URL_RE = re.compile(
     r"(?:https?://|\bwww\.)[^\s<>\"'()\[\]{}]+"
@@ -52,6 +52,24 @@ _PHONE_CONTEXT = re.compile(
     r"फोन|मोबाइल|कॉल|हेल्पलाइन|संपर्क)",
     re.IGNORECASE,
 )
+
+# Link shorteners hide where a link goes. Matched on the whole host; the labels catch "tinyurl.co" style variants.
+SHORTENERS = {
+    "bit.ly", "bitly.com", "tinyurl.com", "goo.gl", "ow.ly", "is.gd", "v.gd", "buff.ly", "rb.gy", "cutt.ly",
+    "shorturl.at", "short.gy", "surl.li", "tiny.cc", "t.ly", "s.id", "rebrand.ly", "shorte.st", "bl.ink", "x.gd",
+    "t2m.io", "tiny.one", "u.to", "shrtco.de", "qrco.de", "urlz.fr", "clck.ru", "inx.lv", "1url.com", "lnkd.in",
+}
+_SHORTENER_LABELS = {"bitly", "tinyurl", "cutt", "shorturl", "rebrand", "shorte"}
+# Free website builders and app hosts: anyone can put up a page here in minutes, under any name.
+FREE_HOSTS = (
+    "vercel.app", "netlify.app", "web.app", "firebaseapp.com", "github.io", "pages.dev", "workers.dev",
+    "herokuapp.com", "glitch.me", "onrender.com", "weebly.com", "wixsite.com", "blogspot.com", "000webhostapp.com",
+    "ngrok.io", "ngrok-free.app", "repl.co", "godaddysites.com", "webflow.io", "framer.website", "square.site",
+)
+# Links that open a chat with a person rather than an organisation's website.
+CHAT_LINKS = ("wa.me", "api.whatsapp.com", "chat.whatsapp.com", "t.me", "telegram.me")
+# Government bulk mailers that send on an agency's behalf (IRS and many US agencies use GovDelivery).
+GOVERNMENT_MAILERS = ("govdelivery.com",)
 
 _CONFUSABLES = str.maketrans({
     "0": "o", "1": "l", "i": "l", "|": "l", "3": "e", "5": "s", "$": "s", "7": "t", "@": "a", "4": "a",
@@ -193,6 +211,17 @@ def is_government(host):
     return any(host == s or host.endswith("." + s) for s in GOVERNMENT_SUFFIXES)
 
 
+# Registrations restricted to vetted banks, so a link there is the bank's own site: .bank.in is open only to
+# RBI-regulated banks (RBI Statement on Developmental and Regulatory Policies, 7 February 2025; registrar IDRBT),
+# and .sbi is State Bank of India's own top-level domain. hdfcbank.com now redirects to hdfc.bank.in.
+RESTRICTED_BANK_SUFFIXES = ("bank.in", "sbi")
+
+
+def is_restricted_bank(host):
+    host = host_of(host)
+    return any(host.endswith("." + s) for s in RESTRICTED_BANK_SUFFIXES)
+
+
 def is_freemail(domain):
     domain = host_of(domain)
     return domain in FREEMAIL or any(domain.endswith("." + f) for f in FREEMAIL)
@@ -295,3 +324,44 @@ def lookalike_reason(host, brand_domains, brand_words):
     if punycode:
         return "uses punycode (xn--) characters that can disguise a web address"
     return None
+
+
+# ---------------------------------------------------------------- risky links and personal numbers
+
+def risky_link_reason(url_or_host):
+    """Why a link hides its real destination or owner, or None: shortener, raw IP address, free web host."""
+    host = host_of(url_or_host)
+    if not host:
+        return None
+    if any(on_domain(host, d) for d in SHORTENERS) or split_host(host)[0] in _SHORTENER_LABELS:
+        return "is a link shortener, which hides where the link really goes"
+    if re.fullmatch(r"\d{1,3}(?:\.\d{1,3}){3}", host):
+        return "is a bare internet (IP) address, not an organisation's website"
+    if any(on_domain(host, f) for f in FREE_HOSTS):
+        return "is on a free website host where anyone can put up a page under any name"
+    return None
+
+
+def is_chat_link(url_or_host):
+    host = host_of(url_or_host)
+    return any(on_domain(host, c) for c in CHAT_LINKS)
+
+
+def is_personal_mobile(phone, country=""):
+    """An Indian (6-9xxxx xxxxx) or UK (07...) mobile number: a person's phone, not an office line.
+
+    A bare 10-digit number is only read as Indian when the letter is Indian, or its country is unknown and the
+    number is not written the US way, (801) 317-8874 or 801-317-8874.
+    """
+    raw = (phone or "").strip()
+    digits = re.sub(r"\D", "", raw)
+    if country in ("", "UK") and re.fullmatch(r"(?:44|0)7\d{9}", digits):
+        return True
+    if re.fullmatch(r"91[6-9]\d{9}", digits):
+        return True
+    if not re.fullmatch(r"[6-9]\d{9}", digits) and not re.fullmatch(r"0[6-9]\d{9}", raw):
+        return False  # 0824-060-6707 is a landline with an area code; a mobile with a 0 is written 09810012345
+    if raw.startswith("+"):
+        return False
+    us_style = "(" in raw or re.fullmatch(r"\d{3}[-.\s]\d{3}[-.\s]\d{4}", raw)
+    return country == "IN" or (country == "" and not us_style)

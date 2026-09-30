@@ -255,10 +255,19 @@ def test_secrecy_negative(check, text):
 
 
 def test_unknown_contact_medium_when_agency_matched(check):
-    result = check(IRS_HEADER + "Call our office at 1-888-555-0199.")
+    result = check(IRS_HEADER + "Call 800-829-1040 or our office at 1-888-555-0199.")
     f = flag(result, "unknown_contact")
     assert f["severity"] == "medium"
     assert "800-829-1040" in f["why"]
+
+
+def test_no_official_contact_at_all_is_impersonation_mismatch(check):
+    """Claims the IRS but gives only someone else's number: same score as before, clearer name."""
+    result = check(IRS_HEADER + "Call our office at 1-888-555-0199.")
+    f = flag(result, "impersonation_mismatch")
+    assert f["severity"] == "medium"
+    assert "800-829-1040" in f["why"]
+    assert "unknown_contact" not in rules_of(result)
 
 
 def test_unknown_contact_info_without_agency(check):

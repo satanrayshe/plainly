@@ -50,7 +50,7 @@ def main():
         bedrock.reset_client()
         started = time.perf_counter()
         try:
-            result = pipeline.extract(image, "jpeg", "", agency_keys=keys, need_transcript=False, budget=Budget())
+            result = pipeline.extract(image, "jpeg", "", agency_keys=keys, transcript=False, budget=Budget())
         except bedrock.BedrockUnavailable as exc:
             failures += 1
             print(f"FAIL {model}: {exc}")

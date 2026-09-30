@@ -1,0 +1,13 @@
+{
+ "id": "pib-ncs-data-entry-job-email",
+ "label": "scam",
+ "kind": "job_scam",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 37,
+ "published": "2023-12-11",
+ "text_is": "transcribed_from_image",
+ "text": "Required job confirmation\nNational career servi[…]\nDear Ncs  Employee,\nCongratulation!\nWe are pleased to confirm that you have been selected to work for our company we are delighted to make you the following job offer as a DATA ENTRY OPERATOR.\nwe are glad to inform you that your resume has been selected for the job.  we are confident and look forward to working with you.  Please confirm your acceptance of this offer\nWe will provide you work from home job interested candidates send your name address contact details.\nWe are giving you welcome kit at your address by speed post.\nWe think that your experience and skills will be a valuable asset to our company.\nSALARY - 22K IN HAND MONTHLY\n[…]stomer support number : 8810549603 (9.00AM-6.30PM)",
+ "notes": "Fake job offer in the name of National Career Service. Hard case: no payment ask in this first message. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

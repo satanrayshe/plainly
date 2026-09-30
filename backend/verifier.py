@@ -27,6 +27,23 @@ _RBI = {"name": "Reserve Bank of India (RBI Kehta Hai)", "url": "https://rbikeht
 _NCRP = {"name": "National Cyber Crime Reporting Portal", "url": "https://cybercrime.gov.in"}
 _NCSC = {"name": "UK National Cyber Security Centre", "url": "https://www.ncsc.gov.uk/collection/phishing-scams"}
 _OWASP = {"name": "OWASP GenAI Security Project", "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"}
+_NCSC_SPOT = {"name": "UK National Cyber Security Centre",
+              "url": "https://www.ncsc.gov.uk/collection/phishing-scams/spot-scams"}
+_FTC_PRIZE = {"name": "FTC", "url": "https://consumer.ftc.gov/articles/fake-prize-sweepstakes-and-lottery-scams"}
+_FTC_JOB = {"name": "FTC", "url": "https://consumer.ftc.gov/articles/job-scams"}
+_FTC_ROBOCALL = {"name": "FTC", "url": "https://consumer.ftc.gov/articles/robocalls"}
+_FTC_INVOICE = {"name": "FTC", "url": "https://consumer.ftc.gov/consumer-alerts/2023/05/"
+                                      "those-urgent-emails-metamask-paypal-are-phishing-scams"}
+_PIB_FACTCHECK = {"name": "PIB Fact Check",
+                  "url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf"}
+_I4C_POWER = {"name": "Indian Cyber Crime Coordination Centre (I4C)",
+              "url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/"
+                     "FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf"}
+_I4C_JOBS = {"name": "Indian Cyber Crime Coordination Centre (I4C)",
+             "url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/"
+                    "FraudsterssendingFakeJobOfferSMSstoperpetrateCybercrime.pdf"}
+_GOVUK_CH = {"name": "Companies House (GOV.UK)",
+             "url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house"}
 
 RULES = {
     "payment_gift_card": {
@@ -89,6 +106,53 @@ RULES = {
         "severity": "medium", "title": "Tells you to keep it secret",
         "why": "Scammers tell you not to talk to family or your bank because those people would stop you.",
         "sources": {"default": _FTC_IMPOSTER, "IN": _NCRP},
+    },
+    "link_bait": {
+        "severity": "medium", "title": "Asks you to click a link to claim money, pay, or \"verify\" details",
+        "why": "Phishing messages get you to a fake page with a story: a refund, a bill, or an account that will be "
+               "blocked. Go to the organisation's website yourself instead of using the link.",
+        "sources": {"default": _FTC_PHISHING, "IN": _RBI, "UK": _NCSC_SPOT},
+    },
+    "shortened_or_raw_link": {
+        "severity": "medium", "title": "Uses a short link or a throwaway web address",
+        "why": "Short links (bit.ly, tinyurl), bare number addresses and free website hosts hide who really runs "
+               "the page. Official bodies link to their own website.",
+        "sources": {"default": _FTC_PHISHING, "IN": _PIB_FACTCHECK, "UK": _NCSC_SPOT},
+    },
+    "kyc_update_threat": {
+        "severity": "medium", "title": "Says your account or SIM will be blocked unless you update KYC or PAN",
+        "why": "Banks and telecom companies don't block you through a text with a link or a number to call. "
+               "KYC is updated at the branch, the official app or the official website.",
+        "sources": {"default": _RBI, "IN": _RBI},
+    },
+    "prize_or_refund_bait": {
+        "severity": "medium", "title": "Offers a prize, refund, loan or job out of the blue",
+        "why": "Money or a job you didn't ask for is the bait. Real refunds arrive without you having to click, "
+               "call or chat with anyone.",
+        "sources": {"default": _FTC_PRIZE, "IN": _PIB_FACTCHECK},
+    },
+    "unexpected_fee_to_release": {
+        "severity": "strong", "title": "Asks for a fee before you get a prize, refund, job or parcel",
+        "why": "Real prizes are free, and honest employers never ask you to pay for a job. A fee to release money "
+               "or goods is how these scams take your money.",
+        "sources": {"default": _FTC_PRIZE},
+    },
+    "press_to_connect": {
+        "severity": "medium", "title": "Tells you to press a number to speak to someone",
+        "why": "Recorded calls that say \"press 1 to speak to an officer\" are robocalls. Agencies don't reach you "
+               "this way; hang up and call the official number yourself.",
+        "sources": {"default": _FTC_ROBOCALL},
+    },
+    "callback_unofficial": {
+        "severity": "medium", "title": "Asks you to call or WhatsApp a number that isn't an official line",
+        "why": "Fake bills and disconnection texts give a number that goes straight to the scammer. Offices and "
+               "power companies don't use personal mobile numbers.",
+        "sources": {"default": _FTC_INVOICE, "IN": _I4C_POWER, "UK": _NCSC_SPOT},
+    },
+    "impersonation_mismatch": {
+        "severity": "medium", "title": "Claims to be an official body, but its contact details aren't that body's",
+        "why": "The letter uses an official name, but every address or number in it belongs to someone else.",
+        "sources": {"default": _FTC_IMPOSTER, "IN": _NCRP, "UK": _NCSC_SPOT},
     },
     "unknown_contact": {
         "severity": "info", "title": "Contact details are not on the official list",
@@ -168,6 +232,10 @@ def normalize_extraction(raw):
         "secrecy": _quote_items(raw, "secrecy"),
         "video_call": _quote_items(raw, "video_call"),
         "ai_instructions": _quote_items(raw, "ai_instructions"),
+        "link_requests": _quote_items(raw, "link_requests"),
+        "callback_requests": _quote_items(raw, "callback_requests"),
+        "account_verification_requests": _quote_items(raw, "account_verification_requests"),
+        "prize_or_refund_bait": _quote_items(raw, "prize_or_refund_bait"),
         "amounts": _quote_items(raw, "amounts", ("amount", "what")),
         "language_of_letter": _s(raw.get("language_of_letter"), 40),
         "transcript": _s(raw.get("transcript"), 20000),
@@ -201,10 +269,13 @@ def _negated(text, start, end):
         neg = negations[-1]
         clause_before = re.split(r"[,:]", prefix[:neg.start()])[-1]
         between = prefix[neg.end():]
-        if (not lexicon.CONDITIONAL.search(clause_before) and not lexicon.RESUMES.search(between)
+        verbs = lexicon.PROTECTIVE_VERB.match(between)  # "never question or arrest": the "or" joins two verbs
+        after_verbs = between[verbs.end():] if verbs else between
+        if (not lexicon.CONDITIONAL.search(clause_before) and not lexicon.RESUMES.search(after_verbs)
                 and _negation_covers(between)):
             return True
-    return bool(_AFTER_NEGATION.search(text[end:]))
+    return bool(_AFTER_NEGATION.search(text[end:])) or bool(
+        _non_latin_share(text[start:end]) > 0.5 and lexicon.HINDI_NEGATED_AFTER.search(text[end:]))
 
 
 def _negation_covers(between):
@@ -320,10 +391,59 @@ class _Check:
         return fallback or (None, None)
 
 
+def _reported(text, start, end):
+    """The match sits in a sentence that describes a scam as a warning ("Fraudsters may say ...")."""
+    return bool(lexicon.WARNING_FRAME.search(_sentence_around(text, start, end)))
+
+
+def _quote_disarmed(quote, regex, *, negatable=True, reported=False, request_verb=False, hit_ok=None):
+    """A model quote the code itself reads as a warning rather than a demand: framed as a scam warning, or every
+    hit of the rule's own pattern inside it is negated ("Do not share OTP", "never ask you to transfer money to a
+    'safe account'"). The model's quote gets the same negation test as the code's own match."""
+    if reported and lexicon.WARNING_FRAME.search(quote):
+        return True
+    if regex is None or not (negatable or request_verb):
+        return False
+    hits = list(regex.finditer(quote))
+    if not hits:
+        return False
+    if request_verb:
+        def off(m):
+            verb_start = m.start("verb") if m.group("verb") else m.start("verb2")
+            return bool(lexicon.VERB_NEGATION.search(quote[max(0, verb_start - 80):verb_start]))
+    else:
+        def off(m):
+            return _negated(quote, m.start(), m.end())
+    return all(off(m) or (hit_ok is not None and not hit_ok(m)) for m in hits)
+
+
+def _police_only_named(quote):
+    """A model threat quote whose only link to a threat is the police named as the sender or doing a passport
+    verification, with no consequence such as arrest or a case."""
+    if not lexicon.POLICE_BENIGN.search(quote) or lexicon.THREAT_CONSEQUENCE.search(quote):
+        return False
+    return not re.search(r"(?i)\bpolice\b", lexicon.POLICE_BENIGN.sub(" ", quote))
+
+
 def _rule(check, rule, *, regex=None, model_items=(), negatable=True, accept=None, model_accept=None,
+          reported=False, request_verb=False, hit_ok=None,
           found_detail="Found in the letter", pass_detail="Nothing like this in the letter"):
-    """Shared shape for the phrase rules: code regex on the text first, model quotes second."""
+    """Shared shape for the phrase rules: code regex on the text first, model quotes second.
+
+    reported: skip matches in sentences that warn about the scam (awareness messages quote the scam's words).
+    request_verb: the pattern has verb/verb2 groups and a model quote is disarmed by a negated request verb.
+    hit_ok: a test on the match text alone, applied to the code's matches and to the pattern's hits in a model quote.
+    """
     started = time.perf_counter()
+    if reported or hit_ok:
+        code_accept = accept
+        accept = lambda m: (not (reported and _reported(check.text, m.start(), m.end()))  # noqa: E731
+                            and (hit_ok is None or hit_ok(m)) and (code_accept is None or code_accept(m)))
+    base_model_accept = model_accept
+    model_accept = lambda i: (  # noqa: E731
+        not _quote_disarmed(i["quote"], regex, negatable=negatable, reported=reported, request_verb=request_verb,
+                            hit_ok=hit_ok)
+        and (base_model_accept is None or base_model_accept(i)))
     m = _first(regex, check.text, negatable=negatable, accept=accept) if regex is not None else None
     step = f"rule:{rule}"
     if m:
@@ -392,19 +512,26 @@ def verify(letter_text, extraction=None, *, grounding_source="textract", today=N
     dates_ms = time.perf_counter() - dates_started
 
     # -- rules, in contract order
-    _rule(check, "payment_gift_card", regex=lexicon.GIFT_CARD, model_items=ex["payment_requests"],
+    _rule(check, "payment_gift_card", regex=lexicon.GIFT_CARD, model_items=ex["payment_requests"], reported=True,
           model_accept=lambda i: bool(lexicon.GIFT_CARD.search(f"{i.get('method')} {i.get('quote')}")),
           found_detail="The letter asks for gift cards", pass_detail="No gift-card payment requested")
-    _rule(check, "payment_crypto_wire", regex=lexicon.CRYPTO_WIRE, model_items=ex["payment_requests"],
+    _rule(check, "payment_crypto_wire", regex=lexicon.CRYPTO_WIRE, model_items=ex["payment_requests"], reported=True,
           model_accept=lambda i: bool(lexicon.CRYPTO_WIRE.search(f"{i.get('method')} {i.get('quote')}")),
           found_detail="The letter asks for crypto, a wire transfer or a \"safe account\"",
           pass_detail="No crypto, wire or \"safe account\" payment requested")
     _rule_upi(check, agency)
-    _rule(check, "credential_request", regex=lexicon.CREDENTIAL_REQUEST, negatable=False,
+    _rule(check, "credential_request", regex=lexicon.CREDENTIAL_REQUEST, negatable=False, reported=True,
+          request_verb=True,
           accept=lambda m: _is_credential_request(check, m), model_items=ex["credential_requests"],
+          # the quote must name a secret the code recognises ("enter the IP PIN" on your own return is not one)
+          model_accept=lambda i: bool(lexicon.CREDENTIAL_WORD.search(i["quote"])),
           found_detail="The letter asks you to share a secret code or ID number",
           pass_detail="No request for an OTP, PIN, password or full ID number")
-    _rule(check, "threat_arrest", regex=lexicon.THREAT, model_items=ex["threats"],
+    _rule(check, "threat_arrest", regex=lexicon.THREAT, model_items=ex["threats"], reported=True,
+          # "CBI does not issue arrest warrants over the phone" denies the threat inside the match itself
+          hit_ok=lambda m: not lexicon.CUTOFF_DENIED.search(m.group()),
+          # advice to report to the police, or the police named only as the sender, threatens nothing
+          model_accept=lambda i: not lexicon.REPORT_TO_POLICE.search(i["quote"]) and not _police_only_named(i["quote"]),
           found_detail="The letter threatens arrest, police or legal action",
           pass_detail="No threat of arrest, police or deportation")
     _rule_video(check)
@@ -415,12 +542,23 @@ def verify(letter_text, extraction=None, *, grounding_source="textract", today=N
     _rule(check, "secrecy", regex=lexicon.SECRECY, negatable=False, model_items=ex["secrecy"],
           accept=lambda m: not lexicon.CREDENTIAL_WORD.search(check.text[m.start():m.end() + 30]),
           found_detail="The letter tells you to keep this to yourself", pass_detail="No request for secrecy")
+    links = _Links(check, agency, contacts.find_urls(text), phones, lookalike_hosts, freemail_hosts)
+    _rule_shortened_link(check, links)
+    _rule_link_bait(check, links)
+    _rule_callback(check, links)
+    _rule_kyc(check, links)
+    _rule_bait(check, links)
+    _rule_fee(check)
+    _rule_press(check)
     official_hits = _rule_unknown_contact(check, agency, phones, hosts, short_official,
-                                          skip=set(lookalike_hosts) | set(freemail_hosts))
+                                          skip=set(lookalike_hosts) | set(freemail_hosts),
+                                          bare_shared=links.bare_shared, header_agency=links.header_agency)
+    _rule_impersonation_sender(check)
     _rule_injection_model(check)
 
     _urgency_from_deadlines(check, letter_date, deadlines)
-    detail = (f"Letter date {letter_date.isoformat()} ({letter_date_how}). " if letter_date
+    _threat_if_ignored(check, _has_real_deadline(deadlines, letter_date or check.today))
+    detail =(f"Letter date {letter_date.isoformat()} ({letter_date_how}). " if letter_date
               else "No letter date found. ")
     detail += f"{len(deadlines)} deadline(s) worked out in code." if deadlines else "No deadlines found."
     check.add_trace("dates", "done", detail)
@@ -517,7 +655,7 @@ def _is_credential_request(check, m):
 
 
 def _official_host(check, host):
-    return contacts.is_government(host) or any(
+    return contacts.is_government(host) or contacts.is_restricted_bank(host) or any(
         contacts.on_domain(host, d) for d in agencies.all_domains(check.registry))
 
 
@@ -583,15 +721,18 @@ def _rule_video(check):
     started = time.perf_counter()
     text = check.text
     m = _first(lexicon.VIDEO_CALL, text,
-               accept=lambda m: not lexicon.VIDEO_KYC.search(text[max(0, m.start() - 20):m.end() + 20]))
-    m = m or _first(lexicon.STAY_ON_CALL, text, negatable=False)
+               accept=lambda m: not lexicon.VIDEO_KYC.search(text[max(0, m.start() - 20):m.end() + 20])
+               and not _reported(text, m.start(), m.end()))
+    m = m or _first(lexicon.STAY_ON_CALL, text, negatable=False,
+                    accept=lambda m: not _reported(text, m.start(), m.end()))
     if m:
         check.flag("video_call_demand", quote=snippet(text, m.start(), m.end()),
                    grounded=check.code_grounded(m.start()))
         check.add_trace("rule:video_call_demand", "flag", "The letter asks for a video call or to stay on the line",
                         started)
         return
-    quote, ok = check.model_quote(check.ex["video_call"])
+    quote, ok = check.model_quote(check.ex["video_call"],
+                                  lambda i: not _quote_disarmed(i["quote"], lexicon.VIDEO_CALL, reported=True))
     if quote:
         check.flag("video_call_demand", quote=quote, grounded=ok)
         check.add_trace("rule:video_call_demand", "flag", "Reported by the model", started)
@@ -648,7 +789,8 @@ def _rule_urgency(check, real_deadline):
             return False
         # "If you can't pay the full amount immediately, ..." offers help; it doesn't set a deadline.
         clause_start = max(check.text.rfind(c, 0, m.start()) for c in _CLAUSE_BREAKS) + 1
-        return not _CANNOT_PAY.search(check.text[clause_start:m.start()])
+        return not _CANNOT_PAY.search(check.text[clause_start:m.start()]) and not _reported(
+            check.text, m.start(), m.end())
 
     m = _first(lexicon.URGENCY, check.text, accept=short_enough)
     if not m and not real_deadline:
@@ -677,6 +819,24 @@ def _urgency_from_deadlines(check, letter_date, deadlines):
             return
 
 
+def _threat_if_ignored(check, real_deadline):
+    """A jury summons says "Failure to respond to this summons may result in ... a bench warrant" and gives you
+    weeks. Stated as the consequence of ignoring a letter with a real deadline and no rush, the threat counts as
+    medium; "pay within 24 hours or a warrant will be issued" stays strong because the urgency rule fires."""
+    if not real_deadline or any(f["rule"] == "urgency_short" for f in check.flags):
+        return
+    for f in check.flags:
+        if f["rule"] == "threat_arrest" and f["severity"] == "strong" and f["quote"] \
+                and lexicon.IF_IGNORED.search(f["quote"]):
+            f["severity"] = "medium"
+            f["why"] = ("It warns of legal steps if you ignore it, and gives you a real deadline. Courts and agencies "
+                        "write like this, but so do scammers: check the case with the court or agency directly, "
+                        "using contact details you find yourself.")
+            for entry in check.trace:
+                if entry["step"] == "rule:threat_arrest":
+                    entry["detail"] += "; stated as the consequence of not responding by a real deadline, so medium"
+
+
 def _rule_freemail(check, emails, agency):
     started = time.perf_counter()
     free = [e for e in emails if contacts.is_freemail(e.split("@", 1)[1])]
@@ -695,13 +855,18 @@ def _rule_freemail(check, emails, agency):
     return [contacts.host_of(e.split("@", 1)[1]) for e in free]
 
 
-def _rule_unknown_contact(check, agency, phones, hosts, short_official, skip):
-    """Registry comparison. Domains first, then phones. Returns the official contacts found in the letter."""
+def _rule_unknown_contact(check, agency, phones, hosts, short_official, skip, bare_shared=(), header_agency=False):
+    """Registry comparison. Domains first, then phones. Returns the official contacts found in the letter.
+
+    bare_shared: shared domains (gov.uk) that appear only as a bare name, like a "GOV.UK" logo line. Scam emails
+    copy that branding, so it neither confirms nor contradicts the agency.
+    """
     started = time.perf_counter()
     registry = check.registry
     domain_hits, phone_hits, unknown = [], [], []
     for host in hosts:
-        if host in skip or contacts.is_freemail(host):
+        if host in skip or contacts.is_freemail(host) or host in bare_shared or any(
+                contacts.on_domain(host, m) for m in contacts.GOVERNMENT_MAILERS):
             continue
         if agency and agencies.is_official_host(agency, host):
             domain_hits.append(host)
@@ -727,7 +892,22 @@ def _rule_unknown_contact(check, agency, phones, hosts, short_official, skip):
         else:
             check.add_trace(step, "unknown", "No agency to compare contacts against", started)
         return official
-    if unknown:
+    if unknown and not official and header_agency:
+        first = unknown[0]
+        idx = check.text.lower().find(first.lower())
+        official_line = (agency.get("phones") or [{}])[0].get("number") or agency.get("official_site")
+        listed = ", ".join(unknown[:3]) + (" and more" if len(unknown) > 3 else "")
+        asks = _asks_through_message(check)
+        check.flag("impersonation_mismatch",
+                   quote=snippet(check.text, idx, idx + len(first)) if idx >= 0 else first,
+                   grounded=check.code_grounded(idx), severity="strong" if asks else "medium",
+                   why=f"It claims to be {agency['name']}, but none of its contacts ({listed}) are "
+                       f"{agency['name']}'s (checked {agency.get('checked_on')})"
+                       + (f", and it asks you to act through them ({asks})." if asks else ".")
+                       + f" Use {official_line} instead.")
+        check.add_trace(step, "flag", f"No official contact; not official: {listed}"
+                                      + (f"; it also {asks}" if asks else ""), started)
+    elif unknown:
         first = unknown[0]
         idx = check.text.lower().find(first.lower())
         official_line = (agency.get("phones") or [{}])[0].get("number") or agency.get("official_site")
@@ -743,6 +923,386 @@ def _rule_unknown_contact(check, agency, phones, hosts, short_official, skip):
     else:
         check.add_trace(step, "unknown", "The letter gives no phone number, link or email to compare", started)
     return official
+
+
+# ---------------------------------------------------------------- links, lures and call-backs
+
+class _Links:
+    """What the new rules share about the letter's links, numbers and threats, worked out once."""
+
+    def __init__(self, check, agency, urls, phones, lookalike_hosts, freemail_hosts):
+        text = check.text
+        self.agency = agency
+        header = "\n".join([line for line in text.splitlines() if line.strip()][:6])
+        # The agency is the claimed sender (letterhead, SMS sender, subject), not just mentioned in passing.
+        self.header_agency = bool(agency) and agencies.named_in(agency, header)
+        self.urls = urls
+        self.lookalike = set(lookalike_hosts)
+        self.risky = []
+        for url, start, _end in urls:
+            host = contacts.host_of(url)
+            reason = contacts.risky_link_reason(host) or (
+                "imitates an official web address" if host in self.lookalike else None)
+            if reason:
+                self.risky.append((url, start, reason))
+        self.chat = [(url, start) for url, start, _end in urls if contacts.is_chat_link(url)]
+        self.branch_route = bool(lexicon.BRANCH_ROUTE.search(text))
+        self.mobiles = [p for p in phones if contacts.is_personal_mobile(p, check.country)]
+        self.freemail = list(freemail_hosts)
+        # "Your account will not be blocked" and "fraudsters threaten that your number will be disconnected" are
+        # not threats to the reader.
+        self.cutoff = _first(lexicon.CUTOFF_THREAT, text, accept=lambda m: not lexicon.CUTOFF_DENIED.search(
+            m.group()) and not _reported(text, m.start(), m.end()))
+        shared = agencies.shared_domains(check.registry)
+        bare = {}
+        for url, _start, _end in urls:
+            host = contacts.host_of(url)
+            if host in shared:
+                plain = not re.match(r"(?i)https?://|www\.", url) and "/" not in url
+                bare[host] = bare.get(host, True) and plain
+        self.bare_shared = {h for h, is_bare in bare.items() if is_bare}
+
+    def official(self, check, host):
+        return _official_host(check, host) or any(contacts.on_domain(host, m) for m in contacts.GOVERNMENT_MAILERS)
+
+    def unofficial_channel(self):
+        """A way to respond that leads to a stranger rather than an organisation, described for the reader."""
+        if self.risky:
+            return f"a link that {self.risky[0][2]}"
+        if self.chat:
+            return "a WhatsApp or Telegram chat"
+        if self.mobiles:
+            return f"a personal mobile number ({self.mobiles[0]})"
+        if self.freemail:
+            return f"a free email address ({self.freemail[0]})"
+        return ""
+
+    def agency_name(self):
+        return self.agency["name"] if self.agency else "the sender"
+
+
+def _model_severity(severity, grounded):
+    """New model-fed rules: a quote the independent reader never saw counts for nothing."""
+    return "info" if grounded is False else severity
+
+
+def _line_window(text, start, end):
+    """The line holding a match plus the next line (a link often sits on its own line under "click here")."""
+    lo = text.rfind("\n", 0, start) + 1
+    first_end = text.find("\n", end)
+    if first_end == -1:
+        return lo, len(text)
+    second_end = text.find("\n", first_end + 1)
+    return lo, len(text) if second_end == -1 else second_end
+
+
+def _link_verdict(check, links, link_urls):
+    """-> (severity, why) for a request to use a link; None when every link it could mean is official."""
+    name = links.agency_name()
+    if link_urls:
+        unofficial = [u for u in link_urls if not links.official(check, contacts.host_of(u))]
+        if not unofficial:
+            return None
+        for url in unofficial:
+            host = contacts.host_of(url)
+            reason = contacts.risky_link_reason(host) or (
+                "imitates an official web address" if host in links.lookalike else None)
+            if reason:
+                return "strong", f"It asks you to use a link, and {host} {reason}."
+        host = contacts.host_of(unofficial[0])
+        if links.header_agency:
+            return "strong", (f"It claims to be {name} but sends you to {host}, which is not {name}'s website. "
+                              f"{name} links only to its own site.")
+        return "medium", None
+    if links.header_agency:
+        return "strong", (f"It claims to be {name} but hides where the link goes. {name} does not ask you to verify "
+                          f"details, pay or claim money through a link in a message.")
+    if links.cutoff and not links.branch_route:  # offering the branch instead is how genuine reminders read
+        return "strong", ("The link is hidden behind a button or \"click here\", and the message threatens to block, "
+                          "suspend or cut something off if you don't use it.")
+    return "medium", None
+
+
+def _rule_link_bait(check, links):
+    started = time.perf_counter()
+    text = check.text
+    step = "rule:link_bait"
+    m = _first(lexicon.LINK_BYPASS, text)
+    if m:
+        check.flag("link_bait", quote=snippet(text, m.start(), m.end()), grounded=check.code_grounded(m.start()),
+                   severity="strong",
+                   why="It tells you to reply or copy the link into your browser. Phones switch off links in texts "
+                       "from strangers; this trick switches them back on so you land on the scam page.")
+        check.add_trace(step, "flag", "The message tells you to reply or copy the link to make it work", started)
+        return
+    candidates = [(c.start(), c.end()) for c in lexicon.LINK_CTA.finditer(text)
+                  if not _negated(text, c.start(), c.end())]
+    # A button-like line only counts when the letter names no official website at all: genuine notices
+    # have headings like "Check your refund status" with the official site on the next line or page.
+    if not any(links.official(check, contacts.host_of(u)) and contacts.host_of(u) not in links.bare_shared
+               for u, _s, _e in links.urls):
+        candidates += [(c.start(), c.end()) for c in lexicon.BUTTON_LINE.finditer(text)]
+    best = None
+    all_official = False
+    for start, end in candidates:  # "click here" wording first, then button-like lines
+        lo, hi = _line_window(text, start, end)
+        if not lexicon.LINK_PURPOSE.search(text[lo:hi]):
+            continue
+        link_urls = [u for u, s, _e in links.urls if lo <= s < hi] or [
+            u for u, _s, _e in links.urls if not links.official(check, contacts.host_of(u))]
+        verdict = _link_verdict(check, links, link_urls)
+        if verdict is None:
+            all_official = True
+            continue
+        if best is None or POINTS[verdict[0]] > POINTS[best[0]]:
+            best = (verdict[0], verdict[1], start, end)
+        if verdict[0] == "strong":
+            break
+    if best:
+        severity, why, start, end = best
+        check.flag("link_bait", quote=snippet(text, start, end), grounded=check.code_grounded(start),
+                   severity=severity, why=why)
+        check.add_trace(step, "flag", f"Asks you to use a link ({severity})", started)
+        return
+    for item in check.ex["link_requests"][:MAX_QUOTES_PER_RULE]:
+        quote = item["quote"]
+        quote_urls = [u for u, _s, _e in contacts.find_urls(quote)]
+        if not quote or not (quote_urls or re.search(r"(?i)\blink|\bclick|\btap\b|\bbutton|लिंक", quote)):
+            continue  # the code only takes a quote that itself mentions a link
+        if _quote_disarmed(quote, lexicon.LINK_CTA, reported=True):
+            continue  # "Do not click on links in SMS asking you to update KYC" is advice, not a request
+        verdict = _link_verdict(check, links, quote_urls)
+        if verdict is None:
+            continue
+        ok = check.ground(quote)
+        check.flag("link_bait", quote=quote, grounded=ok, severity=_model_severity(verdict[0], ok), why=verdict[1])
+        check.add_trace(step, "flag", "Reported by the model; the link was checked in code", started)
+        return
+    check.add_trace(step, "pass", "Every link it asks you to use is an official one" if all_official
+                    else "No request to click a link to claim, pay or verify", started)
+
+
+def _rule_shortened_link(check, links):
+    started = time.perf_counter()
+    hidden = [(u, s, r) for u, s, r in links.risky if contacts.risky_link_reason(u)]
+    if not hidden:
+        check.add_trace("rule:shortened_or_raw_link", "pass", "No short links, bare IP addresses or free web hosts",
+                        started)
+        return
+    url, start, reason = hidden[0]
+    host = contacts.host_of(url)
+    check.flag("shortened_or_raw_link", quote=snippet(check.text, start, start + len(url)),
+               grounded=check.code_grounded(start),
+               why=f"{host} {reason}. Official bodies link to their own website.")
+    check.add_trace("rule:shortened_or_raw_link", "flag", f"{host} {reason}", started)
+
+
+def _call_asked(text, start):
+    """Is the reader told to call or message this number? Looks back over this line and the one before."""
+    line_start = text.rfind("\n", 0, start)
+    prev_start = text.rfind("\n", 0, max(0, line_start)) + 1 if line_start > 0 else 0
+    return bool(lexicon.CALL_VERB.search(text[max(prev_start, start - 90):start]))
+
+
+def _rule_callback(check, links):
+    started = time.perf_counter()
+    text = check.text
+    step = "rule:callback_unofficial"
+    urgent = any(f["rule"] == "urgency_short" for f in check.flags)
+    claims = _claims(check, lexicon.ORGANISATION, links.agency)
+    registry = check.registry["agencies"]
+    best = None
+    numbers = [(p, s, e, contacts.is_personal_mobile(p, check.country)) for p, s, e in contacts.find_phones(text)
+               if contacts.plausible_for_country(p, check.country)]
+    numbers += [(u, s, s + len(u), True) for u, s in links.chat]
+    for number, start, end, personal in numbers:
+        if any(agencies.is_official_phone(a, number) for a in registry):
+            continue
+        chat = contacts.is_chat_link(number)
+        if not (chat or _call_asked(text, start)):
+            continue
+        not_you = lexicon.NOT_YOU.search(text[max(0, start - 250):start])
+        if personal and claims:
+            severity = "strong" if links.cutoff else "medium"
+            why = ("It claims to be an organisation but gives a personal " + ("WhatsApp chat" if chat else
+                   "mobile number") + (", and threatens to cut off or block your service. That is how fake "
+                                       "disconnection and KYC messages work." if links.cutoff else "."))
+        elif links.cutoff and urgent:
+            severity, why = "strong", ("It threatens to cut off or block your service within hours unless you call "
+                                       "this number. Real providers give written notice and use their official "
+                                       "helpline.")
+        elif links.cutoff or not_you:
+            severity, why = "medium", ("It asks you to call a number it gives to stop a charge or a cut-off. Use "
+                                       "the number on the company's own website or your bill instead." if not_you
+                                       else None)
+        else:
+            continue
+        if best is None or POINTS[severity] > POINTS[best[0]]:
+            best = (severity, why, start, end)
+    if best:
+        severity, why, start, end = best
+        check.flag("callback_unofficial", quote=snippet(text, start, end), grounded=check.code_grounded(start),
+                   severity=severity, why=why)
+        check.add_trace(step, "flag", f"Asks you to call or message a number that is not official ({severity})",
+                        started)
+        return
+    if links.cutoff:
+        quote, ok = check.model_quote(check.ex["callback_requests"],
+                                      lambda i: bool(contacts.find_phones(i["quote"]) or "wa.me" in i["quote"]))
+        if quote:
+            check.flag("callback_unofficial", quote=quote, grounded=ok, severity=_model_severity("medium", ok))
+            check.add_trace(step, "flag", "Reported by the model, together with a cut-off threat", started)
+            return
+    check.add_trace(step, "pass", "No pressure to call a number that isn't official", started)
+
+
+_ASKS = {
+    "link_bait": "asks you to use a link",
+    "payment_gift_card": "asks for payment by gift card",
+    "payment_crypto_wire": "asks for crypto or a wire transfer",
+    "payment_personal_upi": "asks for payment to a personal UPI ID",
+    "credential_request": "asks for a secret code or ID number",
+    "prize_or_refund_bait": "offers money or a job",
+    "callback_unofficial": "asks you to call a number that isn't official",
+    "kyc_update_threat": "asks you to update KYC",
+    "unexpected_fee_to_release": "asks for a fee",
+}
+
+
+def _asks_through_message(check):
+    """What the letter asks you to do through its own contacts, if anything (a flagged request)."""
+    for f in check.flags:
+        if f["rule"] in _ASKS and f["severity"] != "info":
+            return _ASKS[f["rule"]]
+    return ""
+
+
+def _rule_kyc(check, links):
+    started = time.perf_counter()
+    text = check.text
+    step = "rule:kyc_update_threat"
+    m = _first(lexicon.KYC_TERM, text)
+    if m and links.cutoff and lexicon.KYC_ACTION.search(text):
+        via = next((f for f in check.flags if f["rule"] in ("link_bait", "callback_unofficial")
+                    and f["severity"] != "info"), None)
+        # A link counts against it unless the message also sends you to the branch; a short or throwaway link or
+        # a personal mobile always does.
+        severity = "strong" if (via and not links.branch_route) or links.risky or links.mobiles else "medium"
+        check.flag("kyc_update_threat", quote=snippet(text, m.start(), m.end()),
+                   grounded=check.code_grounded(m.start()), severity=severity,
+                   why=("It threatens to block your account or SIM unless you update KYC or PAN"
+                        + (" through a link or number in the message. Banks and telecom companies don't do that; "
+                           "update KYC at the branch or in the official app." if severity == "strong"
+                           else ". Check with your bank or provider directly, not through this message.")))
+        check.add_trace(step, "flag", f"KYC or PAN update demanded under threat of a block ({severity})", started)
+        return
+    if links.cutoff:
+        quote, ok = check.model_quote(check.ex["account_verification_requests"],
+                                      lambda i: bool(lexicon.KYC_TERM.search(i["quote"])))
+        if quote:
+            check.flag("kyc_update_threat", quote=quote, grounded=ok, severity=_model_severity("medium", ok))
+            check.add_trace(step, "flag", "Reported by the model, together with a block threat", started)
+            return
+    check.add_trace(step, "pass", "No KYC or PAN update demanded under threat of a block", started)
+
+
+def _money_waiting(check, links):
+    """"Your refund of Rs 15,490 is approved, verify your account at <link>": money you must act to receive."""
+    text = check.text
+
+    def accept(m):
+        sentence = _sentence_around(text, m.start(), m.end())
+        if not (lexicon.MONEY_CLAIMED.search(sentence) and lexicon.CLAIM_ACTION.search(sentence)):
+            return False
+        if any(links.official(check, contacts.host_of(u)) for u, _s, _e in contacts.find_urls(sentence)):
+            return False  # "check your refund status at www.irs.gov/refunds"
+        phones = contacts.find_phones(sentence)
+        return not phones or not all(any(agencies.is_official_phone(a, p) for a in check.registry["agencies"])
+                                     for p, _s, _e in phones)
+
+    return _first(lexicon.MONEY_WAITING, text, accept=accept)
+
+
+def _rule_bait(check, links):
+    started = time.perf_counter()
+    text = check.text
+    step = "rule:prize_or_refund_bait"
+    m = (_first(lexicon.PRIZE_LURE, text) or _first(lexicon.JOB_LURE, text) or _first(lexicon.LOAN_LURE, text)
+         or _money_waiting(check, links))
+    channel = links.unofficial_channel()
+    if m:
+        severity = "strong" if channel else "medium"
+        check.flag("prize_or_refund_bait", quote=snippet(text, m.start(), m.end()),
+                   grounded=check.code_grounded(m.start()), severity=severity,
+                   why=("Money or a job you didn't ask for is the bait" + (
+                       f", and the only way to claim it is {channel}. Real refunds, prizes and jobs don't come "
+                       f"through a stranger's number or link." if channel else
+                       ". Real refunds arrive without you having to click, call or chat with anyone.")))
+        check.add_trace(step, "flag", f"Unexpected prize, refund, loan or job offer ({severity})", started)
+        return
+    quote, ok = check.model_quote(check.ex["prize_or_refund_bait"])
+    if quote:
+        check.flag("prize_or_refund_bait", quote=quote, grounded=ok, severity=_model_severity("medium", ok))
+        check.add_trace(step, "flag", "Reported by the model", started)
+        return
+    check.add_trace(step, "pass", "No unexpected prize, refund, loan or job offer", started)
+
+
+def _rule_fee(check):
+    started = time.perf_counter()
+    text = check.text
+    step = "rule:unexpected_fee_to_release"
+    m = _first(lexicon.FEE_TO_RELEASE, text, accept=lambda m: not re.search(
+        r"(?i)\brefund\w*\s+(?:of\s+)?(?:the\s+|your\s+)?$", text[max(0, m.start() - 30):m.start()]))
+    if m and lexicon.FEE_CONTEXT_STRONG.search(text):
+        check.flag("unexpected_fee_to_release", quote=snippet(text, m.start(), m.end()),
+                   grounded=check.code_grounded(m.start()))
+        check.add_trace(step, "flag", "A fee stands between you and a prize, refund or job", started)
+    elif m and lexicon.FEE_CONTEXT_PARCEL.search(text):
+        check.flag("unexpected_fee_to_release", quote=snippet(text, m.start(), m.end()),
+                   grounded=check.code_grounded(m.start()), severity="medium",
+                   why="It wants a fee before a parcel is released. Real customs charges are paid on the carrier's "
+                       "own website or on delivery; check with the carrier directly.")
+        check.add_trace(step, "flag", "A fee stands between you and a parcel (medium: real customs charges exist)",
+                        started)
+    else:
+        check.add_trace(step, "pass", "No fee to release a prize, refund, job or parcel", started)
+
+
+def _rule_press(check):
+    _rule(check, "press_to_connect", regex=lexicon.PRESS_TO_CONNECT,
+          found_detail="It tells you to press a number to be connected",
+          pass_detail="No \"press 1\" instruction")
+
+
+def _rule_impersonation_sender(check):
+    """"From: Companies House <x@ezybizz.com>": the email names an official body but comes from somewhere else."""
+    started = time.perf_counter()
+    step = "rule:impersonation_mismatch"
+    if any(f["rule"] == "impersonation_mismatch" for f in check.flags):
+        check.add_trace(step, "flag", "It claims a registry agency but gives none of its contacts (see the registry "
+                                      "check)", started)
+        return
+    text = check.text
+    registry = check.registry["agencies"]
+    for m in lexicon.FROM_HEADER.finditer(text):
+        name = m.group("name").strip()
+        domain = contacts.host_of(m.group("addr").rsplit("@", 1)[1])
+        official_name = lexicon.GOVERNMENT_OR_UTILITY.search(name) or any(agencies.named_in(a, name) for a in registry)
+        if not official_name or not domain or _official_host(check, domain) or any(
+                contacts.on_domain(domain, g) for g in contacts.GOVERNMENT_MAILERS):
+            continue
+        asks = _asks_through_message(check) or (
+            "asks you to verify your identity or details" if _first(lexicon.ACCOUNT_VERIFY, text) else "")
+        check.flag("impersonation_mismatch", quote=snippet(text, m.start(), m.end()),
+                   grounded=check.code_grounded(m.start()), severity="strong" if asks else "medium",
+                   why=f"The email says it is from {name} but was sent from {domain}, which is not a government "
+                       f"address" + (f", and it {asks}." if asks else "."))
+        check.add_trace(step, "flag", f"Sender name {name!r} but address on {domain}"
+                                      + (f"; it {asks}" if asks else ""), started)
+        return
+    if not any(t["step"] == step for t in check.trace):
+        check.add_trace(step, "pass", "No official name paired with someone else's contact details", started)
 
 
 def _rule_injection_model(check):
@@ -763,9 +1323,11 @@ def _rule_injection_model(check):
 def _letter_date(check):
     quote = check.ex["letter_date"]["quote"]
     if quote and check.ground(quote) is not False:
-        parsed = dates.parse_date(quote, check.country)
-        if parsed:
-            return parsed, "quoted from the letter"
+        found = dates.find_dates(quote, check.country)
+        # "Pay before 31-10-2026" or "which was due on 31 July 2026" is a deadline, not the letter's own date;
+        # the code's own letter-date finder skips such dates too.
+        if found and found[0] not in dates.deadline_dates(quote, check.country):
+            return found[0][0], "quoted from the letter"
     parsed, _raw = dates.find_letter_date(check.text, check.country)
     if parsed:
         return parsed, "found in the letter text"

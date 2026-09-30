@@ -1,0 +1,13 @@
+{
+ "id": "ftc-irs-refund-offset-email",
+ "label": "scam",
+ "kind": "fake_tax_notice",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2024/01/irs-doesnt-send-tax-refunds-email-or-text",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_sm/private/consumer_ftc_gov/images/irs-message.png",
+ "published": "2024-01-23",
+ "text_is": "transcribed_from_image",
+ "text": "Department of Treasury\nInternal Revenue Service\nAtlanta, GA 39901-0025\nYour 2023 Form 1040 overpayment was applied to tax you owe.\nRefund: $650.00\nWe applied for all or part of your $1000.00 overpayment from your 2023 tax return to the amount you owe for other tax years. As a result, you are due a refund of $650.00.\nWhat you need to do\nfill your document in this link\nCheck Your Refund\nNext steps\nWe’ll send you a refund for $650.00 (the remainder of overpayment if you don’t owe other tax or debts we’re required to collect or elected to have it applied to your next year’s estimated tax.\nYou may receive another notice from us in the next few weeks.\nAdditional information\nKeep this notice for your records.\nIf you need assistance, please don’t hesitate to contact us.",
+ "notes": "IRS-impersonation refund email that copies the layout of a real CP notice (image alt 'IRS scam letter'). Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Hard case: no money demand, no threat; the only tell is a link in an 'IRS' email."
+}

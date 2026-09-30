@@ -136,9 +136,11 @@ The rules were frozen before the holdout set was scored. Synthetic letters and r
 - Synthetic: generated labeled letters in `eval/synthetic/`.
 - Metrics: verdict precision and recall, false "consistent with genuine" verdicts on scam letters (the number that matters most; target 0), deadline accuracy and quote-grounding rate.
 
+Live numbers are pending. They will come from a run against Amazon Nova on Bedrock once AWS is connected, and the table will go here. `eval/results.md` currently holds an offline dry run on the frozen rules, in which a keyword stand-in replaced the model. It checks the rules and wiring and is not the published result.
+
 {{EVAL_TABLE}}
 
-Misses are listed in `eval/results.md`. Reproduce with `python eval/run_eval.py` (needs AWS credentials).
+Misses are listed in `eval/results.md`. Reproduce with `python eval/run_eval.py --live` (needs AWS credentials).
 
 ## Gotchas
 

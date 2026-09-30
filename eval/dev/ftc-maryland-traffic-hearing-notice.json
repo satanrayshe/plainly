@@ -1,0 +1,13 @@
+{
+ "id": "ftc-maryland-traffic-hearing-notice",
+ "label": "scam",
+ "kind": "fake_court_notice",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2026/04/text-about-traffic-violation-probably-scam",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/traffictext-1200x630.png",
+ "published": "2026-04-14",
+ "text_is": "transcribed_from_image",
+ "text": "STATE OF MARYLAND\nIN THE DISTRICT COURT\nOF MARYLAND FOR BALTIMORE CITY CITY\nCase No: MD-26-TR-273196\nJudge: John Smith\nNOTICE OF HEARING — TRAFFIC VIOLATION\nYou are hereby notified that you are alleged to have committed the following violation within Baltimore, Maryland:\nViolation: Parking Violation / Toll Violation\nAuthority: Md. Code, Transp. § 21-1003\nRelated Authority: Md. Code, Transp. § 21-1414\nIt is alleged that the operator or registered owner of a motor vehicle committed a violation related to parking regulations and/or failed to pay an assessed electronic toll in accordance with applicable Maryland law and municipal traffic enforcement regulations.\nREQUIRED ACTION\nYou must take one of the following actions:\n— Appear for a hearing on the date and time listed below; OR\n— Resolve the matter by payment of the assessed fine, toll, civil penalty, and authorized court costs prior to the hearing date.\nFAILURE TO APPEAR MAY RESULT IN:\n• Entry of a default judgment\n• Assessment of additional fines and court costs\n• Referral for enforcement or collection action\n• Additional administrative penalties as permitted by law\nHEARING LOCATION\nDistrict Court of Maryland for Baltimore City\n501 East Fayette Street\nBaltimore, MD 21202\n(410) 878-8000\nHEARING DATE & TIME\nApril 20, 2026\n9:00 AM\nIssued: April 5, 2026\nScan the QR code\nto settle your unpaid balance\nJohn Smith\nClerk of the Court",
+ "notes": "Fake court hearing notice sent as an image in a text; the FTC graphic labels it 'SCAM EXAMPLE'. Small print, zoomed before transcribing; the case number digits are the least certain part. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Hard case: reads like a real court notice; the tell is 'Scan the QR code to settle your unpaid balance'."
+}

@@ -1,0 +1,13 @@
+{
+ "id": "dvla-vehicle-tax-unpaid-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "UK",
+ "source_name": "Driver and Vehicle Licensing Agency, GOV.UK news 'DVLA releases latest scam images to help keep motorists safe online'",
+ "source_url": "https://www.gov.uk/government/news/dvla-releases-latest-scam-images-to-help-keep-motorists-safe-online",
+ "image_url": "https://assets.publishing.service.gov.uk/media/5fd761ccd3bf7f305a1896a0/s960_SCAM_email_-_example_3.JPG",
+ "published": "2020-12-14",
+ "text_is": "transcribed_from_image",
+ "text": "Vehicle Tax Status - Unpaid!\nYour bank has declined twice the latest Direct Debit payment.\nIf you will not Update your Information, your vehicle is no longer taxed.\nNOTE: Our system will automatically retry the billing process once your billing details have been updated. It can take up to 5 working days for the records to update.\nIn order to continue to the payment page please use the following link.\nCheck Vehicle Status Now\nATTENTION: If you dont pay your vehicle tax on time you can be fined up to 1000 GBP",
+ "notes": "DVLA vehicle-tax phishing email (image 'SCAM email - example 3'). Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined."
+}

@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_usps_informed_delivery",
+ "label": "genuine",
+ "kind": "usps_email",
+ "country": "US",
+ "source_name": "USPS, Informed Delivery (Daily Digest email)",
+ "source_url": "https://www.usps.com/manage/informed-delivery.htm",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "From: USPS Informed Delivery <USPSInformeddelivery@email.informeddelivery.usps.com>\nSubject: Your Daily Digest for Wed, 9/30 has arrived\n\nInformed Delivery by USPS\nYou have 3 mailpieces and 1 package arriving soon.\n\nCOMING TO YOUR MAILBOX SOON\nMailpiece images: 3\n\nPACKAGES\nFrom: AMAZON\nTracking number: 9400 1118 9922 3344 5566 77\nExpected delivery: Thursday, October 1, 2026\nTrack Package | Set Delivery Instructions\n\nManage your packages and mail on your dashboard at informeddelivery.usps.com.\nLearn more about Informed Delivery at www.usps.com/informeddelivery.\nPrivacy Policy | Unsubscribe\nThis is an automated email. Please do not reply.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

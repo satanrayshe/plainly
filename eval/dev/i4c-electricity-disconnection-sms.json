@@ -1,0 +1,12 @@
+{
+ "id": "i4c-electricity-disconnection-sms",
+ "label": "scam",
+ "kind": "electricity_disconnection",
+ "country": "IN",
+ "source_name": "Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs, via cybercrime.gov.in Advisory page, Cyber Crime Information-156 'Fake SMSs related to unpaid Electricity Bill to dupe citizens'",
+ "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf",
+ "published": "2022-05-10",
+ "text_is": "transcribed_from_image",
+ "text": "Monday, 2 May 2022\nNotification.\nDear Consumer Your Electricity power will be disconnected. Tonight at 9.30 pm from electricity office. because your previous month bill was not update. Please immediately contact with our electricity officer 7074897254 Thank you.",
+ "notes": "Screenshot in 'Fig. 02 - Smishing SMSs' of the advisory. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. The advisory's text layer also quotes a variant: \"Your Electricity Power will be disconnected tonight at 9:30 pm because your previous month bill was not updated. Please immediately contact with our electricity officer 9898XXXXXX\"."
+}

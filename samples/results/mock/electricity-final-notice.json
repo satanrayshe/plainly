@@ -29,6 +29,19 @@
         }
       },
       {
+        "rule": "callback_unofficial",
+        "severity": "strong",
+        "title": "Asks you to call or WhatsApp a number that isn't an official line",
+        "quote": "To avoid disconnection, contact our Electricity Officer Mr. S. Verma directly on his mobile 98765 43210 (WhatsApp available). Do not visit the office as it is closed for system update.",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "It claims to be an organisation but gives a personal mobile number, and threatens to cut off or block your service. That is how fake disconnection and KYC messages work.",
+        "source": {
+          "name": "Indian Cyber Crime Coordination Centre (I4C)",
+          "url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf"
+        }
+      },
+      {
         "rule": "urgency_short",
         "severity": "medium",
         "title": "Gives you less than 3 days to act",
@@ -65,14 +78,14 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 6,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 840 in / 210 out tokens)"
+        "ms": 5,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 977 in / 279 out tokens)"
       },
       {
         "step": "registry",
         "status": "unknown",
         "detail": "No match: no agency in our registry is named in the letter.",
-        "ms": 6
+        "ms": 5
       },
       {
         "step": "contacts",
@@ -147,9 +160,57 @@
         "ms": 0
       },
       {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "pass",
+        "detail": "No request to click a link to claim, pay or verify",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "flag",
+        "detail": "Asks you to call or message a number that is not official (strong)",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "pass",
+        "detail": "No \"press 1\" instruction",
+        "ms": 0
+      },
+      {
         "step": "rule:unknown_contact",
         "status": "unknown",
         "detail": "1 contact(s) could not be checked: the sender is not in our registry",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "pass",
+        "detail": "No official name paired with someone else's contact details",
         "ms": 0
       },
       {
@@ -173,7 +234,7 @@
       {
         "step": "verdict",
         "status": "done",
-        "detail": "Score 4 (1 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
+        "detail": "Score 7 (2 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
         "ms": 0
       }
     ],
@@ -198,9 +259,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 18,
-      "input_tokens": 840,
-      "output_tokens": 210
+      "ms": 17,
+      "input_tokens": 977,
+      "output_tokens": 279
     }
   },
   "explanations": {
@@ -232,7 +293,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 924,
+        "input_tokens": 1038,
         "output_tokens": 149
       }
     },
@@ -264,7 +325,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 924,
+        "input_tokens": 1038,
         "output_tokens": 149
       }
     },
@@ -296,10 +357,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 924,
+        "input_tokens": 1038,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T15:27:15+00:00"
+  "generated_at": "2026-09-30T17:29:37+00:00"
 }

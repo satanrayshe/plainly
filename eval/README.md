@@ -9,7 +9,10 @@ python eval/synthetic/generate.py     # only if you change the generator; letter
 python eval/run_eval.py               # offline: AWS faked      -> eval/results-offline.md (+ .json)
 python eval/run_eval.py --live        # real Bedrock, us-east-1 -> eval/results.md (+ .json)
 python eval/run_eval.py --set holdout
+python eval/run_eval.py --set dev --set synthetic --out eval/results-offline-dev.md   # tuning sets only
 ```
+
+`--set` takes dev, synthetic, holdout or all and can be repeated; every set gets its own section in the report.
 
 `--live` uses whatever AWS credentials the shell has. Letters are sent as text, so Textract is not called and
 quotes are grounded against the pasted text.
@@ -17,8 +20,15 @@ quotes are grounded against the pasted text.
 ## The rules are frozen
 
 The eval only counts. It never changes a rule, threshold or registry entry, and each report records a sha256
-prefix of `backend/verifier.py` and `backend/registry.json`, so a number can be traced to one rules version. If
+prefix of the rules files (`verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py`, `pipeline.py`) and
+`registry.json`, so a number can be traced to one rules version. Rules are tuned on `dev/` and `synthetic/` only;
+`RULES_FROZEN.md` records the version frozen before the holdout is run. If
 the rules change after a run, re-run and publish the new report next to the old one; don't edit the old one.
+
+`results.md` is the write-up of the one holdout run on the frozen rules. It was run offline on 2026-09-30,
+and the raw report is `results-offline-frozen.md` (+ `.json`). `results-offline.md` is an older offline run under the
+pre-tuning rules. Live numbers are pending. Run them with `--live --out eval/results-live.md` so the offline
+write-up is kept.
 
 ## Offline mode
 
@@ -37,6 +47,37 @@ Set `PLAINLY_BACKEND_DIR` to test a different checkout of the backend.
 - Deadline accuracy on letters with a labeled deadline: an extracted deadline must equal the label exactly.
 - Grounding: grounded quotes out of all checked quotes, from each response's `grounding` field.
 - p50/p95 wall-clock latency of `/api/check` and average input/output tokens from `meta`.
+
+## dev/ (67 files): the tuning set
+
+Each file is `eval/dev/<id>.json` with `{id, label, kind, country, source_name, source_url, published, text_is, text,
+notes}` (some also `image_url`, `pdf_page`, `expected_deadline`). No source URL is shared with the holdout.
+
+- Scam (29: US 7, India 16, UK 6): FTC consumer alerts (PayPal/Binance invoice, MetaMask, IRS-style refund email,
+  toll and DMV texts, a fake Maryland court notice), GOV.UK (DVLA vehicle-tax email, five Companies House emails),
+  PIB Fact Check's compilation PDF (SBI/IPPB KYC and PAN texts, BSNL/TRAI SIM notice, Income Tax refund email and
+  SMS, KBC lottery letter, Ministry of Power disconnection notice, government-scheme credit and Hindi loan texts, NCS
+  job email) and I4C advisories (electricity SMS, two job SMS, advance-fee email).
+- Genuine (13): IRS sample notices CP01A, CP05, CP09, CP21A, CP22A, CP27, CP75, CP90, CP161, CP565 (text layer), and
+  three DoT messages PIB confirmed as real (Cell Broadcast test alert, two Sanchar Saathi SMS).
+- Genuine, false-positive hunt (25, `genuine_fp_*.json`, `text_is: written_from_public_template`): messages we wrote
+  from public templates or descriptions to try to make the rules call genuine mail a scam. US 5 (IRS CP2000 and
+  Letter 5071C, SSA COLA notice, USPS Informed Delivery email, a jury summons), UK 3 (HMRC P800 refund and debt texts,
+  DVLA V11 reminder email), India 17 (SBI/HDFC alerts, OTP and re-KYC messages, bank and police fraud-awareness
+  texts, I4C digital-arrest awareness in English and Hindi, Income Tax 143(1) intimation and refund SMS, EPFO, e-Challan,
+  India Post customs parcel, Passport Seva police verification, TRAI DND, MSEDCL bill). Placeholder names and
+  numbers; official contacts as published. IRS CP14 and CP501 were left out on purpose because the holdout uses
+  those notices. Eleven of the 25 were `likely_scam` when first run (eight under the rules frozen at 22:16, three
+  added after the first fixes); none is now. See `RULES_FROZEN.md`.
+- 32 items are transcribed from published screenshots (`text_is: transcribed_from_image`); words hidden by a
+  "FAKE" stamp are written `[…]`, and two names and one address are `[recipient]`.
+- Gaps: no "press 1" robocall scripts, no verbatim digital-arrest script, no package/customs scam SMS, and no
+  verbatim genuine UK notices (only the written-from-template ones above).
+
+Because the rules were tuned on these, dev numbers show fit, not accuracy. `results-offline-dev-baseline.md` is the
+same run before the tuning; `results-offline-dev.md` is the run with the final rules (67 dev files, after the
+false-positive hunt; it replaced the earlier after-tuning report, whose headline numbers are kept in
+`RULES_FROZEN.md`).
 
 ## holdout/ (23 files)
 

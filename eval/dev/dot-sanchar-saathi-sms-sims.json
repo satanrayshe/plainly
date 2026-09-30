@@ -1,0 +1,13 @@
+{
+ "id": "dot-sanchar-saathi-sms-sims",
+ "label": "genuine",
+ "kind": "official_sms",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 22,
+ "published": "2024-01-01",
+ "text_is": "transcribed_from_image",
+ "text": "SancharSathi Portal - A Govt. of India initiative to empower citizens. Visit www.sancharsaathi.gov.in to know active SIMs in your name -  DoT GoI",
+ "notes": "Genuine: PIB Fact Check 'Yes! Sanchar Saathi portal is part of @DoT_India's initiative ...'. First of two SMS in the screenshot. Hard negative: a government SMS with a link. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

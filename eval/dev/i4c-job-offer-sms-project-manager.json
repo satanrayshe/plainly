@@ -1,0 +1,12 @@
+{
+ "id": "i4c-job-offer-sms-project-manager",
+ "label": "scam",
+ "kind": "job_scam",
+ "country": "IN",
+ "source_name": "Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs, via cybercrime.gov.in Advisory page, Cyber Crime Information-160 'Fraudsters sending Fake Job Offer SMSs to perpetrate Cyber Crime'",
+ "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FraudsterssendingFakeJobOfferSMSstoperpetrateCybercrime.pdf",
+ "published": "2022-08-29",
+ "text_is": "transcribed_from_image",
+ "text": "CSK OTP\nText Message\nThu, Nov 18, 5:42 PM\nI am a project manager, we are hiring a team, working on the home, daily salary around:3000-8000 Peso, Accept Jobs on Whatsapp: wa.me/639064069722",
+ "notes": "Second screenshot in Fig. 01 of the same advisory (sender shown as 'CSK OTP'). Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined."
+}

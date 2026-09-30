@@ -2,14 +2,17 @@
 
     python eval/run_eval.py                 # offline: fake AWS + keyword reader -> eval/results-offline.md
     python eval/run_eval.py --live          # real Bedrock (text input, so no Textract) -> eval/results.md
-    python eval/run_eval.py --set holdout   # only one set
+    python eval/run_eval.py --set holdout   # only one set: dev | synthetic | holdout | all
+    python eval/run_eval.py --set dev --set synthetic
 
-Two sets, always reported separately:
-  holdout/   real messages and notices published by government bodies (source URL in every file)
+Three sets, always reported separately:
+  dev/       real published messages and notices used while tuning the rules (source URL in every file)
+  holdout/   real messages and notices published by government bodies, never looked at while tuning
   synthetic/ letters from synthetic/generate.py (written by the same team that wrote the rules)
 
 The rules are frozen: this script only calls POST /api/check and counts. It never changes thresholds, rules or
-the registry, and it records a hash of verifier.py and registry.json so a report can be tied to one rules version.
+the registry, and it records a hash of the rules files (verifier, lexicon, contacts, agencies, pipeline) and
+registry.json so a report can be tied to one rules version.
 """
 import argparse
 import hashlib
@@ -26,13 +29,14 @@ from harness import BACKEND, LocalApi  # noqa: E402
 
 DEFAULT_TODAY = "2026-09-30"
 VERDICTS = ("likely_scam", "consistent_with_genuine", "cant_tell")
+SETS = ("dev", "synthetic", "holdout")
 
 
-def load_holdout():
+def load_folder(name):
     cases = []
-    for path in sorted((HERE / "holdout").glob("*.json")):
+    for path in sorted((HERE / name).glob("*.json")):
         case = json.loads(path.read_text(encoding="utf-8"))
-        case["set"] = "holdout"
+        case["set"] = name
         cases.append(case)
     return cases
 
@@ -49,7 +53,7 @@ def load_synthetic():
 
 def rules_fingerprint():
     parts = []
-    for name in ("verifier.py", "registry.json"):
+    for name in ("verifier.py", "lexicon.py", "contacts.py", "agencies.py", "pipeline.py", "registry.json"):
         path = BACKEND / name
         digest = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else "missing"
         parts.append(f"{name} {digest}")
@@ -175,13 +179,16 @@ def render_set(name, rows, blurb):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--live", action="store_true", help="call real Bedrock instead of the offline reader")
-    parser.add_argument("--set", choices=["all", "holdout", "synthetic"], default="all")
+    parser.add_argument("--set", choices=["all", *SETS], action="append",
+                        help="which set(s) to run; repeat to run several (default: all)")
     parser.add_argument("--out", help="report path (default eval/results.md live, eval/results-offline.md offline)")
     args = parser.parse_args()
 
+    wanted = set(SETS) if not args.set or "all" in args.set else set(args.set)
     api = LocalApi(live=args.live)
-    cases = (load_holdout() if args.set in ("all", "holdout") else []) + \
-            (load_synthetic() if args.set in ("all", "synthetic") else [])
+    loaders = {"dev": lambda: load_folder("dev"), "synthetic": load_synthetic,
+               "holdout": lambda: load_folder("holdout")}
+    cases = [case for name in SETS if name in wanted for case in loaders[name]()]
     rows = []
     for index, case in enumerate(cases):
         row = run_case(api, case, index)
@@ -203,12 +210,18 @@ def main():
         "never as a pass.",
         "",
     ]
-    if args.set in ("all", "holdout"):
+    if "dev" in wanted:
+        report.append(render_set("Dev: government-published examples used for tuning",
+                                 [r for r in rows if r["set"] == "dev"],
+                                 "Real scam messages and genuine notices published by the FTC, GOV.UK, PIB Fact Check, "
+                                 "I4C, DoT and the IRS. The rules were tuned against these, so they measure fit, not "
+                                 "generalisation. See eval/README.md for sources."))
+    if "holdout" in wanted:
         report.append(render_set("Holdout: government-published examples", [r for r in rows if r["set"] == "holdout"],
                                  "Real scam messages quoted by the IRS, FTC and FBI IC3, and IRS sample notices as "
                                  "genuine letters. Nothing here was written by us, and none of it was used to write "
                                  "the rules. See eval/README.md for sources and coverage gaps."))
-    if args.set in ("all", "synthetic"):
+    if "synthetic" in wanted:
         report.append(render_set("Synthetic: generated letters", [r for r in rows if r["set"] == "synthetic"],
                                  "24 letters from eval/synthetic/generate.py (12 genuine-format, 12 scam variants). "
                                  "Written by the same team as the rules, so treat these as a regression check, "
@@ -219,7 +232,7 @@ def main():
     raw = out.with_suffix(".json")
     raw.write_text(json.dumps({"generated_at": when, "live": args.live, "rows": rows}, indent=1) + "\n",
                    encoding="utf-8")
-    print(f"wrote {out.relative_to(HERE.parent)} and {raw.relative_to(HERE.parent)}")
+    print(f"wrote {out} and {raw}")
 
 
 if __name__ == "__main__":

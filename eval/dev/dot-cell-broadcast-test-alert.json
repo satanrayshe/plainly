@@ -1,0 +1,13 @@
+{
+ "id": "dot-cell-broadcast-test-alert",
+ "label": "genuine",
+ "kind": "official_alert",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 147,
+ "published": "2023-07-21",
+ "text_is": "transcribed_from_image",
+ "text": "Wireless emergency alerts\nEmergency alert: Severe\nThis is a test alert from Department of Telecommunication, Government of India. 20-07-2023. 10:20 AM",
+ "notes": "Genuine: PIB Fact Check says 'These alerts were sent under the Cell Broadcast Alert System testing' and 'do not indicate an actual emergency'. Hard negative: 'Emergency alert: Severe' wording from a real government sender. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

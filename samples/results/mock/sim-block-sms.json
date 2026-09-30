@@ -56,6 +56,19 @@
         }
       },
       {
+        "rule": "callback_unofficial",
+        "severity": "strong",
+        "title": "Asks you to call or WhatsApp a number that isn't an official line",
+        "quote": "To stop the block press 9 to speak to a TRAI officer, or call 070000 55501 immediately. Share the OTP you receive with the officer to verify your Aadhaar. Ignore at your own risk.",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "It threatens to cut off or block your service within hours unless you call this number. Real providers give written notice and use their official helpline.",
+        "source": {
+          "name": "Indian Cyber Crime Coordination Centre (I4C)",
+          "url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf"
+        }
+      },
+      {
         "rule": "urgency_short",
         "severity": "medium",
         "title": "Gives you less than 3 days to act",
@@ -66,6 +79,19 @@
         "source": {
           "name": "National Cyber Crime Reporting Portal",
           "url": "https://cybercrime.gov.in"
+        }
+      },
+      {
+        "rule": "press_to_connect",
+        "severity": "medium",
+        "title": "Tells you to press a number to speak to someone",
+        "quote": "To stop the block press 9 to speak to a TRAI officer, or call 070000 55501 immediately. Share the OTP you receive with the officer to verify your Aadhaar. Ignore at your own risk.",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "Recorded calls that say \"press 1 to speak to an officer\" are robocalls. Agencies don't reach you this way; hang up and call the official number yourself.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/robocalls"
         }
       },
       {
@@ -93,7 +119,7 @@
         "step": "extract",
         "status": "done",
         "ms": 1,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 685 in / 101 out tokens)"
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 821 in / 154 out tokens)"
       },
       {
         "step": "registry",
@@ -174,9 +200,57 @@
         "ms": 0
       },
       {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "pass",
+        "detail": "No request to click a link to claim, pay or verify",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "flag",
+        "detail": "Asks you to call or message a number that is not official (strong)",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "flag",
+        "detail": "It tells you to press a number to be connected",
+        "ms": 0
+      },
+      {
         "step": "rule:unknown_contact",
         "status": "flag",
         "detail": "Official: none. Not official: +91 70000 55501",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "pass",
+        "detail": "No official name paired with someone else's contact details",
         "ms": 0
       },
       {
@@ -200,7 +274,7 @@
       {
         "step": "verdict",
         "status": "done",
-        "detail": "Score 8 (2 strong x3, 2 medium x1): Likely scam. Reason: score of 3 or more.",
+        "detail": "Score 12 (3 strong x3, 3 medium x1): Likely scam. Reason: score of 3 or more.",
         "ms": 0
       }
     ],
@@ -224,9 +298,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 4,
-      "input_tokens": 685,
-      "output_tokens": 101
+      "ms": 5,
+      "input_tokens": 821,
+      "output_tokens": 154
     }
   },
   "explanations": {
@@ -258,7 +332,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 909,
+        "input_tokens": 1124,
         "output_tokens": 149
       }
     },
@@ -290,7 +364,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 909,
+        "input_tokens": 1123,
         "output_tokens": 149
       }
     },
@@ -322,10 +396,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 909,
+        "input_tokens": 1124,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T15:27:15+00:00"
+  "generated_at": "2026-09-30T17:29:37+00:00"
 }

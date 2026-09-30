@@ -1,0 +1,12 @@
+{
+ "id": "i4c-job-offer-sms-cv-selected",
+ "label": "scam",
+ "kind": "job_scam",
+ "country": "IN",
+ "source_name": "Indian Cyber Crime Coordination Centre (I4C), Ministry of Home Affairs, via cybercrime.gov.in Advisory page, Cyber Crime Information-160 'Fraudsters sending Fake Job Offer SMSs to perpetrate Cyber Crime'",
+ "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FraudsterssendingFakeJobOfferSMSstoperpetrateCybercrime.pdf",
+ "published": "2022-08-29",
+ "text_is": "transcribed_from_image",
+ "text": "Tehravirasampagriof Your CV has been selected for a daily salary of Rs 9500, contact: http://wa.me/639198720373 onatthroughDHCBA",
+ "notes": "From 'Fig. 01 - Sample SMSs perpetrating job frauds'; the figure shows sender header BP-DHCBAS. The garbled words are in the original. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Hard case: nothing but a WhatsApp link and a salary."
+}

@@ -43,6 +43,12 @@ KEYWORDS = {
     "ai_instructions": [r"ignore (?:all )?(?:previous|prior) instructions", r"\bas an ai\b", r"ai assistants?",
                         r"classify (?:this|the) (?:letter|document|message) as", r"system prompt",
                         r"automated reviewers?"],
+    "link_requests": [r"\bclick\b", r"\btap\b", r"(?:open|use|visit) (?:the |this )?(?:following )?link",
+                      r"link below", r"scan the qr"],
+    "callback_requests": [r"\bcall\b[^.\n]{0,40}\d{3}", r"whats ?app"],
+    "account_verification_requests": [r"(?:verify|confirm|update) (?:your )?(?:identity|details|account|kyc|pan)"],
+    "prize_or_refund_bait": [r"you have won", r"\blottery\b", r"\bwinner\b", r"claim (?:your )?refund",
+                             r"selected for (?:the )?job"],
 }
 AMOUNT_RE = re.compile(r"(?:[$£€₹]|\bRs\.?|\bINR)\s?\d[\d,]*(?:\.\d{1,2})?", re.I)
 RELATIVE_RE = re.compile(r"within (\d{1,3}) (?:calendar |working |business )?days", re.I)
@@ -213,6 +219,10 @@ def extract(text, registry):
         "secrecy": items("secrecy"),
         "video_call": items("video_call"),
         "ai_instructions": items("ai_instructions"),
+        "link_requests": items("link_requests"),
+        "callback_requests": items("callback_requests"),
+        "account_verification_requests": items("account_verification_requests"),
+        "prize_or_refund_bait": items("prize_or_refund_bait"),
         "amounts": [{"amount": m.group(0), "what": "amount mentioned", "quote": quote_for(m.start(), m.end(), text)}
                     for m in AMOUNT_RE.finditer(text)][:6],
         "language_of_letter": "Hindi" if re.search(r"[ऀ-ॿ]", text) else "English",

@@ -1,0 +1,13 @@
+{
+ "id": "ftc-virginia-dmv-traffic-ticket-text",
+ "label": "scam",
+ "kind": "traffic_fine_sms",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2025/07/text-about-overdue-traffic-ticket-probably-scam",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/overduetrafficticket_1200x630.png",
+ "published": "2025-07-21",
+ "text_is": "transcribed_from_image",
+ "text": "Virginia State Department of Motor Vehicles (DMV) Final Notice: Enforcement Penalties Begin on August 5.\nOur records show that as of today, you still have an outstanding traffic ticket. In accordance with New Virginia State Administrative Code 15C-16.003, if you do not complete payment by August 4, we will take the following actions:\n1. Report to the DMV violation database\n2. Suspend your vehicle registration starting August 5.\n3. Suspend driving privileges for 30 days\n4. Transfer to a toll booth and charge a 35% service fee\n5. You may be prosecuted and your credit score will be affected\nPay Now:\nhttps://vvvvvvvvvvvvxinpay\nPlease pay immediately before enforcement to avoid license suspension and futher legal disputes.\n(Reply Y and re-open this message to click the link, or copy it to your browser.)",
+ "notes": "DMV-impersonation smishing text. The link is a placeholder drawn by the FTC (the number of 'v's is approximate). 'futher' is the scammer's spelling. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined."
+}

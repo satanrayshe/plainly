@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_sbi_upi_debit_alert",
+ "label": "genuine",
+ "kind": "bank_sms",
+ "country": "IN",
+ "source_name": "State Bank of India (official site; transaction alert format)",
+ "source_url": "https://sbi.co.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Dear UPI user A/C X4821 debited by 1250.00 on date 30Sep26 trf to SWIGGY LIMITED Refno 627318884512. If not u? call 1800111109. -SBI",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

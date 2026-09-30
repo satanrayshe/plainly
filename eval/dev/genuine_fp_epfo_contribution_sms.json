@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_epfo_contribution_sms",
+ "label": "genuine",
+ "kind": "epfo_sms",
+ "country": "IN",
+ "source_name": "Employees' Provident Fund Organisation (official site)",
+ "source_url": "https://www.epfindia.gov.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Dear member, your passbook balance against DLCPM00123450000012345 is Rs. 1,23,456/-. Contribution of Rs. 3,600/- for due month 082026 has been received. Your KYC is not complete: update Aadhaar, PAN and bank details on the Member portal unifiedportal-mem.epfindia.gov.in or through UMANG. -EPFO",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

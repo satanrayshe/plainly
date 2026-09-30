@@ -1,0 +1,1678 @@
+{
+ "generated_at": "2026-09-30T16:19:06+00:00",
+ "live": false,
+ "rows": [
+  {
+   "id": "ch-hmrc-branded-verify-identity-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 9,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "hmrc",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 8,
+   "input_tokens": 533,
+   "output_tokens": 113,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ch-identity-verification-gmail-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 13,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "hmrc",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 13,
+   "input_tokens": 713,
+   "output_tokens": 96,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ch-kyc-kyb-verification-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 9,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": "hmrc",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 9,
+   "input_tokens": 930,
+   "output_tokens": 83,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ch-online-identification-24h-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 7,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "hmrc",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 7,
+   "input_tokens": 656,
+   "output_tokens": 106,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ch-verify-identity-now-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 6,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 6,
+   "input_tokens": 645,
+   "output_tokens": 125,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "dot-cell-broadcast-test-alert",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 2,
+   "input_tokens": 485,
+   "output_tokens": 86,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "dot-sanchar-saathi-sms-connections",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "trai",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 487,
+   "output_tokens": 97,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "dot-sanchar-saathi-sms-sims",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "trai",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 484,
+   "output_tokens": 96,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "dvla-vehicle-tax-unpaid-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": "https://www.gov.uk/government/news/dvla-releases-latest-scam-images-to-help-keep-motorists-safe-online",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 4,
+   "input_tokens": 575,
+   "output_tokens": 83,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-irs-refund-offset-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2024/01/irs-doesnt-send-tax-refunds-email-or-text",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 4,
+   "input_tokens": 640,
+   "output_tokens": 243,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-maryland-traffic-hearing-notice",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 10,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2026/04/text-about-traffic-violation-probably-scam",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 10,
+   "input_tokens": 797,
+   "output_tokens": 86,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-metamask-wallet-blocked-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2023/05/those-urgent-emails-metamask-paypal-are-phishing-scams",
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_crypto_wire",
+     "severity": "strong",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 4,
+   "input_tokens": 557,
+   "output_tokens": 158,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-paypal-binance-invoice-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 5,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2023/05/those-urgent-emails-metamask-paypal-are-phishing-scams",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 5,
+   "input_tokens": 590,
+   "output_tokens": 143,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-sunpass-toll-text",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2024/05/text-about-overdue-toll-charges-probably-scam",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 2,
+   "input_tokens": 485,
+   "output_tokens": 165,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-unpaid-toll-bill-text",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2025/01/got-text-about-unpaid-tolls-its-probably-scam",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 3,
+   "input_tokens": 522,
+   "output_tokens": 115,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "ftc-virginia-dmv-traffic-ticket-text",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 6,
+   "expected_deadline": null,
+   "source_url": "https://consumer.ftc.gov/consumer-alerts/2025/07/text-about-overdue-traffic-ticket-probably-scam",
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 6,
+   "input_tokens": 650,
+   "output_tokens": 115,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "i4c-business-partnership-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 10,
+   "expected_deadline": null,
+   "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/CybercrimeInformation125.pdf",
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "freemail_official",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 10,
+   "input_tokens": 782,
+   "output_tokens": 135,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "i4c-electricity-disconnection-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 2,
+   "input_tokens": 513,
+   "output_tokens": 87,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "i4c-job-offer-sms-cv-selected",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FraudsterssendingFakeJobOfferSMSstoperpetrateCybercrime.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 2,
+   "input_tokens": 479,
+   "output_tokens": 143,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "i4c-job-offer-sms-project-manager",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FraudsterssendingFakeJobOfferSMSstoperpetrateCybercrime.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 3,
+   "input_tokens": 494,
+   "output_tokens": 78,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp01a-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 18,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp01a_english.pdf",
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "credential_request",
+     "severity": "strong",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 18,
+   "input_tokens": 1332,
+   "output_tokens": 147,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp05-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 29,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp05_english.pdf",
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 29,
+   "input_tokens": 1698,
+   "output_tokens": 110,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp09-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 16,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp09_english.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 15,
+   "input_tokens": 1147,
+   "output_tokens": 166,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp161-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 18,
+   "expected_deadline": "2018-01-29",
+   "source_url": "https://www.irs.gov/pub/notices/cp161_english.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2018-01-18",
+    "2018-01-29"
+   ],
+   "grounded": 13,
+   "grounding_total": 13,
+   "server_ms": 18,
+   "input_tokens": 1269,
+   "output_tokens": 542,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp21a-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 17,
+   "expected_deadline": "2017-02-20",
+   "source_url": "https://www.irs.gov/pub/notices/cp21a_english.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 10,
+   "grounding_total": 10,
+   "server_ms": 16,
+   "input_tokens": 1221,
+   "output_tokens": 347,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp22a-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 17,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp22a_english.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 10,
+   "grounding_total": 10,
+   "server_ms": 17,
+   "input_tokens": 1219,
+   "output_tokens": 344,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp27-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 16,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp27_english.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 16,
+   "input_tokens": 1149,
+   "output_tokens": 162,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp565-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 24,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp565_english.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [
+    "2017-03-27"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 24,
+   "input_tokens": 1457,
+   "output_tokens": 159,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp75-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 28,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp75_english.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [
+    "2019-02-27"
+   ],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 27,
+   "input_tokens": 1653,
+   "output_tokens": 243,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "irs-cp90-sample",
+   "set": "dev",
+   "label": "genuine",
+   "status": 200,
+   "ms": 21,
+   "expected_deadline": null,
+   "source_url": "https://www.irs.gov/pub/notices/cp90_english.pdf",
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2019-02-22"
+   ],
+   "grounded": 9,
+   "grounding_total": 9,
+   "server_ms": 21,
+   "input_tokens": 1391,
+   "output_tokens": 343,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-bsnl-trai-sim-kyc-notice",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "trai",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 3,
+   "input_tokens": 567,
+   "output_tokens": 85,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-govt-yojana-credit-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 486,
+   "output_tokens": 135,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-income-tax-refund-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "income_tax_in",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 4,
+   "input_tokens": 593,
+   "output_tokens": 106,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-income-tax-refund-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 3,
+   "input_tokens": 522,
+   "output_tokens": 126,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-ippb-account-blocked-pan-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "india_post",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 496,
+   "output_tokens": 79,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-kbc-lottery-letter",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 6,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 6,
+   "input_tokens": 611,
+   "output_tokens": 123,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-ministry-of-power-disconnection-notice",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 6,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 6,
+   "input_tokens": 605,
+   "output_tokens": 92,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-ncs-data-entry-job-email",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 5,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "india_post",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 5,
+   "input_tokens": 634,
+   "output_tokens": 79,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-pm-yojana-aadhaar-loan-sms-hindi",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 464,
+   "output_tokens": 139,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-sbi-account-blocked-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 490,
+   "output_tokens": 79,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-sbi-account-expire-pan-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 483,
+   "output_tokens": 97,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "pib-sbi-yono-pan-kyc-sms",
+   "set": "dev",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 3,
+   "input_tokens": 495,
+   "output_tokens": 80,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-irs-cp14-absolute",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 5,
+   "expected_deadline": "2026-10-04",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2026-10-04"
+   ],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 5,
+   "input_tokens": 662,
+   "output_tokens": 236,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-irs-cp14-relative",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": "2026-10-09",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2026-10-09"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 3,
+   "input_tokens": 560,
+   "output_tokens": 198,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-irs-proposed-change",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": "2026-10-27",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2026-10-27"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 3,
+   "input_tokens": 595,
+   "output_tokens": 160,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-irs-refund-changed",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": "2026-11-12",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2026-11-12"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 3,
+   "input_tokens": 562,
+   "output_tokens": 183,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-irs-cp501",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": "2026-10-17",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "irs",
+   "deadlines": [
+    "2026-10-17"
+   ],
+   "grounded": 4,
+   "grounding_total": 4,
+   "server_ms": 4,
+   "input_tokens": 575,
+   "output_tokens": 228,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-ssa-benefit-change",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "ssa",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 583,
+   "output_tokens": 122,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-ssa-request-info",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": "2026-10-17",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "ssa",
+   "deadlines": [
+    "2026-10-17"
+   ],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 562,
+   "output_tokens": 160,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-ssa-overpayment",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": "2026-10-15",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "ssa",
+   "deadlines": [
+    "2026-10-15"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 3,
+   "input_tokens": 573,
+   "output_tokens": 170,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-itd-143-1-a",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": "2026-10-11",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "income_tax_in",
+   "deadlines": [
+    "2026-10-11"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 4,
+   "input_tokens": 632,
+   "output_tokens": 221,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-itd-refund-intimation",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "income_tax_in",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 580,
+   "output_tokens": 129,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-itd-demand-intimation",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "income_tax_in",
+   "deadlines": [
+    "2026-10-30"
+   ],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 4,
+   "input_tokens": 572,
+   "output_tokens": 218,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-genuine-itd-defective-return",
+   "set": "synthetic",
+   "label": "genuine",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": "2026-10-01",
+   "source_url": null,
+   "verdict": "consistent_with_genuine",
+   "flags": [],
+   "agency": "income_tax_in",
+   "deadlines": [
+    "2026-10-01"
+   ],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 585,
+   "output_tokens": 195,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-irs-gift-card",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_gift_card",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 550,
+   "output_tokens": 230,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-ssa-suspended",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "credential_request",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "ssa",
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 3,
+   "input_tokens": 555,
+   "output_tokens": 127,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-electricity-upi",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_personal_upi",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 528,
+   "output_tokens": 144,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-digital-arrest",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_crypto_wire",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "threat_arrest",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "video_call_demand",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "secrecy",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 1,
+   "grounding_total": 1,
+   "server_ms": 4,
+   "input_tokens": 574,
+   "output_tokens": 217,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-trai-sim",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "trai",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 501,
+   "output_tokens": 76,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-itd-lookalike",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "credential_request",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "lookalike_domain",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "income_tax_in",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 537,
+   "output_tokens": 154,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-irs-freemail",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "credential_request",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "freemail_official",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 2,
+   "input_tokens": 525,
+   "output_tokens": 112,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-toll-text",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 3,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "cant_tell",
+   "flags": [
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 3,
+   "input_tokens": 494,
+   "output_tokens": 173,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-irs-official-contacts-bitcoin",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_crypto_wire",
+     "severity": "strong",
+     "grounded": true
+    }
+   ],
+   "agency": "irs",
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 2,
+   "input_tokens": 535,
+   "output_tokens": 163,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-customs-wire",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 4,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "payment_crypto_wire",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "freemail_official",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": null,
+   "deadlines": [],
+   "grounded": 2,
+   "grounding_total": 2,
+   "server_ms": 4,
+   "input_tokens": 527,
+   "output_tokens": 162,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-ai-instruction",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 5,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "ai_instruction",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "injection_detected_model",
+     "severity": "info",
+     "grounded": true
+    }
+   ],
+   "agency": "ssa",
+   "deadlines": [],
+   "grounded": 3,
+   "grounding_total": 3,
+   "server_ms": 5,
+   "input_tokens": 529,
+   "output_tokens": 152,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  },
+  {
+   "id": "syn-scam-kyc-sms",
+   "set": "synthetic",
+   "label": "scam",
+   "status": 200,
+   "ms": 2,
+   "expected_deadline": null,
+   "source_url": null,
+   "verdict": "likely_scam",
+   "flags": [
+    {
+     "rule": "credential_request",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "lookalike_domain",
+     "severity": "strong",
+     "grounded": true
+    },
+    {
+     "rule": "urgency_short",
+     "severity": "medium",
+     "grounded": true
+    },
+    {
+     "rule": "unknown_contact",
+     "severity": "medium",
+     "grounded": true
+    }
+   ],
+   "agency": "uidai",
+   "deadlines": [],
+   "grounded": 0,
+   "grounding_total": 0,
+   "server_ms": 2,
+   "input_tokens": 500,
+   "output_tokens": 111,
+   "model": "us.amazon.nova-2-lite-v1:0"
+  }
+ ]
+}

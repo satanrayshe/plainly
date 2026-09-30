@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_dvla_v11_reminder_email",
+ "label": "genuine",
+ "kind": "dvla_email",
+ "country": "UK",
+ "source_name": "GOV.UK, Tax your vehicle (vehicle tax reminder V11)",
+ "source_url": "https://www.gov.uk/vehicle-tax",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "From: DVLA <noreply@notifications.service.gov.uk>\nSubject: Vehicle tax reminder: AB12 CDE\n\nDriver and Vehicle Licensing Agency\nYour vehicle tax for AB12 CDE (FORD FIESTA) runs out on 31 October 2026.\nTax your vehicle online at www.gov.uk/vehicle-tax using the 16 digit reference number: 1234 5678 9012 3456\nYou can also tax your vehicle by calling 0300 123 4321 or at a Post Office that deals with vehicle tax.\nIf you do not tax your vehicle or make a SORN, you'll be fined £80.\nDo not reply to this email.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

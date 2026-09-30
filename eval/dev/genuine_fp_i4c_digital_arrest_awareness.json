@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_i4c_digital_arrest_awareness",
+ "label": "genuine",
+ "kind": "i4c_sms",
+ "country": "IN",
+ "source_name": "Indian Cyber Crime Coordination Centre, National Cyber Crime Reporting Portal",
+ "source_url": "https://cybercrime.gov.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Cyber Dost alert: There is no such thing as a 'digital arrest'. Police, CBI, Customs or RBI officers never question or arrest anyone over a video call and never ask you to transfer money to a 'safe account'. If you get such a call, disconnect and report it at www.cybercrime.gov.in or call 1930. -I4C, MHA",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

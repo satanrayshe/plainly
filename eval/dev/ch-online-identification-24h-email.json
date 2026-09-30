@@ -1,0 +1,13 @@
+{
+ "id": "ch-online-identification-24h-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "UK",
+ "source_name": "Companies House, GOV.UK guidance 'Reporting scams pretending to be from Companies House'",
+ "source_url": "https://www.gov.uk/guidance/reporting-scams-pretending-to-be-from-companies-house",
+ "image_url": "https://assets.publishing.service.gov.uk/media/691ddb9d21ef5aaa6543efd4/Scam_email_example_10.png",
+ "published": "2023-10-27 (email date; page last updated 2026-07-16)",
+ "text_is": "transcribed_from_image",
+ "text": "From: Companies House <service.companies-house.online-identification@ezybizz.com>\nDate: Fri, 27 Oct 2023 at 08:25\nSubject: Action Required: Complete your identification\nTo: <[…]>\nCompanies House\nCompanies House - Online Identification\nWe recently asked you to identify yourself online, unfortunately we have not yet received your identification.\nWithout identification you will be no longer able to use the services of Companies House as of Oktober 30. You will need the reference number from this email for identification.\nYour reference number is: 182779.\nThe reference number can only be used once and within 24 hours.\n1. Sign in to your Companies House account via: identity.company-information.service.gov.uk/online-identification.\n2. Enter your required information.\n3. Identification completed.\nYours sincerely,\nCompanies House",
+ "notes": "Page caption: 'Email asking you to \"verify your identity\" within 24 hours using a one-time \"reference number\"'. The page highlights the sender domain and 'Oktober'. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in."
+}

@@ -1,0 +1,13 @@
+{
+ "id": "pib-govt-yojana-credit-sms",
+ "label": "scam",
+ "kind": "govt_scheme_sms",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 661,
+ "published": "2022-04-16",
+ "text_is": "transcribed_from_image",
+ "text": "CP-BRDOTP\nTuesday, 24 August 2021\nHi Customer, your A/c ***7865 Credited for Rs 267000 on 24-08-2021 Under Govt Yojana Ap[…]ed click https[…] bit.ly/3[…] BT",
+ "notes": "Fake 'Govt Yojana' credit SMS leading to a phishing link; the first line is the sender header. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

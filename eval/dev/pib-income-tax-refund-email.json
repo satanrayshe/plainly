@@ -1,0 +1,13 @@
+{
+ "id": "pib-income-tax-refund-email",
+ "label": "scam",
+ "kind": "refund_phishing_email",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 224,
+ "published": "2023-03-20",
+ "text_is": "transcribed_from_image",
+ "text": "From: IncomeTaxDept <ID19171466@webxc280s06.ad.aruba.it> on Sat, 18 Mar 2023 14:47:09\nTo: […]\ne-Filing Anywhere Anytime\nIncome Tax Department, Government of India\nDear […]\nAttention! This is to inform you that the Income Dept has officially completed the account-audit.You are entitled to overdue refund of  41,104.22 rs but one of your details is incorrect please see bellow to crosscheck and apply accordingly. Ensure you input your correct details.\nProceed\nDeputy Commissioner of Income Tax\nCentral Processing Center (CPC)\nIncome TaxDept\nBangalore Karnataka 560 100\nGovt Of India",
+ "notes": "Income Tax Department refund phishing email; recipient name and address are blurred on the page. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

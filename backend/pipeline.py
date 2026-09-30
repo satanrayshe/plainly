@@ -148,6 +148,10 @@ Not ordinary consequences such as late fees, interest or a lien.
 Not warnings that tell the reader never to share them.
 - secrecy: telling the reader to keep this secret or not to tell family, the bank or the police.
 - video_call: demands to join a video call or to stay on the call.
+- link_requests: sentences or button labels asking the reader to click, tap, open or scan a link or QR code (include the link in the quote when the document shows it).
+- callback_requests: requests to call, text or WhatsApp a number given in the document.
+- account_verification_requests: requests to verify, confirm or update identity, account, KYC, PAN or bank details.
+- prize_or_refund_bait: a prize, lottery win, refund, loan or job the reader must claim or respond to. Not an ordinary notice that a refund is being paid with nothing to do.
 - deadlines: every date or period by which the reader must act. Put absolute_date (YYYY-MM-DD) only when the quote \
 itself contains the date. For "within 30 days of the date of this notice" put relative_days 30 and relative_to \
 "letter_date"; for "of receipt" use "receipt". Do not calculate dates.
@@ -184,6 +188,10 @@ def record_letter_tool(agency_keys):
                 "secrecy": _QUOTE_LIST,
                 "video_call": _QUOTE_LIST,
                 "ai_instructions": _QUOTE_LIST,
+                "link_requests": _QUOTE_LIST,
+                "callback_requests": _QUOTE_LIST,
+                "account_verification_requests": _QUOTE_LIST,
+                "prize_or_refund_bait": _QUOTE_LIST,
                 "amounts": {"type": "array", "items": {"type": "object", "properties": {
                     "amount": {"type": "string"}, "what": {"type": "string"}, "quote": {"type": "string"}},
                     "required": ["amount", "quote"]}},

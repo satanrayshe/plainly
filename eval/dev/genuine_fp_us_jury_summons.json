@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_us_jury_summons",
+ "label": "genuine",
+ "kind": "court_letter",
+ "country": "US",
+ "source_name": "Superior Court of California, County of Los Angeles (jury service)",
+ "source_url": "https://www.lacourt.org/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "SUPERIOR COURT OF CALIFORNIA, COUNTY OF LOS ANGELES\nJury Summons\nDate: September 20, 2026\nYou are summoned to appear for jury service on November 2, 2026 at 8:00 a.m. Respond online at www.lacourt.org within 10 days. Failure to respond to this summons may result in a fine, and the court may issue a bench warrant. The court will never ask you for payment or your Social Security number by phone or email.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

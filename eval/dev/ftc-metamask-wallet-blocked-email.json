@@ -1,0 +1,13 @@
+{
+ "id": "ftc-metamask-wallet-blocked-email",
+ "label": "scam",
+ "kind": "phishing_email",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2023/05/those-urgent-emails-metamask-paypal-are-phishing-scams",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/cryptophishing-1200wgraphic.png",
+ "published": "2023-05-09",
+ "text_is": "transcribed_from_image",
+ "text": "Attention: Your Wallet Has been Blocked!\nHi\nAttention all crypto holders: Due to the dramatic increase in our platform users, some wallets still need to manually perform the new upgrade. You must upgrade your wallets before […] in order to keep your assets secure and accessible.\nSuppose I didn’t upgrade my wallet — what would happen?\nYou will lose all of your cryptocurrencies if you neglect to update your wallet.\nRecover My Wallet Now",
+ "notes": "Crypto-wallet phishing email. The deadline date is blacked out in the FTC image. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in."
+}

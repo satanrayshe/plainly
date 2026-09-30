@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_indiapost_customs_parcel",
+ "label": "genuine",
+ "kind": "india_post_sms",
+ "country": "IN",
+ "source_name": "India Post (official site; Speed Post and international parcel tracking)",
+ "source_url": "https://www.indiapost.gov.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "India Post: Your international parcel RR123456789DE is held for customs clearance at Foreign Post Office, Mumbai. Customs duty of Rs. 1,450 and handling charges of Rs. 100 are payable at delivery to the postman. Track at www.indiapost.gov.in or call 1800 266 6868.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

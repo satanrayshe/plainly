@@ -1,0 +1,13 @@
+{
+ "id": "ftc-unpaid-toll-bill-text",
+ "label": "scam",
+ "kind": "toll_sms",
+ "country": "US",
+ "source_name": "Federal Trade Commission (consumer.ftc.gov Consumer Alert)",
+ "source_url": "https://consumer.ftc.gov/consumer-alerts/2025/01/got-text-about-unpaid-tolls-its-probably-scam",
+ "image_url": "https://consumer.ftc.gov/system/files/styles/scaled_lg/private/consumer_ftc_gov/images/toll_text_scam_012025_1200x630_en.png",
+ "published": "2025-01-17",
+ "text_is": "transcribed_from_image",
+ "text": "Your vehicle has an unpaid toll bill. To avoid excessive late fees on your bill, please settle it promptly.\nThank you for your cooperation!\nTotal amount: $6.99\nPayment:\n[…]\n(Please reply Y, then exit the SMS and open it again to activate the link, or copy the link to your Safari browser and open it)",
+ "notes": "Toll smishing (iMessage). Payment link blurred on the page. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Hard case: no named agency, no strong-rule wording."
+}

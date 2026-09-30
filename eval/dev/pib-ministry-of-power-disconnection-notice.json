@@ -1,0 +1,13 @@
+{
+ "id": "pib-ministry-of-power-disconnection-notice",
+ "label": "scam",
+ "kind": "electricity_disconnection",
+ "country": "IN",
+ "source_name": "PIB Fact Check, Press Information Bureau, Govt of India ('Screenshots of day-wise fact checks done by Fact Check Unit', linked from pib.gov.in/factcheck.aspx)",
+ "source_url": "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2024/feb/doc202422305401.pdf",
+ "pdf_page": 397,
+ "published": "2022-12-28",
+ "text_is": "transcribed_from_image",
+ "text": "Notice for Consumer  regarding to update your bill immediately\nDear consumer,\nYour electricity power connection will be Disconnected tonight 09:00 pm. Because your previous month bill was not updated , please immediately call our electricity officer Mr Devesh joshi\nministry of power would like to calrify that alth[…] encou[…] our consumer's to always keep updated.\nNow you update your bill  by just calling our […] number .\nTo update your bill call our electrici[…] helpl[…] number:-\n0824-060-6707\n• Follow our official social media accounts @ministryofpower on twiter , facebook , instgram and YouTube\ncheif electricity officer",
+ "notes": "Electricity-disconnection scam dressed as a Ministry of Power notice (letterhead: 'विद्युत मंत्रालय MINISTRY OF POWER'). Other copies with different phone numbers are on PDF pages 34, 211 and 241. […] marks text hidden on the page itself (FAKE stamp, blur or an overlay); nothing was filled in. Transcribed by hand from a screenshot published on the page and cross-checked against Windows OCR. Line breaks follow the screenshot where they separate fields; wrapped lines are joined. Page number is the PDF page (1-based). The year of tweets shown without a year is inferred from the compilation's reverse-date order (it was made on 2024-02-02)."
+}

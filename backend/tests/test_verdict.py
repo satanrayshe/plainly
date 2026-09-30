@@ -41,7 +41,7 @@ def test_three_mediums_make_likely_scam(check):
 def test_unknown_contact_alone_is_cant_tell(check):
     result = check("Internal Revenue Service\nNotice date: September 15, 2026\n"
                    "Questions? Call 1-888-555-0199.", source="textract")
-    assert rules_of(result) == {"unknown_contact"}
+    assert rules_of(result) == {"impersonation_mismatch"}  # the agency's name with none of its contacts
     assert result["verdict"] == "cant_tell"
 
 

@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_msedcl_bill_disconnection",
+ "label": "genuine",
+ "kind": "electricity_sms",
+ "country": "IN",
+ "source_name": "Maharashtra State Electricity Distribution Co. Ltd (MSEDCL), consumer portal",
+ "source_url": "https://www.mahadiscom.in/consumer/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "MSEDCL: Dear Consumer 170012345678, electricity bill of Rs. 3,450 for Aug-26 remains unpaid. Please pay before 15-10-2026, otherwise your power supply will be disconnected as per notice u/s 56 of the Electricity Act. Pay online at https://wss.mahadiscom.in/wss/wss or on the MSEDCL mobile app. Ignore if already paid.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

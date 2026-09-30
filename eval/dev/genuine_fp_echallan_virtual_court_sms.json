@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_echallan_virtual_court_sms",
+ "label": "genuine",
+ "kind": "echallan_sms",
+ "country": "IN",
+ "source_name": "e-Challan, Ministry of Road Transport and Highways (Parivahan)",
+ "source_url": "https://echallan.parivahan.gov.in/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Dear Vehicle Owner, e-Challan No. DL12345260930101 dated 30-09-2026 has been issued against your vehicle DL01AB1234 for violation: Over Speeding, fine amount Rs. 2000. Pay online at https://echallan.parivahan.gov.in within 60 days. If not paid, the challan will be forwarded to the Virtual Court. -Delhi Traffic Police",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

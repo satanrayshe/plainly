@@ -89,12 +89,13 @@ VERB_NEGATION = re.compile(
 THREAT = re.compile(
     r"\barrest(?:ed|ing)?\b|\bdigital\s+arrest\b|\bwarrants?\b|\bdeport(?:ed|ation)?\b|(?-i:\bFIR\b)"
     r"|\b(?:registered|filed|lodged|booked)\s+(?:a\s+)?(?:criminal\s+)?(?:case|complaint)\s+against\s+you\b"
-    r"|\bjail(?:ed)?\b|\bprison\b|\bimprison(?:ment|ed)?\b|\bcustody\b|\bnarcotics\b|\bmoney\s+laundering\b"
+    r"|\bjail(?:ed)?\b|\bprison\b|\bimprison(?:ment|ed)?\b|\b(?:police|judicial|taken\s+into|in(?:to)?|under)\s+custody\b|\bnarcotics\b|\bmoney\s+laundering\b"
     r"|\bdrugs?\s+(?:were|was|have\s+been|has\s+been)\s+(?:found|seized)\b"
     r"|(?-i:\bCBI\b)\s+(?:\w+\s+){0,3}?(?:case|investigation|inquiry|custody|arrest|officer)"
-    r"|\bpolice\s+(?:\w+\s+){0,3}?(?:arrest|come|visit|raid|case|complaint|custody|action)"
+    # passport "police verification" (an officer visits to confirm your address) is a routine service step
+    r"|\bpolice\s+(?!verification\b)(?:\w+\s+){0,3}?(?:arrest|come|visit|raid|case|complaint|custody|action)"
     r"|\b(?:report|hand(?:ed)?\s+over|forward(?:ed)?|refer(?:red)?)\s+(?:\w+\s+){0,3}?to\s+(?:the\s+)?"
-    r"(?:police|cyber\s*cell|court|CBI|narcotics)\b"
+    r"(?:police|cyber\s*cell|court|CBI|narcotics)\b(?!\s+(?:station\s+)?for\s+(?:\w+\s+)?verification\b)"
     r"|\blegal\s+action\b[^.\n]{0,50}?(?:\btoday\b|\bimmediately\b|\btonight\b|\bwithin\s+\d+\s+hours?\b|\bat\s+once\b)"
     r"|(?:\btoday\b|\bimmediately\b|\btonight\b|\bwithin\s+\d+\s+hours?\b)[^.\n]{0,50}?\blegal\s+action\b"
     r"|गिरफ्तार|गिरफ़्तार|डिजिटल\s*अरेस्ट|वारंट|जेल|हिरासत|एफ\s*आई\s*आर|सीबीआई|पुलिस\s*(?:केस|कार्रवाई|कार्यवाही|थाने)"
@@ -121,6 +122,7 @@ URGENCY = re.compile(
     r"|\btonight\b|\bsame\s+day\b|\bby\s+end\s+of\s+(?:the\s+)?day\b|\bbefore\s+\d{1,2}(?::\d{2})?\s*[ap]\.?m\.?\s+today\b"
     r"|\b(?:pay|call|respond|contact|act|clear|settle|update|verify|complete|visit|reply)\b[^.\n]{0,40}?\btoday\b"
     r"|\btoday\b[^.\n]{0,40}?(?:disconnect|suspend|block|cancel|arrest|legal|terminat|deactivat|cut\s+off)"
+    r"|\b(?:disconnect|suspend|block|cancel|expire|deactivat|terminat|charged|debited)\w*[^.\n]{0,20}?\btoday\b"
     r"|आज\s*(?:ही|रात)",
     _I,
 )
@@ -141,6 +143,7 @@ SECRECY = re.compile(
     r"(?:confidential|secret|private|between\s+us)\b"
     r"|\bwithout\s+(?:telling|informing)\b|\b(?:strictly|highly)\s+confidential\s+(?:matter|investigation|case)\b"
     r"|\bconfidential\s+investigation\b|\bsecret\s+investigation\b"
+    r"|\b(?:you\s+(?:have\s+to|must|should|are\s+to)|please)\s+maintain\s+(?:\w+\s+)?(?:confidentiality|secrecy)\b"
     r"|किसी\s*को\s*(?:भी\s*)?(?:न|मत)\s*बता|गोपनीय\s*रख|परिवार\s*को\s*(?:न|मत)",
     _I,
 )
@@ -172,7 +175,8 @@ GOVERNMENT_OR_UTILITY = re.compile(
     r"|\benergy\b|\bdiscom\b|\butilit(?:y|ies)\b|\bwater\b|\bgas\b|\btax\b|\brevenue\b|\bcustoms\b"
     r"|\bsocial\s+security\b|\badministration\b|\bagency\b|\bcommission\b|\bcouncil\b|\btreasury\b|\btrai\b"
     r"|\btelecom\b|\breserve\s+bank\b|\brbi\b|\bpost\s+office\b|\bindia\s+post\b|\bcourier\b"
-    r"|सरकार|विभाग|बिजली|मंत्रालय|पुलिस|न्यायालय|निगम",
+    r"|\bcompanies\s+house\b|\bgov\.uk\b|\bdmv\b|\bmotor\s+vehicles\b|\byojana\b"
+    r"|सरकार|विभाग|बिजली|मंत्रालय|पुलिस|न्यायालय|निगम|योजना|प्रधानमंत्री",
     _I,
 )
 ORGANISATION = re.compile(GOVERNMENT_OR_UTILITY.pattern + r"|\bbank\b|\blimited\b|\bltd\b|\binc\b|\bllc\b|\bplc\b"
@@ -191,7 +195,161 @@ CONDITIONAL = re.compile(r"\bif\b|\bunless\b|\bwhether\b|अगर|यदि", _
 RESUMES = re.compile(r"\bor\s+(?:else|you|we|they|the\s+police|police|your|legal|action|arrest|face|be)\b"
                      r"|\botherwise\b|\belse\b|\bfailing\s+(?:which|this|that)\b|\bbut\b|\binstead\b"
                      r"|\band\s+(?:you|then|please)\b|वरना|नहीं\s*तो", _I)
+# Hindi puts the negation after the verb, at the end of the clause: "वीडियो कॉल पर गिरफ्तार नहीं करते" (do not arrest
+# over video call), "डिजिटल अरेस्ट जैसी कोई चीज़ नहीं होती" (there is no such thing as digital arrest). "नहीं तो"
+# (otherwise) is not a negation.
+HINDI_NEGATED_AFTER = re.compile(
+    r"^[^।.!?\n,]{0,60}?\s(?:नहीं|न|मत)\s*(?:(?:करते|करता|करती|करें|करे|होती|होता|होते|देते|देता|मांगते|मांगता|मांगती)\s*)?"
+    r"(?:हैं|है)?\s*(?:[।.!?\n,]|$)")
 # "We will never ask/demand/accept ...": a negated verb like this covers the whole list after it, commas and all.
-PROTECTIVE_VERB = re.compile(
-    r"^\s*(?:\S+\s+){0,3}?(?:ask|demand|request|require|accept|take|threaten|contact|use|want|expect|need|seek|"
-    r"collect)(?:s|ed|ing)?\b", _I)
+# A list of such verbs is one negated action: "officers never question or arrest anyone over a video call".
+_PROTECTIVE = (r"(?:ask|demand|request|require|accept|take|threaten|contact|use|want|expect|need|seek|collect|question|"
+               r"arrest|interrogate)(?:s|ed|ing)?\b")
+PROTECTIVE_VERB = re.compile(rf"^\s*(?:\S+\s+){{0,3}}?{_PROTECTIVE}(?:\s*(?:,|/|\bor\b|\band\b)\s*{_PROTECTIVE})*", _I)
+# Public warnings describe the scam in its own words ("Fraudsters may say a warrant has been issued and ask you to
+# stay on the video call", "If you get a call saying the CBI will arrest you, it is a scam", "There is no such
+# thing as a digital arrest"). A match in a sentence framed like this is reported, not demanded.
+WARNING_FRAME = re.compile(
+    r"\bfraudsters?\b|\bscammers?\b|\bpretend(?:s|ing)?\s+to\s+be\b|\bposing\s+as\b"
+    r"|\bif\s+(?:you\s+)?(?:get|receive)\s+(?:a|an|any)\s+(?:\w+\s+)?(?:call|message|sms|text|e-?mail|whats\s*app)\b"
+    r"[^.\n]{0,30}?\b(?:saying|says|that\s+says|claiming|asking|threatening)\b"
+    r"|\b(?:it|this|that|these|such\s+\w+)\s+(?:is|are)\s+(?:always\s+)?(?:a\s+)?(?:scam|fraud|fake)s?\b"
+    r"|\bno\s+such\s+thing\s+as\b"
+    r"|\bif\s+(?:someone|somebody|anyone|a\s+caller)\s+(?:\w+\s+){0,3}?(?:threatens?|claims?|says?|demands?)\b"
+    r"|\bbeware\s+of\b[^.!?\n]{0,40}?\b(?:scams?|frauds?|fraudsters?|fake\w*|digital\s+arrest)\b",
+    _I,
+)
+
+
+# ---------------------------------------------------------------- links, lures and call-backs
+
+# "Click here", "use the following link", "visit the link below", "open link", "scan the QR code", "click bit.ly/..".
+LINK_CTA = re.compile(
+    r"\b(?:click|tap|open|visit|follow|use|go\s+to|scan)\b[^.\n]{0,40}?"
+    r"(?:\blinks?\b|\bhere\b|\bbutton\b|\bqr\s*code\b|https?\b|\bwww\.|\bvia\s*:"
+    r"|\b[\w-]+\.(?:ly|gy|li|gd|me|app|link|co|com|in|net|org|info|xyz|top|site|online)\b)"
+    r"|\blink\s+(?:below|above|given|provided)\b|\b(?:in|on)\s+this\s+link\b|\bthe\s+link\s*[-:]"
+    r"|लिंक\s*पर\s*क्लिक|क्लिक\s*करें",
+    _I,
+)
+# What the link is for: money to claim, a payment, or details to "verify" or "update" before a block.
+LINK_PURPOSE = re.compile(
+    r"\brefunds?\b|\bclaim\b|\bverif(?:y|ication)\b|\bconfirm\b|\bupdat(?:e|ed|ing)\b|\bkyc\b|\bpan\b|\baadhaa?r\b"
+    r"|\bunblock\b|\breactivat\w*|\brestore\b|\brecover\b|\bpay(?:ment)?\b|\bsettle\b|\binvoice\b|\bfine\b|\btoll\b"
+    r"|\bdetails\b|\binformation\b|\bidentity\b|\bidentification\b|\bwallet\b|\bprize\b|\breward\b|\bcredited\b"
+    r"|\bbilling\b|\bdocument\b|\bbalance\b|\bblocked\b|\bsuspended\b|\bexpire\w*|\bunpaid\b|भुगतान|अपडेट|रिफंड",
+    _I,
+)
+# A short button label on its own line in a pasted email: "Verify Your Identity Now", "Check Your Refund".
+BUTTON_LINE = re.compile(
+    r"^[ \t•*>-]*(?:verify|update|confirm|recover|restore|reactivate|unlock|unblock|claim|check|start|complete|"
+    r"activate|secure)\b(?=[^\n.]*\b(?:verify|verification|update|confirm|recover|restore|reactivate|unlock|"
+    r"unblock|claim|refund|kyc|wallet|identity)\b)[^\n.:]{0,40}$",
+    _I | re.M,
+)
+# Phones switch off links in texts from strangers; replying or copying the link switches them back on.
+LINK_BYPASS = re.compile(
+    r"\breply\s+(?:with\s+)?[\"'“]?y[\"'”]?(?=[\s,.])[^\n]{0,80}?\b(?:link|re-?open|open\s+it\s+again)"
+    r"|\bcopy\s+(?:the|this|it)\s*(?:link\s+)?(?:in)?to\s+(?:your\s+)?(?:safari\s+|chrome\s+)?browser\b",
+    _I,
+)
+# The account, SIM, connection or registration is about to be cut off, blocked or lost.
+_CUTOFF_THING = (r"(?:account|a/c|sim|card|wallet|connection|power|electricity|supply|service|number|registration|"
+                 r"licen[cs]e|vehicle|pan|kyc|mobile|yono|net\s?banking|assets|cryptocurrenc\w*|benefits?)")
+_CUTOFF_VERB = (r"(?:block(?:ed)?|suspend(?:ed)?|deactivat\w*|disconnect\w*|terminat\w*|put\s+on\s+hold|on\s+hold|"
+                r"frozen|freez\w*|closed|expire\w*|restrict\w*|cancel+ed|no\s+longer\s+(?:be\s+)?(?:taxed|active|valid)|"
+                r"cut\s+off)")
+CUTOFF_THREAT = re.compile(
+    # "will be blocked", "has been suspended", "is no longer taxed": done to you, not "call us to block your card"
+    rf"\b{_CUTOFF_THING}\b[^.\n]{{0,50}}?\b(?:will|shall|would|may|has|have|had|is|are|was|were|be|been|get|gets)\b"
+    rf"[^.\n]{{0,20}}?\b{_CUTOFF_VERB}"
+    rf"|\b(?:will|shall|going\s+to)\s+(?:be\s+)?{_CUTOFF_VERB}\b[^.\n]{{0,30}}?\b(?:your|the)\s+(?:\w+\s+)?"
+    rf"{_CUTOFF_THING}\b"
+    r"|\blose\s+all\s+(?:of\s+)?your\b|\bno\s+longer\s+(?:be\s+)?able\s+to\s+use\b"
+    r"|(?:खाता|सिम|कनेक्शन)[^\n।]{0,30}?(?:बंद|ब्लॉक)",
+    _I,
+)
+# "Visit your nearest branch": a genuine re-KYC reminder offers the branch (RBI's own advice); a phishing message
+# needs you on its link or number.
+BRANCH_ROUTE = re.compile(r"\b(?:visit|at|to)\s+(?:your|the|any|a)\s+(?:(?:nearest|nearby|home|base|local)\s+)?"
+                          r"(?:bank\s+)?branch(?:es)?\b", _I)
+# "Your account will not be blocked": the cut-off is denied inside the match itself.
+CUTOFF_DENIED = re.compile(r"\b(?:not|never)\b|n't\b", _I)
+KYC_TERM = re.compile(r"\b(?:re-?|e-?|v-?)?kyc\b|\bpan\s*(?:card|number|no\b)|\bupdate\w*\s+(?:your\s+)?pan\b"
+                      r"|\baadhaa?r\s+(?:link|linking|seeding|update|verification)|\bsim\s+verification\b"
+                      r"|केवाईसी|पैन\s*कार्ड", _I)
+KYC_ACTION = re.compile(r"\b(?:updat\w*|verif\w*|complete|re-?submit|link|renew|call|contact|click)\b|अपडेट", _I)
+# Unsolicited windfalls: prizes, lottery wins, jobs you never applied for, cheap "government scheme" loans.
+PRIZE_LURE = re.compile(
+    r"\byou(?:'ve|\s+have)?\s+(?:just\s+)?won\b(?!['’]t)|\bwinners?\b|\bwinning\s+amount\b|\blotter(?:y|ies)\b|\blucky\s+draw\b"
+    r"|\bjackpot\b|\bsweepstakes?\b|\bcash\s*prize\b|\bprize\s+money\b|इनाम|लॉटरी|विजेता",
+    _I,
+)
+JOB_LURE = re.compile(
+    r"\b(?:cv|resume|profile)\s+(?:has|have|is)\s+been\s+(?:selected|shortlisted)\b|\bdaily\s+(?:salary|income|wages?)\b"
+    r"|\bearn\s+(?:rs\.?|₹|\$|inr)?\s?\d[\d,]*\s*(?:-\s*\d[\d,]*\s*)?(?:per|a|/)\s*(?:day|hour)\b"
+    r"|\bwork(?:ing)?\s+(?:from|on)\s+(?:the\s+)?home\b[^\n]{0,60}?\b(?:salary|earn|income)\b"
+    r"|\bpart[\s-]time\s+(?:job|work)\b[^\n]{0,60}?\b(?:salary|earn|income|daily)\b",
+    _I,
+)
+LOAN_LURE = re.compile(
+    r"\b(?:pre-?approved|instant|guaranteed)\s+loan\b|\bloan\b[^.\n]{0,40}?\d+(?:\.\d+)?\s?%\s*(?:interest|ब्याज)"
+    r"|(?:लोन|ऋण)[^\n]{0,40}?(?:ब्याज|माफ)",
+    _I,
+)
+# Money "waiting for you" that you must do something through the message to receive.
+MONEY_WAITING = re.compile(r"\brefund\b|\bcredited\b|\bcashback\b|\bcompensation\b|\bunclaimed\s+(?:money|funds)\b"
+                           r"|रिफंड", _I)
+MONEY_CLAIMED = re.compile(r"\bapprov\w*|\bentitled\b|\bpending\b|\boverdue\b|\bcredited\b|\beligible\b|\bawaiting\b"
+                           r"|\bon\s+hold\b|\bunclaimed\b|\d", _I)
+CLAIM_ACTION = re.compile(
+    r"\b(?:claim|click|tap|link|verify|update|confirm|proceed|apply|input|enter|fill|submit|call|contact|reply)\b", _I)
+# A fee you must pay before a prize, refund, job or parcel is released to you.
+FEE_TO_RELEASE = re.compile(
+    r"\b(?:registration|registeration|processing|clearance|release|delivery|re-?delivery|verification|activation|"
+    r"handling|documentation|courier|shipping|customs)\s+(?:fees?|charg\w*|deposit)"
+    r"|\b(?:pay|deposit|send)\b[^.\n]{0,40}?\b(?:fees?|charg\w*)\b[^.\n]{0,40}?"
+    r"\b(?:release|receive|claim|collect|deliver\w*)\b"
+    r"|(?:पंजीकरण|प्रोसेसिंग)\s*(?:शुल्क|फीस|चार्ज)",
+    _I,
+)
+FEE_CONTEXT_STRONG = re.compile(PRIZE_LURE.pattern + r"|" + JOB_LURE.pattern + r"|\brefund\b|\bwinnings?\b"
+                                r"|\bjob\b|\bsalary\b|\bwelcome\s+kit\b", _I)
+FEE_CONTEXT_PARCEL = re.compile(r"\bparcel\b|\bpackage\b|\bshipment\b|\bcourier\b|\bconsignment\b|पार्सल", _I)
+# "Press 1 to speak to an officer", "press 9 now": a recorded call. "Press 2 for Spanish" is a phone menu.
+PRESS_TO_CONNECT = re.compile(
+    r"\bpress\s+(?:\d|one|two|nine|zero)\b(?:\s+(?:now|immediately)\b|[^.\n]{0,40}?\bto\s+(?:speak|talk|connect|"
+    r"be\s+connected|reach|stop|be\s+removed|avoid|confirm|accept|verify|pay|hear\s+more|know\s+more)\b)",
+    _I,
+)
+CALL_VERB = re.compile(r"\b(?:call|contact|ring|dial|whats\s*app|reach|speak\s+(?:to|with))\b|कॉल|संपर्क", _I)
+# "If you did not make this payment, call ...": the fake-invoice call-back.
+NOT_YOU = re.compile(r"\bif\s+you\s+(?:did\s+not|didn't|have\s+not|haven't|do\s+not|don't)\s+(?:make|authori[sz]e|"
+                     r"recogni[sz]e|place|request|initiate)\b", _I)
+ACCOUNT_VERIFY = re.compile(
+    r"\b(?:verify|confirm|update|validate|re-?enter|input)\s+(?:\w+\s+){0,3}?(?:identity|details|information|account|"
+    r"kyc|pan|bank|card|billing|credentials)\b|\bidentify\s+yourself\b|\bcomplete\s+your\s+identification\b"
+    r"|\b(?:details?|information)\s+(?:is|are)\s+incorrect\b",
+    _I,
+)
+# A model "threat" quote that names the police only as the sender ("Delhi Traffic Police: e-Challan No",
+# "-Delhi Traffic Police") threatens nothing unless it also names a consequence. Paraphrased threats with no police
+# name ("Our team will be at your door with handcuffs") still count.
+POLICE_BENIGN = re.compile(r"(?:\b[A-Z][\w-]*\s+){1,3}Police\b"  # a named force as sender
+                           r"|(?i:\bpolice\b(?=[^.\n]{0,25}\bverification\b))")  # passport police verification
+THREAT_CONSEQUENCE = re.compile(
+    THREAT.pattern + r"|\barrest|\bwarrant|\bjail|\bprison|\bcustody|\bdeport|\blegal\s+(?:action|proceedings?|case)"
+    r"|\bprosecut|\bcriminal\b|\blawsuit|\bsue\b|\bsummons?\b|\bseiz|\bcase\s+against\b"
+    r"|\bpolice\s+(?:action|case|complaint|will)\b",
+    _I,
+)
+# "Failure to respond to this summons may result in ...": a consequence of ignoring a letter, stated as courts and
+# agencies state it.
+IF_IGNORED = re.compile(r"\b(?:failure\s+to|if\s+you\s+(?:do\s+not|don't|fail\s+to)|unless\s+you)\s+"
+                        r"(?:respond|reply|appear|attend|comply|return)\b", _I)
+# Telling the reader to report something to the police is advice, not a threat.
+REPORT_TO_POLICE = re.compile(r"\b(?:report|contact|call|notify|tell|inform|file)\b[^.\n]{0,50}?"
+                              r"\b(?:police|sheriff|law\s+enforcement)\b", _I)
+# "From: Companies House <x@example.com>" or "[mailto: x@gmail.com]": who an email says it is from.
+FROM_HEADER = re.compile(r"^[ \t]*From\s*:\s*(?P<name>[^<\[\n@]{2,80}?)\s*[<\[]\s*(?:mailto:\s*)?"
+                         r"(?P<addr>[^>\s]*?@[^>\]\s]+)\s*[>\]]", _I | re.M)

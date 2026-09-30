@@ -146,6 +146,10 @@ _KEYWORDS = {
     "secrecy": r"do not tell|don't tell|confidential|secret",
     "video_call": r"video call|skype|stay on the call",
     "ai_instructions": r"ignore (all )?previous|as an ai|classify this|system prompt",
+    "link_requests": r"click|tap here|open the link|link below|scan the qr",
+    "callback_requests": r"call|whatsapp",
+    "account_verification_requests": r"(?:verify|confirm|update).{0,30}(?:identity|details|account|kyc|pan)",
+    "prize_or_refund_bait": r"you have won|lottery|winner|claim (?:your )?refund|refund.{0,40}(?:click|link|verify)",
 }
 _PROTECTIVE = re.compile(r"\bnever\b|\bdo not share\b|\bdon't share\b", re.I)
 _AMOUNT = re.compile(r"(?:\$|₹|£|Rs\.?\s?)\s?\d[\d,]*(?:\.\d\d)?", re.I)

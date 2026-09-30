@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_irs_cp2000",
+ "label": "genuine",
+ "kind": "irs_notice",
+ "country": "US",
+ "source_name": "IRS, Understanding your CP2000 notice",
+ "source_url": "https://www.irs.gov/individuals/understanding-your-cp2000-notice",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Department of the Treasury\nInternal Revenue Service\nNotice CP2000\nTax year 2024\nNotice date September 21, 2026\nSocial Security number XXX-XX-1234\n\nChanges to your 2024 Form 1040\nProposed amount due: $1,842.00\n\nThe income and payment information we have on file from third parties, such as employers or financial institutions, doesn't match the information you reported on your tax return. This is not a bill.\n\nWhat you need to do immediately\nReview this notice, and compare our changes to the information on your tax return.\nComplete, sign and return the response form by October 21, 2026.\nIf you agree, you can pay online now at www.irs.gov/payments.\nIf you disagree, send a signed statement and supporting documents. You can upload your response at www.irs.gov/dmaf using access code 895ny-k9654, or fax it to 877-477-9485.\n\nIf we don't hear from you\nIf you don't reply or we can't resolve the discrepancy, we'll send you a Statutory Notice of Deficiency and then a bill. Interest will continue to accrue.\n\nIf you have questions, call 1-800-829-0922. Visit www.irs.gov/cp2000.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

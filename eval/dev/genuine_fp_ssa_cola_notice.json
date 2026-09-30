@@ -1,0 +1,12 @@
+{
+ "id": "genuine_fp_ssa_cola_notice",
+ "label": "genuine",
+ "kind": "ssa_notice",
+ "country": "US",
+ "source_name": "Social Security Administration, Cost-of-Living Adjustment (COLA) information",
+ "source_url": "https://www.ssa.gov/cola/",
+ "published": null,
+ "text_is": "written_from_public_template",
+ "text": "Social Security Administration\nImportant information\nDate: September 26, 2026\n\nYour new benefit amount\nBeginning January 2027, your Social Security benefit will increase by 2.8 percent because of a rise in the cost of living.\n\nYour monthly amount (before deductions) is $1,947.30\nThe amount we deduct for Medicare medical insurance is $202.90\nThe amount we will pay you on January 21, 2027 is $1,744.40\n\nIf you disagree with this decision, you have 60 days to ask for an appeal.\nYou can see this notice in your my Social Security account at www.ssa.gov/myaccount.\nIf you have questions, call us at 1-800-772-1213. We will never ask you to pay to receive your benefit increase.",
+ "notes": "Written by us from the public template or description at source_url for the false-positive hunt (2026-09-30). Names, numbers and references are placeholders; official contacts are the ones the organisation publishes. Not a verbatim copy of a real message."
+}

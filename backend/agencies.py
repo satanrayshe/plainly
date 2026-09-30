@@ -62,6 +62,11 @@ def _alias_hits(agency, text):
     return hits
 
 
+def named_in(agency, text):
+    """Does the text name this agency (by name or alias, not as an ID document such as "Aadhaar card")?"""
+    return bool(_alias_hits(agency, text))
+
+
 def by_key(registry, key):
     return next((a for a in registry["agencies"] if a.get("key") == key), None)
 
@@ -85,8 +90,10 @@ def match_agency(registry, *, claimed_key=None, claimed_sender="", text="", host
     if best:
         return best, f"the letter names {best['name']}"
 
+    shared = shared_domains(registry)
     for agency in registry["agencies"]:
-        if any(contacts.on_domain(h, d) for h in hosts for d in agency.get("domains", [])):
+        # gov.uk is every UK department's: it shows the letter mentions UK government, not which department.
+        if any(contacts.on_domain(h, d) for h in hosts for d in agency.get("domains", []) if d not in shared):
             return agency, f"a link or email is on {agency['name']}'s official domain"
     for agency in registry["agencies"]:
         if any(contacts.same_phone(p, o["number"]) for p in phones for o in agency.get("phones", [])):
@@ -113,6 +120,16 @@ def is_official_phone(agency, phone):
 
 def is_official_host(agency, host):
     return any(contacts.on_domain(host, d) for d in agency.get("domains", []))
+
+
+def shared_domains(registry):
+    """Domains that don't identify a single agency: listed for more than one, or a whole government suffix
+    such as gov.uk, which every UK department sits under."""
+    seen, shared = set(), set()
+    for agency in registry["agencies"]:
+        for d in set(agency.get("domains", [])):
+            (shared if d in seen or d in contacts.GOVERNMENT_SUFFIXES else seen).add(d)
+    return shared
 
 
 def all_domains(registry):

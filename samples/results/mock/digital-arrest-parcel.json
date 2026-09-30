@@ -69,6 +69,19 @@
         }
       },
       {
+        "rule": "impersonation_mismatch",
+        "severity": "strong",
+        "title": "Claims to be an official body, but its contact details aren't that body's",
+        "quote": "For the Skype ID and further instructions contact the investigation desk on WhatsApp +91 88888 01234 or email cbi.mumbai.cyberdesk@gmail.com .",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "It claims to be Central Bureau of Investigation, but none of its contacts (+91 88888 01234) are Central Bureau of Investigation's (checked 2026-09-30), and it asks you to act through them (asks for crypto or a wire transfer). Use 011-24362755 instead.",
+        "source": {
+          "name": "National Cyber Crime Reporting Portal",
+          "url": "https://cybercrime.gov.in"
+        }
+      },
+      {
         "rule": "urgency_short",
         "severity": "medium",
         "title": "Gives you less than 3 days to act",
@@ -108,16 +121,16 @@
         }
       },
       {
-        "rule": "unknown_contact",
+        "rule": "callback_unofficial",
         "severity": "medium",
-        "title": "Contact details are not on the official list",
+        "title": "Asks you to call or WhatsApp a number that isn't an official line",
         "quote": "For the Skype ID and further instructions contact the investigation desk on WhatsApp +91 88888 01234 or email cbi.mumbai.cyberdesk@gmail.com .",
         "quote_redacted": false,
         "grounded": true,
-        "why": "+91 88888 01234 is not on Central Bureau of Investigation's official contact list (checked 2026-09-30). Use 011-24362755 instead.",
+        "why": "It claims to be an organisation but gives a personal mobile number.",
         "source": {
-          "name": "FTC",
-          "url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonator-scam"
+          "name": "Indian Cyber Crime Coordination Centre (I4C)",
+          "url": "https://www.cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf"
         }
       }
     ],
@@ -132,7 +145,7 @@
         "step": "extract",
         "status": "done",
         "ms": 3,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 969 in / 427 out tokens)"
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 1105 in / 493 out tokens)"
       },
       {
         "step": "registry",
@@ -213,9 +226,57 @@
         "ms": 0
       },
       {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "pass",
+        "detail": "No request to click a link to claim, pay or verify",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "flag",
+        "detail": "Asks you to call or message a number that is not official (medium)",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "pass",
+        "detail": "No \"press 1\" instruction",
+        "ms": 0
+      },
+      {
         "step": "rule:unknown_contact",
         "status": "flag",
-        "detail": "Official: none. Not official: +91 88888 01234",
+        "detail": "No official contact; not official: +91 88888 01234; it also asks for crypto or a wire transfer",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "flag",
+        "detail": "It claims a registry agency but gives none of its contacts (see the registry check)",
         "ms": 0
       },
       {
@@ -239,7 +300,7 @@
       {
         "step": "verdict",
         "status": "done",
-        "detail": "Score 13 (3 strong x3, 4 medium x1): Likely scam. Reason: score of 3 or more.",
+        "detail": "Score 16 (4 strong x3, 4 medium x1): Likely scam. Reason: score of 3 or more.",
         "ms": 0
       }
     ],
@@ -263,9 +324,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 9,
-      "input_tokens": 969,
-      "output_tokens": 427
+      "ms": 10,
+      "input_tokens": 1105,
+      "output_tokens": 493
     }
   },
   "explanations": {
@@ -297,7 +358,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1453,
+        "input_tokens": 1569,
         "output_tokens": 149
       }
     },
@@ -329,7 +390,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1452,
+        "input_tokens": 1568,
         "output_tokens": 149
       }
     },
@@ -361,10 +422,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1453,
+        "input_tokens": 1569,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T15:27:15+00:00"
+  "generated_at": "2026-09-30T17:29:37+00:00"
 }
