@@ -1,0 +1,10 @@
+{
+  "id": "irs-eip-refund-email",
+  "label": "scam",
+  "kind": "email",
+  "source_name": "IRS news release IR-2023-131",
+  "source_url": "https://www.irs.gov/newsroom/taxpayers-see-wave-of-summer-email-text-scams-irs-urges-extra-caution-with-flood-of-schemes-involving-economic-impact-payments-employee-retention-credits-tax-refunds",
+  "published": "2023-07-21",
+  "text_is": "verbatim as quoted by the page",
+  "text": "Dear Tax Payer, We hope this message finds you well. We are writing to inform you abount an important matter regarding your recent tax return filing. Our record indicate that we have received your tax return for the fiscal inconsistencies or missing information that require your attention and clarification. You will receive a tax refund of $976.00 , We will process this amount once you have submitted the document we need for the steps to claim your tax refund.\nSender : INTERNAL REVENUE SERVICE"
+}

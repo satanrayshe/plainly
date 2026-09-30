@@ -1,0 +1,11 @@
+{
+  "id": "irs-claim-refund-online-email",
+  "label": "scam",
+  "kind": "email",
+  "source_name": "IRS news release IR-2023-131",
+  "source_url": "https://www.irs.gov/newsroom/taxpayers-see-wave-of-summer-email-text-scams-irs-urges-extra-caution-with-flood-of-schemes-involving-economic-impact-payments-employee-retention-credits-tax-refunds",
+  "published": "2023-07-21",
+  "text_is": "verbatim as quoted by the page",
+  "note": "The headline line is quoted separately on the page (a blue headline 'Claim your tax refund online').",
+  "text": "Claim your tax refund online\nWe cheked an error in the calculation of your tax from the last payment, amounting to $ 927,22. In order for us to return the excess payment, you need to create a E-Refund after which the funds will be credited to your specified bank. Please click below to claim your tax refund. If we are unable to complete within 3 days, all pending will be cancelled."
+}

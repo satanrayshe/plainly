@@ -1,0 +1,274 @@
+{
+  "id": "income-tax-intimation",
+  "title": "Income tax intimation",
+  "image": "/samples/letters/income-tax-intimation.png",
+  "mock": true,
+  "check": {
+    "verdict": "consistent_with_genuine",
+    "verdict_label": "Consistent with a genuine Income Tax Department letter — confirm on the official number",
+    "headline": "Nothing in this letter contradicts a genuine Income Tax Department letter, and its contact details match the official ones. Still, confirm by calling 1800 103 0025 yourself.",
+    "agency": {
+      "key": "income_tax_in",
+      "name": "Income Tax Department",
+      "country": "IN",
+      "official_phone": "1800 103 0025",
+      "official_site": "https://www.incometax.gov.in",
+      "report_channel": {
+        "name": "National Cyber Crime Reporting Portal / helpline 1930",
+        "url": "https://cybercrime.gov.in",
+        "phone": "1930",
+        "source_url": "https://cbi.gov.in/press-detail/ODAzMg=="
+      },
+      "source_url": "https://www.incometaxindia.gov.in/report-phishing",
+      "checked_on": "2026-09-30"
+    },
+    "report_channel": {
+      "name": "National Cyber Crime Reporting Portal / helpline 1930",
+      "url": "https://cybercrime.gov.in",
+      "phone": "1930",
+      "source_url": "https://cbi.gov.in/press-detail/ODAzMg=="
+    },
+    "flags": [],
+    "trace": [
+      {
+        "step": "ocr",
+        "status": "done",
+        "detail": "Textract read 20 lines",
+        "ms": 0
+      },
+      {
+        "step": "extract",
+        "status": "done",
+        "ms": 2,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 900 in / 271 out tokens)"
+      },
+      {
+        "step": "registry",
+        "status": "done",
+        "detail": "Matched Income Tax Department because the letter names Income Tax Department. Official contacts from https://www.incometaxindia.gov.in/report-phishing (checked 2026-09-30).",
+        "ms": 0
+      },
+      {
+        "step": "contacts",
+        "status": "done",
+        "detail": "Found 2 phone number(s), 1 link(s) and 0 email address(es) in the text.",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_gift_card",
+        "status": "pass",
+        "detail": "No gift-card payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_crypto_wire",
+        "status": "pass",
+        "detail": "No crypto, wire or \"safe account\" payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_personal_upi",
+        "status": "pass",
+        "detail": "No payment to a personal UPI ID or mobile number",
+        "ms": 0
+      },
+      {
+        "step": "rule:credential_request",
+        "status": "pass",
+        "detail": "No request for an OTP, PIN, password or full ID number",
+        "ms": 0
+      },
+      {
+        "step": "rule:threat_arrest",
+        "status": "pass",
+        "detail": "No threat of arrest, police or deportation",
+        "ms": 0
+      },
+      {
+        "step": "rule:video_call_demand",
+        "status": "pass",
+        "detail": "No video-call demand",
+        "ms": 0
+      },
+      {
+        "step": "rule:ai_instruction",
+        "status": "pass",
+        "detail": "No text addressed to AI tools",
+        "ms": 0
+      },
+      {
+        "step": "rule:lookalike_domain",
+        "status": "pass",
+        "detail": "1 address(es) checked against 22 official domains",
+        "ms": 0
+      },
+      {
+        "step": "rule:urgency_short",
+        "status": "pass",
+        "detail": "No demand to act within 72 hours in the wording",
+        "ms": 0
+      },
+      {
+        "step": "rule:freemail_official",
+        "status": "pass",
+        "detail": "No free email address given",
+        "ms": 0
+      },
+      {
+        "step": "rule:secrecy",
+        "status": "pass",
+        "detail": "No request for secrecy",
+        "ms": 0
+      },
+      {
+        "step": "rule:unknown_contact",
+        "status": "pass",
+        "detail": "Every contact matches Income Tax Department's official list: incometax.gov.in, 1800 103 0025, +91-80-46122000",
+        "ms": 0
+      },
+      {
+        "step": "rule:injection_detected_model",
+        "status": "pass",
+        "detail": "The model reported no instructions aimed at AI",
+        "ms": 0
+      },
+      {
+        "step": "dates",
+        "status": "done",
+        "detail": "Letter date 2026-09-25 (quoted from the letter). 1 deadline(s) worked out in code.",
+        "ms": 0
+      },
+      {
+        "step": "grounding",
+        "status": "done",
+        "detail": "4 of 4 model quote(s) found in the Textract text.",
+        "ms": 0
+      },
+      {
+        "step": "verdict",
+        "status": "done",
+        "detail": "Score 0 (0 strong x3, 0 medium x1): Consistent with a genuine Income Tax Department letter — confirm on the official number. Reason: agency matched, official contact found, no warning signs, quotes grounded.",
+        "ms": 0
+      }
+    ],
+    "extracted": {
+      "claimed_sender": "Income Tax Department",
+      "letter_date": "2026-09-25",
+      "phones": [
+        "1800 103 0025",
+        "+91-80-46122000"
+      ],
+      "urls": [
+        "https://www.incometax.gov.in"
+      ],
+      "emails": [],
+      "amounts": [
+        "₹ 4,200",
+        "₹ 11,850"
+      ],
+      "deadlines": [
+        {
+          "date": "2026-10-25",
+          "what": "You are requested to submit your response to this proposed adjustment within 30 days from the date of issue of this comm",
+          "quote": "You are requested to submit your response to this proposed adjustment within 30 days from the date of issue of this communication",
+          "computed_from": "letter_date + 30 days"
+        }
+      ]
+    },
+    "grounding": {
+      "source": "textract",
+      "grounded": 4,
+      "total": 4
+    },
+    "meta": {
+      "model": "us.amazon.nova-2-lite-v1:0",
+      "ms": 9,
+      "input_tokens": 900,
+      "output_tokens": 271
+    }
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "This letter asks you to act. Check it on the official number before you do anything.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is consistent with genuine.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Confirm the letter",
+          "how": "Call the official number shown.",
+          "by": "2026-10-25"
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "Hello, I received your letter and would like to confirm the details. Thank you.",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 983,
+        "output_tokens": 151
+      }
+    },
+    "Hindi": {
+      "language": "Hindi",
+      "tldr": "This letter asks you to act. Check it on the official number before you do anything.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is consistent with genuine.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Confirm the letter",
+          "how": "Call the official number shown.",
+          "by": "2026-10-25"
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "Hello, I received your letter and would like to confirm the details. Thank you.",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 983,
+        "output_tokens": 151
+      }
+    },
+    "Spanish": {
+      "language": "Spanish",
+      "tldr": "This letter asks you to act. Check it on the official number before you do anything.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is consistent with genuine.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Confirm the letter",
+          "how": "Call the official number shown.",
+          "by": "2026-10-25"
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "Hello, I received your letter and would like to confirm the details. Thank you.",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 983,
+        "output_tokens": 151
+      }
+    }
+  },
+  "generated_at": "2026-09-30T14:46:14+00:00"
+}

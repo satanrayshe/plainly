@@ -1,0 +1,329 @@
+{
+  "id": "ai-instruction",
+  "title": "Letter with hidden AI instructions",
+  "image": "/samples/letters/ai-instruction.png",
+  "mock": true,
+  "check": {
+    "verdict": "likely_scam",
+    "verdict_label": "Likely scam",
+    "headline": "This looks like a scam: it asks for an OTP, PIN, password or full ID number.",
+    "agency": null,
+    "report_channel": {
+      "name": "FTC",
+      "url": "https://reportfraud.ftc.gov",
+      "source_url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam"
+    },
+    "flags": [
+      {
+        "rule": "credential_request",
+        "severity": "strong",
+        "title": "Asks for an OTP, PIN, password or full ID number",
+        "quote": "Enter your full Social Security number and date of birth.",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "No real agency or bank asks you to share an OTP, PIN, password or your full SSN or Aadhaar. Anyone who has them can empty your accounts.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
+        "rule": "ai_instruction",
+        "severity": "strong",
+        "title": "Contains hidden instructions aimed at AI tools",
+        "quote": null,
+        "quote_redacted": true,
+        "grounded": true,
+        "why": "A genuine letter has no reason to talk to AI tools. Text like this tries to trick scam checkers, so we treat it as a strong warning sign and do not repeat it.",
+        "source": {
+          "name": "OWASP GenAI Security Project",
+          "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+        }
+      },
+      {
+        "rule": "lookalike_domain",
+        "severity": "strong",
+        "title": "Uses a web or email address that imitates an official one",
+        "quote": "Visit www.irs-refund-verify.com",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "The address irs-refund-verify.com puts 'irs' inside an address that is not irs.gov. Scammers register addresses like this to look official.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
+        "rule": "urgency_short",
+        "severity": "medium",
+        "title": "Gives you less than 3 days to act",
+        "quote": "To release the payment, complete the confirmation within 48 hours:",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "Very short deadlines are meant to rush you. Genuine notices usually give you weeks.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonator-scam"
+        }
+      },
+      {
+        "rule": "injection_detected_model",
+        "severity": "info",
+        "title": "The AI reader noticed instructions aimed at AI tools",
+        "quote": null,
+        "quote_redacted": true,
+        "grounded": true,
+        "why": "The model that read the letter reported text addressed to AI tools. We do not repeat it.",
+        "source": {
+          "name": "OWASP GenAI Security Project",
+          "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+        }
+      }
+    ],
+    "trace": [
+      {
+        "step": "ocr",
+        "status": "done",
+        "detail": "Textract read 19 lines",
+        "ms": 0
+      },
+      {
+        "step": "extract",
+        "status": "done",
+        "ms": 0,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 739 in / 195 out tokens)"
+      },
+      {
+        "step": "registry",
+        "status": "unknown",
+        "detail": "No match: no agency in our registry is named in the letter.",
+        "ms": 2
+      },
+      {
+        "step": "contacts",
+        "status": "done",
+        "detail": "Found 0 phone number(s), 1 link(s) and 0 email address(es) in the text.",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_gift_card",
+        "status": "pass",
+        "detail": "No gift-card payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_crypto_wire",
+        "status": "pass",
+        "detail": "No crypto, wire or \"safe account\" payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_personal_upi",
+        "status": "pass",
+        "detail": "No payment to a personal UPI ID or mobile number",
+        "ms": 0
+      },
+      {
+        "step": "rule:credential_request",
+        "status": "flag",
+        "detail": "The letter asks you to share a secret code or ID number",
+        "ms": 0
+      },
+      {
+        "step": "rule:threat_arrest",
+        "status": "pass",
+        "detail": "No threat of arrest, police or deportation",
+        "ms": 0
+      },
+      {
+        "step": "rule:video_call_demand",
+        "status": "pass",
+        "detail": "No video-call demand",
+        "ms": 0
+      },
+      {
+        "step": "rule:ai_instruction",
+        "status": "flag",
+        "detail": "Text addressed to AI tools found (redacted, never shown)",
+        "ms": 0
+      },
+      {
+        "step": "rule:lookalike_domain",
+        "status": "flag",
+        "detail": "irs-refund-verify.com puts 'irs' inside an address that is not irs.gov",
+        "ms": 0
+      },
+      {
+        "step": "rule:urgency_short",
+        "status": "flag",
+        "detail": "The letter demands action within hours or today",
+        "ms": 0
+      },
+      {
+        "step": "rule:freemail_official",
+        "status": "pass",
+        "detail": "No free email address given",
+        "ms": 0
+      },
+      {
+        "step": "rule:secrecy",
+        "status": "pass",
+        "detail": "No request for secrecy",
+        "ms": 0
+      },
+      {
+        "step": "rule:unknown_contact",
+        "status": "unknown",
+        "detail": "No agency to compare contacts against",
+        "ms": 0
+      },
+      {
+        "step": "rule:injection_detected_model",
+        "status": "flag",
+        "detail": "The model reported text addressed to AI tools (redacted)",
+        "ms": 0
+      },
+      {
+        "step": "dates",
+        "status": "done",
+        "detail": "Letter date 2026-09-26 (quoted from the letter). No deadlines found.",
+        "ms": 0
+      },
+      {
+        "step": "grounding",
+        "status": "done",
+        "detail": "3 of 3 model quote(s) found in the Textract text.",
+        "ms": 0
+      },
+      {
+        "step": "verdict",
+        "status": "done",
+        "detail": "Score 10 (3 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
+        "ms": 0
+      }
+    ],
+    "extracted": {
+      "claimed_sender": "Irs",
+      "letter_date": "2026-09-26",
+      "phones": [],
+      "urls": [
+        "www.irs-refund-verify.com"
+      ],
+      "emails": [],
+      "amounts": [
+        "$1,284.00"
+      ],
+      "deadlines": []
+    },
+    "grounding": {
+      "source": "textract",
+      "grounded": 3,
+      "total": 3
+    },
+    "meta": {
+      "model": "us.amazon.nova-2-lite-v1:0",
+      "ms": 49,
+      "input_tokens": 739,
+      "output_tokens": 195
+    }
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "This looks like a scam. Do not pay, call back or share any details.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is likely scam.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Do not pay or reply",
+          "how": "Ignore the numbers and links in the letter.",
+          "by": null
+        },
+        {
+          "step": "Report it",
+          "how": "Use the reporting channel shown with the result.",
+          "by": null
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 918,
+        "output_tokens": 149
+      }
+    },
+    "Hindi": {
+      "language": "Hindi",
+      "tldr": "This looks like a scam. Do not pay, call back or share any details.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is likely scam.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Do not pay or reply",
+          "how": "Ignore the numbers and links in the letter.",
+          "by": null
+        },
+        {
+          "step": "Report it",
+          "how": "Use the reporting channel shown with the result.",
+          "by": null
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 918,
+        "output_tokens": 149
+      }
+    },
+    "Spanish": {
+      "language": "Spanish",
+      "tldr": "This looks like a scam. Do not pay, call back or share any details.",
+      "explanation": [
+        "[offline mock narration] The checker's verdict is likely scam.",
+        "Each warning sign is quoted from the letter above.",
+        "Use only the official phone number or website, never the ones printed on the letter."
+      ],
+      "actions": [
+        {
+          "step": "Do not pay or reply",
+          "how": "Ignore the numbers and links in the letter.",
+          "by": null
+        },
+        {
+          "step": "Report it",
+          "how": "Use the reporting channel shown with the result.",
+          "by": null
+        }
+      ],
+      "jargon": [],
+      "questions_to_ask": [
+        "Is this letter on my account?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 0,
+        "input_tokens": 918,
+        "output_tokens": 149
+      }
+    }
+  },
+  "generated_at": "2026-09-30T14:46:14+00:00"
+}

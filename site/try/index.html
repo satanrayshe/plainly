@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- @head -->
+<title>Check a letter | Plainly</title>
+<meta name="description" content="Upload a photo or PDF of an official-looking letter, or paste a text message or email. Plainly checks it for scam signs and explains it in your language. Nothing is stored.">
+<meta name="plainly-api" content="/api">
+<meta property="og:title" content="Check a letter with Plainly">
+<meta property="og:description" content="Photo, PDF or pasted text. Get a verdict, the quoted warning signs, the official number to call and a plain-language explanation.">
+<meta property="og:url" content="/try/">
+<script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+<!-- @header -->
+
+<main id="main">
+  <div class="wrap page-head narrow">
+    <h1>Check a letter</h1>
+    <p class="lede">Add a photo of the letter, or paste the words from a text message or email. You will get a verdict first, then an explanation in your language.</p>
+  </div>
+
+  <div class="wrap narrow try-layout">
+    <noscript>
+      <div class="notice notice-limit">
+        <h2>This page needs JavaScript to read your letter</h2>
+        <p>You can still read three checked sample letters on the <a href="/#examples">home page</a>.</p>
+      </div>
+    </noscript>
+
+    <form class="panel try-form" id="check-form" novalidate>
+      <div class="form-block">
+        <p class="field-label" id="upload-label">Add the letter</p>
+        <div class="dropzone" id="dropzone" aria-labelledby="upload-label">
+          <div class="btn-row">
+            <input class="file-input" type="file" id="camera-input" accept="image/*" capture="environment">
+            <label class="btn only-touch" for="camera-input">Take a photo</label>
+            <input class="file-input" type="file" id="file-input" accept="image/*,application/pdf,.pdf">
+            <label class="btn btn-quiet" for="file-input">Choose a photo or PDF</label>
+          </div>
+          <p class="drop-hint">Or drag the file here.</p>
+          <p class="muted small">Photos and PDFs work. For a PDF we read the first 3 pages.</p>
+        </div>
+        <div id="chosen" hidden></div>
+      </div>
+
+      <div class="form-block">
+        <label class="field-label" for="text-input">Or paste the text</label>
+        <p class="hint" id="text-hint">Useful for text messages (SMS, WhatsApp) and emails. Include the sender's number or address if you can.</p>
+        <textarea id="text-input" name="text" maxlength="20000" aria-describedby="text-hint" placeholder="Paste the message here"></textarea>
+      </div>
+
+      <div class="form-block options">
+        <div>
+          <label class="field-label" for="language">Explain it in</label>
+          <select id="language" name="language">
+            <option value="English">English</option>
+            <option value="Hindi" lang="hi">हिन्दी (Hindi)</option>
+            <option value="Spanish" lang="es">Español (Spanish)</option>
+            <option value="other">Another language…</option>
+          </select>
+          <div class="other-lang" id="other-lang-wrap" hidden>
+            <label class="visually-hidden" for="other-lang">Which language?</label>
+            <input type="text" id="other-lang" maxlength="40" placeholder="For example: Tamil, Bengali, Tagalog" autocomplete="off">
+          </div>
+        </div>
+        <fieldset>
+          <legend class="field-label">Words to use</legend>
+          <div class="segmented">
+            <input type="radio" name="level" id="level-simple" value="simple" checked>
+            <label for="level-simple">Simple words</label>
+            <input type="radio" name="level" id="level-normal" value="normal">
+            <label for="level-normal">Normal</label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="submit-row">
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <button class="btn" type="submit" id="submit-btn">Check this letter</button>
+        <p class="privacy-inline">Your letter is read, checked and then discarded. Nothing is stored.</p>
+      </div>
+    </form>
+
+    <section id="results" class="results" aria-live="polite" tabindex="-1"></section>
+
+    <section class="tiles-section" id="samples" aria-labelledby="samples-title">
+      <h2 id="samples-title">No letter handy? Open a sample</h2>
+      <p class="muted">Made-up letters, each marked as a sample. Their results were prepared in advance, so they open instantly.</p>
+      <ul class="tiles" role="list">
+<!-- @samples:tiles -->
+      </ul>
+    </section>
+  </div>
+</main>
+
+<!-- @footer -->
+</body>
+</html>

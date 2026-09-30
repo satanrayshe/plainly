@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- @head -->
+<title>Evidence: how the build agent was connected to AWS | Plainly</title>
+<meta name="description" content="Text record of how the coding agent that built Plainly was connected to the AWS console through the AWS MCP Server: configuration, CloudTrail events, the least-privilege policy and the build log.">
+<meta property="og:title" content="Plainly: evidence of the coding agent's AWS connection">
+<meta property="og:description" content="MCP configuration, CloudTrail events, the least-privilege policy with its explicit denies, and excerpts from the build log, as plain text.">
+<meta property="og:url" content="/evidence/">
+</head>
+<body>
+<!-- @header -->
+
+<main id="main">
+  <div class="wrap page-head narrow">
+    <h1>Evidence</h1>
+    <p class="lede">The checker leaves receipts for every letter. The coding agent that built it left receipts too. This page is the text record, so it can be read without screenshots.</p>
+    <ul class="toc" aria-label="On this page">
+      <li><a href="#connection">Agent connection</a></li>
+      <li><a href="#mcp">MCP configuration</a></li>
+      <li><a href="#cloudtrail">CloudTrail events</a></li>
+      <li><a href="#policy">Least-privilege policy</a></li>
+      <li><a href="#log">Build log</a></li>
+    </ul>
+  </div>
+
+  <div class="wrap narrow">
+    <section class="section prose" id="connection" aria-labelledby="connection-title">
+      <h2 id="connection-title">Agent connection</h2>
+      <p>Claude Code was connected to the AWS account with the Agent Toolkit for AWS (<code>aws login</code>, then <code>aws configure agent-toolkit</code>), which links it to the managed AWS MCP Server. It used a dedicated IAM identity, <code>plainly-agent</code>.</p>
+      <div class="placeholder">
+        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
+        <p>Output of <code>aws configure agent-toolkit</code>, the masked result of <code>aws sts get-caller-identity</code>, and the agent's first MCP call, each with its timestamp.</p>
+        <pre>$ aws sts get-caller-identity --profile plainly-agent
+{
+  "UserId": "AIDA************",
+  "Account": "************",
+  "Arn": "arn:aws:iam::************:user/plainly-agent"
+}</pre>
+      </div>
+    </section>
+
+    <section class="section prose" id="mcp" aria-labelledby="mcp-title">
+      <h2 id="mcp-title">MCP configuration</h2>
+      <p>The MCP server entry Claude Code used, with the profile it was allowed to act as.</p>
+      <div class="placeholder">
+        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
+        <p>The <code>aws-mcp</code> entry from the Claude Code MCP configuration, with <code>AWS_MCP_PROXY_PROFILES=plainly-agent</code>, and the <code>/mcp</code> status line showing it connected.</p>
+      </div>
+    </section>
+
+    <section class="section prose" id="cloudtrail" aria-labelledby="cloudtrail-title">
+      <h2 id="cloudtrail-title">CloudTrail events</h2>
+      <p>A CloudTrail trail records management events and AWS MCP Server data events. Actions the agent took through MCP show <code>aws-mcp.amazonaws.com</code> as the event source. Deploys run from the agent's shell with the AWS CLI are ordinary CLI calls, and are listed as such.</p>
+      <div class="placeholder">
+        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
+        <p>A CloudWatch Logs Insights query over the trail filtered on <code>eventSource = aws-mcp.amazonaws.com</code>, and a short table of events: time, event name, resource, request id.</p>
+      </div>
+    </section>
+
+    <section class="section prose" id="policy" aria-labelledby="policy-title">
+      <h2 id="policy-title">Least-privilege policy</h2>
+      <p>The agent's permissions cover only the services Plainly uses. On top of that, an explicit deny applies whenever a call comes through the MCP server, so the agent cannot stop the audit trail or delete the stack, bucket, table or IAM entities, and cannot create access keys.</p>
+      <div class="placeholder">
+        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
+        <p>The final policy JSON as deployed, including the deny statement conditioned on <code>aws:ViaAWSMCPService</code>, and the permissions boundary on roles the agent can create.</p>
+      </div>
+    </section>
+
+    <section class="section prose" id="log" aria-labelledby="log-title">
+      <h2 id="log-title">Build log excerpt</h2>
+      <p>From <code>docs/agent-log.md</code>: what the agent did, what the human decided, and the evidence for each step.</p>
+      <div class="placeholder">
+        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
+        <p>Timestamped excerpts, including one incident the agent diagnosed from CloudWatch Logs through MCP and the fix it made.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- @footer -->
+</body>
+</html>

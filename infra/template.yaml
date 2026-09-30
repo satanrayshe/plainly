@@ -1,0 +1,620 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Plainly - Is this letter real? Static site on S3 + CloudFront, /api/* on an HTTP API
+  backed by one Python Lambda, DynamoDB for rate limits and counters, alarms, dashboard
+  and a monthly budget. Deploy in us-east-1 with scripts/deploy.sh.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label: { default: Application }
+        Parameters: [AppName, CodeBucket, CodeKey, ModelIds, DailyCap, RateLimitPerHour, LogLevel]
+      - Label: { default: Operations }
+        Parameters: [AlertEmail, MonthlyBudgetUsd, PermissionsBoundaryArn]
+
+Parameters:
+  AppName:
+    Type: String
+    Default: plainly
+    AllowedPattern: "^[a-z][a-z0-9-]{1,19}$"
+    Description: >-
+      Prefix for every named resource. The agent IAM policy and permissions boundary
+      are scoped to "plainly-*", so change this only together with those policies.
+  CodeBucket:
+    Type: String
+    Description: S3 bucket holding the Lambda zip (scripts/deploy.sh uses plainly-artifacts-<account id>).
+  CodeKey:
+    Type: String
+    Description: Object key of the Lambda zip, e.g. lambda/lambda-0123456789ab.zip (content-addressed).
+  AlertEmail:
+    Type: String
+    AllowedPattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+    ConstraintDescription: must be an email address.
+    Description: Receives alarm and budget emails. Confirm the SNS subscription email after the first deploy.
+  ModelIds:
+    Type: String
+    Default: us.amazon.nova-2-lite-v1:0,us.amazon.nova-pro-v1:0,us.amazon.nova-lite-v1:0
+    Description: Comma-separated Bedrock model or inference profile IDs, tried in order.
+  DailyCap:
+    Type: Number
+    Default: 400
+    MinValue: 0
+    Description: Global live checks per UTC day before /api/check answers 503 with the sample fallback.
+  RateLimitPerHour:
+    Type: Number
+    Default: 20
+    MinValue: 1
+    Description: Live checks per viewer IP per hour.
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues: [DEBUG, INFO, WARNING, ERROR]
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    Description: Monthly cost budget; alerts only, it never stops anything.
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ""
+    Description: >-
+      Managed policy ARN set as the permissions boundary on the Lambda role. Leave empty
+      for none. The plainly-agent user can only create roles that carry
+      arn:aws:iam::<account id>:policy/plainly-boundary, and scripts/deploy.sh passes it.
+
+Conditions:
+  HasPermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundaryArn, ""]]
+
+Resources:
+  # ---------------------------------------------------------------- static site
+
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${AppName}-site-${AWS::AccountId}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CloudFrontReadViaOAC
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${SiteBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+          # With ListBucket a missing object is a 404 instead of an opaque 403.
+          - Sid: CloudFrontListViaOAC
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:ListBucket
+            Resource: !GetAtt SiteBucket.Arn
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt SiteBucket.Arn
+              - !Sub ${SiteBucket.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub ${AppName}-site-oac
+        Description: CloudFront reads the private site bucket with SigV4.
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  UriRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub ${AppName}-uri-rewrite
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Map clean URLs to index.html objects (source of truth infra/cf-function.js)
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+
+          if (uri.endsWith('/')) {
+            request.uri = uri + 'index.html';
+          } else if (uri.lastIndexOf('.') < uri.lastIndexOf('/') + 1) {
+            request.uri = uri + '/index.html';
+          }
+          return request;
+        }
+
+  ApiOriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: !Sub ${AppName}-api-origin-request
+        Comment: Forward what the API needs; never the Host header (API Gateway routes on it).
+        HeadersConfig:
+          HeaderBehavior: whitelist
+          Headers:
+            - CloudFront-Viewer-Address
+            - Content-Type
+            - Accept
+            - Accept-Language
+        QueryStringsConfig:
+          QueryStringBehavior: all
+        CookiesConfig:
+          CookieBehavior: none
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub ${AppName} site and API
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100
+        DefaultRootObject: index.html
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        Origins:
+          - Id: site
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+          - Id: api
+            DomainName: !Sub ${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+              OriginReadTimeout: 30
+              OriginKeepaliveTimeout: 5
+            # The Lambda rejects requests without this header, so nobody can call the
+            # execute-api URL directly and spoof CloudFront-Viewer-Address to dodge the
+            # per-IP limit. The value is this stack's UUID: stable, and never public.
+            OriginCustomHeaders:
+              - HeaderName: x-origin-verify
+                HeaderValue: !Select [2, !Split ["/", !Ref AWS::StackId]]
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6          # Managed-CachingOptimized
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt UriRewriteFunction.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad          # Managed-CachingDisabled
+            OriginRequestPolicyId: !Ref ApiOriginRequestPolicy
+            ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+
+  # ---------------------------------------------------------------- API
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub ${AppName}-api
+      ProtocolType: HTTP
+      Description: Plainly JSON API, reached through CloudFront /api/*
+
+  ApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt ApiFunction.Arn
+      PayloadFormatVersion: "2.0"
+      TimeoutInMillis: 30000
+
+  CheckRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: POST /api/check
+      Target: !Sub integrations/${ApiIntegration}
+
+  ExplainRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: POST /api/explain
+      Target: !Sub integrations/${ApiIntegration}
+
+  HealthRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /api/health
+      Target: !Sub integrations/${ApiIntegration}
+
+  StatsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: GET /api/stats
+      Target: !Sub integrations/${ApiIntegration}
+
+  ApiAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/apigateway/${AppName}-api
+      RetentionInDays: 14
+
+  ApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        ThrottlingRateLimit: 5
+        ThrottlingBurstLimit: 10
+      AccessLogSettings:
+        DestinationArn: !GetAtt ApiAccessLogGroup.Arn
+        # sourceIp is a CloudFront edge address here, never the reader's IP.
+        Format: >-
+          {"requestId":"$context.requestId","time":"$context.requestTime",
+          "route":"$context.routeKey","status":"$context.status",
+          "latencyMs":"$context.responseLatency","integrationMs":"$context.integrationLatency",
+          "integrationError":"$context.integrationErrorMessage","bytes":"$context.responseLength",
+          "edgeIp":"$context.identity.sourceIp"}
+
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*
+
+  # ---------------------------------------------------------------- Lambda
+
+  ApiFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AppName}-api
+      RetentionInDays: 14
+
+  ApiFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AppName}-api-role
+      Description: Runtime role for the Plainly API Lambda.
+      PermissionsBoundary: !If [HasPermissionsBoundary, !Ref PermissionsBoundaryArn, !Ref AWS::NoValue]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Policies:
+        - PolicyName: runtime
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteOwnLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub ${ApiFunctionLogGroup.Arn}
+              - Sid: CountersTable
+                Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource: !GetAtt DataTable.Arn
+              - Sid: ReadLetterText
+                Effect: Allow
+                Action: textract:DetectDocumentText
+                Resource: "*"
+              # The us. cross-region inference profile routes to any of these three Regions.
+              - Sid: InvokeNova
+                Effect: Allow
+                Action: bedrock:InvokeModel
+                Resource:
+                  - !Sub arn:${AWS::Partition}:bedrock:us-east-1:${AWS::AccountId}:inference-profile/us.amazon.nova-*
+                  - !Sub arn:${AWS::Partition}:bedrock:us-east-1::foundation-model/amazon.nova-*
+                  - !Sub arn:${AWS::Partition}:bedrock:us-east-2::foundation-model/amazon.nova-*
+                  - !Sub arn:${AWS::Partition}:bedrock:us-west-2::foundation-model/amazon.nova-*
+
+  ApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${AppName}-api
+      Description: Plainly /api/* handler (check, explain, health, stats)
+      Runtime: python3.13
+      Architectures: [arm64]
+      Handler: app.handler
+      MemorySize: 1024
+      Timeout: 29
+      Role: !GetAtt ApiFunctionRole.Arn
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+      LoggingConfig:
+        LogGroup: !Ref ApiFunctionLogGroup
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref DataTable
+          MODEL_IDS: !Ref ModelIds
+          DAILY_CAP: !Ref DailyCap
+          RATE_LIMIT_PER_HOUR: !Ref RateLimitPerHour
+          LOG_LEVEL: !Ref LogLevel
+          APP_VERSION: !Ref CodeKey
+          ORIGIN_VERIFY: !Select [2, !Split ["/", !Ref AWS::StackId]]
+
+  # ---------------------------------------------------------------- data
+
+  # Rate-limit windows, the global daily cap and anonymous counters. No letter content.
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ${AppName}-data
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: expiresAt
+        Enabled: true
+
+  # ---------------------------------------------------------------- operations
+
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub ${AppName}-alerts
+      DisplayName: Plainly alerts
+
+  AlertEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref AlertTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  LambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-lambda-errors
+      AlarmDescription: The API Lambda raised 3 or more unhandled errors in 5 minutes.
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ApiFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  LambdaDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-lambda-duration-p95
+      AlarmDescription: p95 Lambda duration above 20 s; close to the 30 s API Gateway and CloudFront limit.
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ApiFunction
+      ExtendedStatistic: p95
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 20000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  # Includes the app's own 502/503 answers, so it also fires when the daily cap is reached.
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-api-5xx
+      AlarmDescription: The HTTP API returned 5 or more 5xx responses in 5 minutes.
+      Namespace: AWS/ApiGateway
+      MetricName: 5xx
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApi
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  # Counts log lines that mention a Bedrock ThrottlingException, so the backend only has to
+  # log the botocore error code; no PutMetricData permission needed.
+  BedrockThrottleMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ApiFunctionLogGroup
+      FilterPattern: '"ThrottlingException"'
+      MetricTransformations:
+        - MetricNamespace: Plainly
+          MetricName: BedrockThrottles
+          MetricValue: "1"
+          DefaultValue: 0
+          Unit: Count
+
+  BedrockThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AppName}-bedrock-throttles
+      AlarmDescription: Bedrock throttled 5 or more calls in 5 minutes; check the Nova tokens-per-minute quota.
+      Namespace: Plainly
+      MetricName: BedrockThrottles
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+
+  Dashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub ${AppName}-ops
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {"type": "metric", "x": 0, "y": 0, "width": 8, "height": 6, "properties": {
+              "title": "Lambda invocations and errors", "region": "${AWS::Region}", "view": "timeSeries",
+              "stat": "Sum", "period": 300,
+              "metrics": [
+                ["AWS/Lambda", "Invocations", "FunctionName", "${ApiFunction}"],
+                [".", "Errors", ".", "."],
+                [".", "Throttles", ".", "."]
+              ]}},
+            {"type": "metric", "x": 8, "y": 0, "width": 8, "height": 6, "properties": {
+              "title": "Lambda duration (ms)", "region": "${AWS::Region}", "view": "timeSeries", "period": 300,
+              "metrics": [
+                ["AWS/Lambda", "Duration", "FunctionName", "${ApiFunction}", {"stat": "p50", "label": "p50"}],
+                ["...", {"stat": "p95", "label": "p95"}],
+                ["...", {"stat": "Maximum", "label": "max"}]
+              ],
+              "annotations": {"horizontal": [{"value": 20000, "label": "alarm"}, {"value": 29000, "label": "timeout"}]}}},
+            {"type": "metric", "x": 16, "y": 0, "width": 8, "height": 6, "properties": {
+              "title": "Bedrock throttles (from logs)", "region": "${AWS::Region}", "view": "timeSeries",
+              "stat": "Sum", "period": 300,
+              "metrics": [["Plainly", "BedrockThrottles"]]}},
+            {"type": "metric", "x": 0, "y": 6, "width": 8, "height": 6, "properties": {
+              "title": "API requests, 4xx, 5xx", "region": "${AWS::Region}", "view": "timeSeries",
+              "stat": "Sum", "period": 300,
+              "metrics": [
+                ["AWS/ApiGateway", "Count", "ApiId", "${HttpApi}"],
+                [".", "4xx", ".", "."],
+                [".", "5xx", ".", "."]
+              ]}},
+            {"type": "metric", "x": 8, "y": 6, "width": 8, "height": 6, "properties": {
+              "title": "API latency (ms)", "region": "${AWS::Region}", "view": "timeSeries", "period": 300,
+              "metrics": [
+                ["AWS/ApiGateway", "Latency", "ApiId", "${HttpApi}", {"stat": "p50", "label": "latency p50"}],
+                ["...", {"stat": "p95", "label": "latency p95"}],
+                [".", "IntegrationLatency", ".", ".", {"stat": "p95", "label": "integration p95"}]
+              ]}},
+            {"type": "metric", "x": 16, "y": 6, "width": 8, "height": 6, "properties": {
+              "title": "CloudFront requests and error rates", "region": "us-east-1", "view": "timeSeries", "period": 300,
+              "metrics": [
+                ["AWS/CloudFront", "Requests", "DistributionId", "${Distribution}", "Region", "Global", {"stat": "Sum"}],
+                [".", "4xxErrorRate", ".", ".", ".", ".", {"stat": "Average", "yAxis": "right"}],
+                [".", "5xxErrorRate", ".", ".", ".", ".", {"stat": "Average", "yAxis": "right"}]
+              ]}},
+            {"type": "alarm", "x": 0, "y": 12, "width": 24, "height": 3, "properties": {
+              "title": "Alarms",
+              "alarms": [
+                "${LambdaErrorsAlarm.Arn}", "${LambdaDurationAlarm.Arn}",
+                "${Api5xxAlarm.Arn}", "${BedrockThrottleAlarm.Arn}"
+              ]}}
+          ]
+        }
+
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub ${AppName}-monthly
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 50
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+        - Notification:
+            NotificationType: FORECASTED
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
+Outputs:
+  SiteUrl:
+    Description: Public URL (CloudFront)
+    Value: !Sub https://${Distribution.DomainName}
+  DistributionId:
+    Value: !Ref Distribution
+  SiteBucket:
+    Value: !Ref SiteBucket
+  ApiEndpoint:
+    Description: Raw execute-api endpoint. Requests without the CloudFront origin header are rejected; use SiteUrl/api/...
+    Value: !GetAtt HttpApi.ApiEndpoint
+  TableName:
+    Value: !Ref DataTable
+  FunctionName:
+    Value: !Ref ApiFunction
+  AlertTopicArn:
+    Value: !Ref AlertTopic
+  DashboardUrl:
+    Value: !Sub https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards/dashboard/${Dashboard}

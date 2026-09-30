@@ -1,0 +1,10 @@
+{
+  "id": "ftc-robocall-ssa-suspension",
+  "label": "scam",
+  "kind": "call transcript",
+  "source_name": "FTC Consumer Advice, Robocall Scam Examples (Social Security Administration impersonator)",
+  "source_url": "https://consumer.ftc.gov/features/robocall-scam-examples",
+  "published": null,
+  "text_is": "verbatim transcript published with the recording",
+  "text": "We will be suspending your Social Security Number because we found some suspicious activities on your Social Security. If you want more information about this case, press 1. Thank you."
+}

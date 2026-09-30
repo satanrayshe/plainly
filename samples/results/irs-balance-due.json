@@ -1,0 +1,250 @@
+{
+  "id": "irs-balance-due",
+  "mock": true,
+  "verdict": "consistent_with_genuine",
+  "verdict_label": "Consistent with a genuine IRS letter. Confirm on the official number.",
+  "headline": "The contacts on this notice match the IRS, and it asks for payment only through irs.gov or a check to the U.S. Treasury. Call the IRS to confirm before you pay.",
+  "agency": {
+    "key": "irs",
+    "name": "Internal Revenue Service",
+    "country": "US",
+    "official_phone": "800-829-1040",
+    "official_site": "https://www.irs.gov",
+    "report_channel": {
+      "name": "FTC",
+      "url": "https://reportfraud.ftc.gov"
+    },
+    "source_url": "https://www.irs.gov/help/telephone-assistance",
+    "checked_on": "2026-09-30"
+  },
+  "flags": [],
+  "trace": [
+    {
+      "step": "ocr",
+      "status": "done",
+      "detail": "Textract read 38 lines",
+      "ms": 1910
+    },
+    {
+      "step": "extract",
+      "status": "done",
+      "detail": "Nova 2 Lite recorded sender, date, 1 deadline, 1 amount, 6 quotes",
+      "ms": 3480
+    },
+    {
+      "step": "rule:payment_method",
+      "status": "pass",
+      "detail": "Payment only via irs.gov/payments or check to the U.S. Treasury",
+      "ms": 0
+    },
+    {
+      "step": "rule:credential_request",
+      "status": "pass",
+      "detail": "No request for PIN, password or full SSN",
+      "ms": 0
+    },
+    {
+      "step": "rule:threat_arrest",
+      "status": "pass",
+      "detail": "No threat of arrest or police action",
+      "ms": 0
+    },
+    {
+      "step": "rule:video_call",
+      "status": "pass",
+      "detail": "No demand for a video call",
+      "ms": 0
+    },
+    {
+      "step": "rule:ai_instruction",
+      "status": "pass",
+      "detail": "No instructions aimed at AI tools",
+      "ms": 0
+    },
+    {
+      "step": "rule:lookalike_domain",
+      "status": "pass",
+      "detail": "www.irs.gov is the registry domain",
+      "ms": 1
+    },
+    {
+      "step": "rule:urgency",
+      "status": "pass",
+      "detail": "Deadline is 21 days after the notice date",
+      "ms": 0
+    },
+    {
+      "step": "rule:freemail",
+      "status": "pass",
+      "detail": "No free email address given",
+      "ms": 0
+    },
+    {
+      "step": "rule:secrecy",
+      "status": "pass",
+      "detail": "No request to keep this secret",
+      "ms": 0
+    },
+    {
+      "step": "registry",
+      "status": "pass",
+      "detail": "irs.gov and 800-829-1040 match the IRS entry",
+      "ms": 0
+    },
+    {
+      "step": "dates",
+      "status": "done",
+      "detail": "2026-09-14 + 21 days = 2026-10-05, matches the printed date",
+      "ms": 0
+    },
+    {
+      "step": "grounding",
+      "status": "done",
+      "detail": "6 of 6 quotes found in the Textract reading",
+      "ms": 4
+    },
+    {
+      "step": "verdict",
+      "status": "done",
+      "detail": "Score 0, agency contact matched: consistent_with_genuine",
+      "ms": 0
+    }
+  ],
+  "extracted": {
+    "claimed_sender": "Internal Revenue Service",
+    "letter_date": "2026-09-14",
+    "phones": [
+      "800-829-1040"
+    ],
+    "urls": [
+      "www.irs.gov/payments",
+      "www.irs.gov/paymentplan",
+      "www.irs.gov/cp14"
+    ],
+    "emails": [],
+    "amounts": [
+      "$1,284.60"
+    ],
+    "deadlines": [
+      {
+        "date": "2026-10-05",
+        "what": "Pay the amount due, or call the IRS if you disagree",
+        "quote": "To make sure we receive your payment within 21 calendar days from the date of this notice, pay by October 5, 2026",
+        "computed_from": "letter_date + 21 days"
+      }
+    ]
+  },
+  "grounding": {
+    "source": "textract",
+    "grounded": 6,
+    "total": 6
+  },
+  "meta": {
+    "model": "us.amazon.nova-2-lite-v1:0",
+    "ms": 5890,
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "The IRS says you owe $1,284.60 in unpaid tax. Pay it or contact the IRS by 5 October 2026 to avoid more interest and penalties.",
+      "explanation": [
+        "This notice says your tax return showed a balance you have not paid yet.",
+        "The amount includes the tax, a late-payment penalty and interest.",
+        "Interest keeps growing until the balance is paid.",
+        "You can pay online at irs.gov/payments, or mail a check made out to the U.S. Treasury.",
+        "If you can't pay it all, the IRS offers payment plans."
+      ],
+      "actions": [
+        {
+          "step": "Confirm the notice is real",
+          "how": "Call the IRS on 800-829-1040, the number listed on irs.gov. Have the notice in front of you.",
+          "by": null
+        },
+        {
+          "step": "Pay the balance or set up a payment plan",
+          "how": "Use irs.gov/payments, or send a check to the U.S. Treasury with the payment slip from the notice.",
+          "by": "2026-10-05"
+        },
+        {
+          "step": "If you think the amount is wrong, reply before the deadline",
+          "how": "Call the IRS or send a letter with copies of your records.",
+          "by": "2026-10-05"
+        }
+      ],
+      "jargon": [
+        {
+          "term": "Balance due",
+          "meaning": "Money you still owe after the IRS checked your tax return."
+        },
+        {
+          "term": "Failure-to-pay penalty",
+          "meaning": "An extra charge added because the tax was not paid on time."
+        }
+      ],
+      "questions_to_ask": [
+        "Can you confirm this notice and the amount on my account?",
+        "Can I set up a monthly payment plan?",
+        "Can the penalty be removed if this is my first time?"
+      ],
+      "reply_draft": "Dear Internal Revenue Service,\n\nI received your notice dated 14 September 2026 about a balance due of $1,284.60. I would like to [pay the balance in full / set up a payment plan / ask you to review the amount].\n\nMy name and address are as shown on the notice. Please contact me if you need more information.\n\nThank you,\n[Your name]\n[Your phone number]",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 4210,
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    },
+    "Hindi": {
+      "language": "Hindi",
+      "tldr": "IRS कहता है कि आप पर $1,284.60 का टैक्स बाकी है। ज़्यादा ब्याज और जुर्माने से बचने के लिए 5 अक्टूबर 2026 तक भुगतान करें या IRS से संपर्क करें।",
+      "explanation": [
+        "इस नोटिस के अनुसार आपके टैक्स रिटर्न में जो रकम बाकी थी, वह अभी तक नहीं चुकाई गई है।",
+        "इस रकम में टैक्स, देर से भुगतान का जुर्माना और ब्याज शामिल है।",
+        "जब तक पूरी रकम नहीं चुकाई जाती, ब्याज बढ़ता रहता है।",
+        "आप irs.gov/payments पर ऑनलाइन भुगतान कर सकते हैं, या U.S. Treasury के नाम चेक भेज सकते हैं।",
+        "अगर आप एक साथ पूरा नहीं चुका सकते, तो IRS किस्तों में भुगतान की सुविधा देता है।"
+      ],
+      "actions": [
+        {
+          "step": "पक्का करें कि नोटिस असली है",
+          "how": "IRS को 800-829-1040 पर फ़ोन करें। यह नंबर irs.gov पर दिया गया है। नोटिस अपने पास रखें।",
+          "by": null
+        },
+        {
+          "step": "बकाया चुकाएं या किस्तों की योजना बनाएं",
+          "how": "irs.gov/payments का इस्तेमाल करें, या नोटिस की भुगतान पर्ची के साथ U.S. Treasury के नाम चेक भेजें।",
+          "by": "2026-10-05"
+        },
+        {
+          "step": "अगर रकम गलत लगे, तो आख़िरी तारीख से पहले जवाब दें",
+          "how": "IRS को फ़ोन करें या अपने कागज़ों की कॉपी के साथ पत्र भेजें।",
+          "by": "2026-10-05"
+        }
+      ],
+      "jargon": [
+        {
+          "term": "Balance due",
+          "meaning": "IRS द्वारा आपका टैक्स रिटर्न जांचने के बाद जो रकम अभी भी बाकी है।"
+        },
+        {
+          "term": "Failure-to-pay penalty",
+          "meaning": "समय पर टैक्स न चुकाने पर लगने वाला अतिरिक्त शुल्क।"
+        }
+      ],
+      "questions_to_ask": [
+        "क्या आप मेरे खाते में यह नोटिस और रकम पक्की कर सकते हैं?",
+        "क्या मैं हर महीने किस्तों में भुगतान कर सकता/सकती हूँ?",
+        "अगर यह पहली बार है, तो क्या जुर्माना हटाया जा सकता है?"
+      ],
+      "reply_draft": "Dear Internal Revenue Service,\n\nI received your notice dated 14 September 2026 about a balance due of $1,284.60. I would like to [pay the balance in full / set up a payment plan / ask you to review the amount].\n\nMy name and address are as shown on the notice. Please contact me if you need more information.\n\nThank you,\n[Your name]\n[Your phone number]",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 5120,
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    }
+  }
+}

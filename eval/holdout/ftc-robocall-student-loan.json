@@ -1,0 +1,10 @@
+{
+  "id": "ftc-robocall-student-loan",
+  "label": "scam",
+  "kind": "call transcript",
+  "source_name": "FTC Consumer Advice, Robocall Scam Examples (student loan debt relief)",
+  "source_url": "https://consumer.ftc.gov/features/robocall-scam-examples",
+  "published": null,
+  "text_is": "verbatim transcript published with the recording",
+  "text": "Hello. I am an artificial intelligent notification bot. The purpose of this call is to make you aware that as a U.S. resident, you are now able to take advantage of alternative federal student loan repayment options and hardship programs. These programs are only for individuals who have less than $160,000 in federal student loan debt. Having debt obligations may cause a hardship when added to your overall monthly bills. Using our automated approval technology, you are now able to obtain enrollment information based on your current situation."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "ic3-toll-smishing",
+  "label": "scam",
+  "kind": "sms",
+  "source_name": "FBI IC3 public service announcement I-041224-PSA",
+  "source_url": "https://www.ic3.gov/PSA/2024/PSA240412",
+  "published": "2024-04-12",
+  "text_is": "verbatim as shown on the page",
+  "text": "(State Toll Service Name): We've noticed an outstanding toll amount of $12.51 on your record. To avoid a late fee of $50.00, visit https://myturnpiketollservices.com to settle your balance."
+}

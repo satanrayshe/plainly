@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- @head -->
+<title>A 60-second tour for judges | Plainly</title>
+<meta name="description" content="Five steps through Plainly with direct links: a scam notice, a genuine-format IRS notice, a letter with hidden instructions for AI tools, the receipts, and the build agent's AWS evidence.">
+<meta property="og:title" content="Plainly in 60 seconds">
+<meta property="og:description" content="Five direct links through the product and the evidence, plus where each judging criterion shows up.">
+<meta property="og:url" content="/judges/">
+</head>
+<body>
+<!-- @header -->
+
+<main id="main">
+  <div class="wrap page-head narrow">
+    <h1>Plainly in 60 seconds</h1>
+    <p class="lede">Five links, in order. The samples open instantly because their results were prepared in advance. To see a live check, use <a href="/try/">Check a letter</a> with any photo or pasted text message.</p>
+  </div>
+
+  <div class="wrap narrow">
+    <section class="section" aria-labelledby="tour-title">
+      <h2 id="tour-title" class="visually-hidden">The tour</h2>
+      <ol class="tour">
+        <li>
+          <h3>A scam that looks official <span class="time">15 s</span></h3>
+          <p>An electricity "final notice" demanding payment to a personal UPI ID tonight. Look for the red verdict, each warning sign quoted from the letter, and the official number to call instead.</p>
+          <p><a href="/try/?sample=electricity-final-notice">Open the electricity notice</a></p>
+        </li>
+        <li>
+          <h3>A notice in the genuine format <span class="time">15 s</span></h3>
+          <p>An IRS balance-due notice whose contacts match the official list. The verdict still sends you to the official number. The deadline is worked out in code; save it with "Add to calendar", then switch the explanation to हिन्दी at the bottom.</p>
+          <p><a href="/try/?sample=irs-balance-due">Open the IRS notice</a></p>
+        </li>
+        <li>
+          <h3>A letter that talks to the AI <span class="time">10 s</span></h3>
+          <p>This letter hides instructions meant to sway an AI checker. Plainly treats that as a strong scam sign. The instruction is visible only inside the image; the result never repeats it.</p>
+          <p><a href="/try/?sample=ai-instruction">Open the hidden-instruction letter</a></p>
+        </li>
+        <li>
+          <h3>The receipts <span class="time">10 s</span></h3>
+          <p>On any result, open "Receipts: every check we ran" to see each step marked FLAG, PASS or UNKNOWN with its timing, and how many quotes were confirmed by the independent reading. The rules and verdict logic are listed in full on How it works.</p>
+          <p><a href="/how-it-works/#rules">See the rules and the verdict logic</a></p>
+        </li>
+        <li>
+          <h3>The build agent's receipts <span class="time">10 s</span></h3>
+          <p>The coding agent was connected to AWS through the AWS MCP Server under a policy that denies it deleting resources or stopping the audit trail. CloudTrail shows what it did.</p>
+          <p><a href="/evidence/">Open the evidence</a></p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="criteria-title">
+      <h2 id="criteria-title">Where each criterion shows up</h2>
+      <div class="table-wrap stack">
+        <table>
+          <thead>
+            <tr><th scope="col">Criterion</th><th scope="col">What to look at</th><th scope="col">Where</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Technical Innovation &amp; Originality</th>
+              <td>Code decides the verdict and the model only reads and explains. Model quotes are checked against an independent Amazon Textract reading. Hidden instructions aimed at AI tools are detected and never echoed. No "safe" verdict exists.</td>
+              <td><a href="/how-it-works/#verdict">Verdict logic</a>, receipts on any result</td>
+            </tr>
+            <tr>
+              <th scope="row">Implementation Quality</th>
+              <td>Serverless on AWS: CloudFront, API Gateway, Lambda, Amazon Textract, Amazon Bedrock (Nova) and DynamoDB. Least-privilege access, per-address and daily limits, and nothing about a letter is stored.</td>
+              <td><a href="/evidence/">Evidence</a>, <a href="/how-it-works/#privacy">Privacy</a></td>
+            </tr>
+            <tr>
+              <th scope="row">Community / Market Impact</th>
+              <td>Built for families handling official mail in a second language, in India and the United States. Explanations in English, हिन्दी, Español or any language typed in, with a simple-words option.</td>
+              <td><a href="/try/">Check a letter</a></td>
+            </tr>
+            <tr>
+              <th scope="row">Creativity &amp; Storytelling</th>
+              <td>Two letters that look alike get opposite verdicts, and every claim carries its source. The agent that built the checker left receipts, just like the checker does.</td>
+              <td><a href="/#examples">The three examples</a>, <a href="/evidence/">Evidence</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- @footer -->
+</body>
+</html>

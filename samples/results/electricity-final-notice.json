@@ -1,0 +1,225 @@
+{
+  "id": "electricity-final-notice",
+  "mock": true,
+  "verdict": "likely_scam",
+  "verdict_label": "Likely scam",
+  "headline": "This notice wants you to pay a personal UPI ID tonight to stop a disconnection. Power companies do not collect bills that way.",
+  "agency": {
+    "key": "bses-rajdhani",
+    "name": "BSES Rajdhani Power Ltd",
+    "country": "IN",
+    "official_phone": "19123",
+    "official_site": "https://www.bsesdelhi.com",
+    "report_channel": {
+      "name": "National Cyber Crime Reporting Portal (helpline 1930)",
+      "url": "https://cybercrime.gov.in"
+    },
+    "source_url": "https://www.bsesdelhi.com",
+    "checked_on": "2026-09-30"
+  },
+  "flags": [
+    {
+      "rule": "payment_personal_upi",
+      "severity": "strong",
+      "title": "Asks you to pay a personal UPI ID",
+      "quote": "Pay now by UPI: eb.officer.verma@okaxis",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "Electricity companies collect bills through their own website, app or bill desk, never through a personal UPI handle.",
+      "source": {
+        "name": "Indian Cyber Crime Coordination Centre",
+        "url": "https://cybercrime.gov.in"
+      }
+    },
+    {
+      "rule": "urgency_short",
+      "severity": "medium",
+      "title": "Gives you only hours to act",
+      "quote": "Your electricity power will be disconnected TONIGHT at 9:30 PM",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "A very short deadline is meant to stop you from checking with anyone first.",
+      "source": {
+        "name": "FTC",
+        "url": "https://consumer.ftc.gov/articles/how-avoid-imposter-scams"
+      }
+    },
+    {
+      "rule": "unknown_contact",
+      "severity": "medium",
+      "title": "The phone number is a personal mobile, not an official line",
+      "quote": "contact our Electricity Officer Mr. S. Verma directly on his mobile 98765 43210",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "BSES Rajdhani lists 19123 as its helpline. This mobile number is not on its official contact page.",
+      "source": {
+        "name": "BSES Rajdhani",
+        "url": "https://www.bsesdelhi.com"
+      }
+    }
+  ],
+  "trace": [
+    {
+      "step": "ocr",
+      "status": "done",
+      "detail": "Textract read 11 lines",
+      "ms": 1640
+    },
+    {
+      "step": "extract",
+      "status": "done",
+      "detail": "Nova 2 Lite recorded sender, 1 payment request, 1 deadline, 3 quotes",
+      "ms": 2980
+    },
+    {
+      "step": "rule:payment_method",
+      "status": "flag",
+      "detail": "UPI handle eb.officer.verma@okaxis given for a utility bill",
+      "ms": 0
+    },
+    {
+      "step": "rule:credential_request",
+      "status": "pass",
+      "detail": "No request for OTP, PIN or password",
+      "ms": 0
+    },
+    {
+      "step": "rule:threat_arrest",
+      "status": "pass",
+      "detail": "No threat of arrest or police action",
+      "ms": 0
+    },
+    {
+      "step": "rule:video_call",
+      "status": "pass",
+      "detail": "No demand for a video call",
+      "ms": 0
+    },
+    {
+      "step": "rule:ai_instruction",
+      "status": "pass",
+      "detail": "No instructions aimed at AI tools",
+      "ms": 0
+    },
+    {
+      "step": "rule:lookalike_domain",
+      "status": "pass",
+      "detail": "No links in the message",
+      "ms": 0
+    },
+    {
+      "step": "rule:urgency",
+      "status": "flag",
+      "detail": "Deadline is the same evening",
+      "ms": 0
+    },
+    {
+      "step": "rule:freemail",
+      "status": "pass",
+      "detail": "No email address given",
+      "ms": 0
+    },
+    {
+      "step": "rule:secrecy",
+      "status": "pass",
+      "detail": "No request to keep this secret",
+      "ms": 0
+    },
+    {
+      "step": "registry",
+      "status": "flag",
+      "detail": "98765 43210 is not listed for BSES Rajdhani (19123)",
+      "ms": 0
+    },
+    {
+      "step": "grounding",
+      "status": "done",
+      "detail": "3 of 3 quotes found in the Textract reading",
+      "ms": 3
+    },
+    {
+      "step": "verdict",
+      "status": "done",
+      "detail": "Score 5 (3 + 1 + 1): likely_scam",
+      "ms": 0
+    }
+  ],
+  "extracted": {
+    "claimed_sender": "Electricity Distribution Department",
+    "letter_date": "2026-09-29",
+    "phones": [
+      "98765 43210"
+    ],
+    "urls": [],
+    "emails": [],
+    "amounts": [
+      "₹1,847.00",
+      "₹2,500"
+    ],
+    "deadlines": [
+      {
+        "date": "2026-09-29",
+        "what": "Pay before the power is cut",
+        "quote": "disconnected TONIGHT at 9:30 PM",
+        "computed_from": null
+      }
+    ]
+  },
+  "grounding": {
+    "source": "textract",
+    "grounded": 3,
+    "total": 3
+  },
+  "meta": {
+    "model": "us.amazon.nova-2-lite-v1:0",
+    "ms": 5120,
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "This is very likely a scam. Your power company would not ask you to pay a personal UPI ID, or to call a mobile number, to stop a disconnection tonight.",
+      "explanation": [
+        "The notice says your power will be cut tonight unless you pay at once.",
+        "It asks you to pay a UPI ID that belongs to a person, not to the power company.",
+        "The phone number is a personal mobile, not the company's official helpline.",
+        "Scammers use a short deadline so you panic and pay without checking."
+      ],
+      "actions": [
+        {
+          "step": "Do not pay, and do not call the number in the message",
+          "how": "Do not share any OTP or install any app they ask for.",
+          "by": null
+        },
+        {
+          "step": "Check your bill with the company yourself",
+          "how": "Call BSES Rajdhani on 19123, or look at your account in the official BSES app or website.",
+          "by": null
+        },
+        {
+          "step": "Report the message",
+          "how": "Report it at cybercrime.gov.in or call 1930. If you already paid, call 1930 straight away.",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "UPI ID",
+          "meaning": "An address used to send money through apps like PhonePe or Google Pay. Anyone can create one."
+        }
+      ],
+      "questions_to_ask": [
+        "Is there any unpaid bill on my account number?",
+        "Has any disconnection notice been issued for my connection?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 3620,
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    }
+  }
+}

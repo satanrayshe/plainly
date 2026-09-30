@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Source for docs/cover.png (1200x675, no text). Render: python scripts/render_art.py -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="plainly:render" content="width=1200,height=675">
+<style>
+  :root { --paper: #f7f3ea; --sheet: #fffdf8; --ink: #1c1b18; --rule: #d5cdbb; --line: #cfc6b3;
+          --scam: #a3211b; --ok: #0b6453; --amber: #e5b240; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 675px; overflow: hidden; background: var(--paper); }
+  .scene { position: relative; width: 1200px; height: 675px; }
+  .letter { position: absolute; width: 330px; height: 430px; background: var(--sheet); border: 1.5px solid var(--rule);
+            border-radius: 6px; padding: 40px 36px; box-shadow: 0 18px 40px -24px rgba(28, 27, 24, .35); }
+  .letter i { display: block; height: 10px; border-radius: 5px; background: var(--line); margin-bottom: 18px; }
+  .letter i.head { height: 16px; width: 55%; background: #b9ae98; margin-bottom: 34px; }
+  .letter i.short { width: 62%; }
+  .letter i.mid { width: 82%; }
+  .letter i.hl { background: none; border-bottom: 3px solid currentColor; height: 12px; border-radius: 0; }
+  .a { left: 150px; top: 150px; transform: rotate(-7deg); color: var(--scam); }
+  .b { left: 435px; top: 110px; transform: rotate(1.5deg); z-index: 2; color: var(--ok); }
+  .c { left: 720px; top: 150px; transform: rotate(6deg); color: #9a6b00; }
+  .stamp { position: absolute; width: 104px; height: 104px; border-radius: 50%; border: 6px solid currentColor;
+           display: grid; place-items: center; right: 28px; bottom: 30px; opacity: .92; }
+  .stamp svg { width: 50px; height: 50px; }
+  .a .stamp { right: auto; left: 34px; }
+  .lens { position: absolute; left: 545px; top: 205px; width: 230px; height: 230px; z-index: 3; }
+</style>
+</head>
+<body>
+<div class="scene">
+  <div class="letter a"><i class="head"></i><i></i><i class="mid"></i><i class="hl"></i><i class="short"></i><i></i><i class="mid"></i>
+    <div class="stamp"><svg viewBox="0 0 24 24"><path d="M12 6v8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="18.5" r="1.8" fill="currentColor"/></svg></div></div>
+  <div class="letter b"><i class="head"></i><i></i><i class="mid"></i><i></i><i class="short"></i><i class="hl"></i><i class="mid"></i>
+    <div class="stamp"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+  <div class="letter c"><i class="head"></i><i class="mid"></i><i></i><i class="short"></i><i></i><i class="mid"></i><i class="hl"></i>
+    <div class="stamp"><svg viewBox="0 0 24 24"><path d="M8.6 8.6a3.4 3.4 0 1 1 4.7 3.2c-.9.4-1.3 1.1-1.3 2v.7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><circle cx="12" cy="18.8" r="1.7" fill="currentColor"/></svg></div></div>
+  <svg class="lens" viewBox="0 0 250 250" aria-hidden="true">
+    <circle cx="100" cy="100" r="74" fill="rgba(255,253,248,.35)" stroke="#1c1b18" stroke-width="14"/>
+    <path d="M154 154l66 66" stroke="#1c1b18" stroke-width="24" stroke-linecap="round"/>
+  </svg>
+</div>
+</body>
+</html>

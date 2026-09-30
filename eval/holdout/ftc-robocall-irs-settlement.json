@@ -1,0 +1,10 @@
+{
+  "id": "ftc-robocall-irs-settlement",
+  "label": "scam",
+  "kind": "call transcript",
+  "source_name": "FTC Consumer Advice, Robocall Scam Examples (IRS impersonator)",
+  "source_url": "https://consumer.ftc.gov/features/robocall-scam-examples",
+  "published": null,
+  "text_is": "verbatim transcript published with the recording",
+  "text": "Hello. I am an artificial intelligent notification bot. The purpose of this call is to make you aware that a recent lawsuit settlement now requires the IRS to settle all old tax debt that any U.S. residents currently have. This means you do not need to pay back your past due taxes, as they are temporarily non-collectable and can be forced into a settlement on your behalf. Using our automated approval technology, you are now able to obtain enrollment information based on your current situation. To use our AI automation and find the program you are approve… [CALL CUTS OUT]"
+}

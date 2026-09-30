@@ -1,0 +1,10 @@
+{
+  "id": "irs-covid-treas-fund-text",
+  "label": "scam",
+  "kind": "sms",
+  "source_name": "IRS, COVID Tax Tip 2020-167",
+  "source_url": "https://www.irs.gov/newsroom/irs-warns-people-about-a-covid-related-text-message-scam",
+  "published": "2020-12-08",
+  "text_is": "verbatim excerpt as quoted by the page",
+  "text": "received a direct deposit of $1,200 from COVID-19 TREAS FUND. Further action is required to accept this payment… Continue here to accept this payment …"
+}

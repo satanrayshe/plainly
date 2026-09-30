@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- @head -->
+<title>How Plainly decides | Plainly</title>
+<meta name="description" content="How Plainly checks a letter: an independent reader (Amazon Textract), fixed rules and an official contacts registry in plain code, then Amazon Nova explains it in your language. The rules, the verdict logic, privacy and limits.">
+<meta property="og:title" content="How Plainly decides whether a letter is real">
+<meta property="og:description" content="The model reads and explains. Plain code applies the rules and decides the verdict, and every check leaves a receipt.">
+<meta property="og:url" content="/how-it-works/">
+</head>
+<body>
+<!-- @header -->
+
+<main id="main">
+  <div class="wrap page-head">
+    <h1>How Plainly decides</h1>
+    <p class="lede">An AI model reads the letter and, later, explains it. It does not decide the verdict. Fixed rules written in plain code do that, using quotes that must appear in an independent reading of the letter.</p>
+    <ul class="toc" aria-label="On this page">
+      <li><a href="#pipeline">The steps</a></li>
+      <li><a href="#rules">The rules</a></li>
+      <li><a href="#verdict">The verdict</a></li>
+      <li><a href="#never-safe">Why it never says "safe"</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="#limits">Limits</a></li>
+    </ul>
+  </div>
+
+  <section class="section" id="pipeline" aria-labelledby="pipeline-title">
+    <div class="wrap split">
+      <div class="prose">
+        <h2 id="pipeline-title">The steps</h2>
+        <ol>
+          <li><strong>Your device shrinks the photo</strong> to at most 1.5 MB. A PDF's first three pages are drawn into one image, also on your device.</li>
+          <li><strong>Two readers, independently.</strong> Amazon Textract reads every line of text. Separately, Amazon Nova notes who the letter claims to be from, its date, deadlines, payment requests and threats, each with the exact words it found them in.</li>
+          <li><strong>Plain code checks.</strong> Each quote from Nova must appear in Textract's reading, or it is marked unconfirmed and counts for less. Phone numbers, web addresses and emails are pulled out by pattern matching, not by the model, and compared with an official contacts list. Deadlines like "within 21 days of this notice" are worked out by arithmetic.</li>
+          <li><strong>The verdict and the receipts.</strong> The rules give a score, the score gives the verdict, and every rule leaves a line in the receipts, whether it passed or not.</li>
+          <li><strong>Amazon Nova explains.</strong> A second request writes the explanation, actions and a reply draft in your language. It is given the checked facts and dates; it does not work out dates itself.</li>
+        </ol>
+      </div>
+      <figure class="diagram" aria-labelledby="diagram-caption">
+        <svg viewBox="0 0 360 716" role="img" aria-labelledby="diagram-title diagram-desc">
+          <title id="diagram-title">How a letter moves through Plainly</title>
+          <desc id="diagram-desc">Your letter goes to two independent readers, Amazon Textract and Amazon Nova. Plain code applies rules, the official contacts list, date arithmetic and quote checks, and produces the verdict with receipts. Amazon Nova then explains it in your language. All of this runs in memory in AWS Lambda and nothing is stored.</desc>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" fill="#1c1b18"/>
+            </marker>
+          </defs>
+          <style>
+            .t { font: 700 15px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #1c1b18; }
+            .s { font: 400 13.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #4a463e; }
+            .inv .t { fill: #fffdf8; } .inv .s { fill: #e9e3d6; }
+            .lbl { font: 600 12.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #4a463e; }
+            .box { fill: #fffdf8; stroke: #1c1b18; stroke-width: 1.5; }
+            .ln { stroke: #1c1b18; stroke-width: 1.5; fill: none; }
+          </style>
+
+          <rect class="box" x="20" y="16" width="320" height="60" rx="6"/>
+          <text class="t" x="36" y="41">Your letter</text>
+          <text class="s" x="36" y="62">Photo, PDF or pasted text</text>
+
+          <rect x="8" y="96" width="344" height="480" rx="10" fill="none" stroke="#8f8676" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <text class="lbl" x="180" y="116" text-anchor="middle">Lambda: nothing stored</text>
+
+          <path class="ln" d="M97 76V124" marker-end="url(#arrow)"/>
+          <path class="ln" d="M263 76V124" marker-end="url(#arrow)"/>
+
+          <rect class="box" x="20" y="128" width="155" height="84" rx="6"/>
+          <text class="t" x="32" y="152">Amazon Textract</text>
+          <text class="s" x="32" y="173">Reads every line.</text>
+          <text class="s" x="32" y="192">Independent reader</text>
+
+          <rect class="box" x="185" y="128" width="155" height="84" rx="6"/>
+          <text class="t" x="197" y="152">Amazon Nova</text>
+          <text class="s" x="197" y="173">Notes sender, dates</text>
+          <text class="s" x="197" y="192">and exact quotes</text>
+
+          <path class="ln" d="M97 212V246" marker-end="url(#arrow)"/>
+          <path class="ln" d="M263 212V246" marker-end="url(#arrow)"/>
+
+          <g class="inv">
+            <rect x="20" y="250" width="320" height="104" rx="6" fill="#1c1b18"/>
+            <text class="t" x="36" y="276">Plain code decides</text>
+            <text class="s" x="36" y="298">Rules and the official contacts list</text>
+            <text class="s" x="36" y="318">Deadlines by date arithmetic</text>
+            <text class="s" x="36" y="338">Quotes checked against Textract</text>
+          </g>
+
+          <path class="ln" d="M180 354V386" marker-end="url(#arrow)"/>
+
+          <rect class="box" x="20" y="390" width="320" height="70" rx="6"/>
+          <text class="t" x="36" y="415">Verdict and receipts</text>
+          <rect x="36" y="433" width="12" height="12" fill="#a3211b"/>
+          <text class="s" x="54" y="444">Scam</text>
+          <rect x="100" y="433" width="12" height="12" fill="#0b6453"/>
+          <text class="s" x="118" y="444">Consistent</text>
+          <rect x="202" y="433" width="12" height="12" fill="#e5b240"/>
+          <text class="s" x="220" y="444">Can't tell</text>
+
+          <path class="ln" d="M180 460V492" marker-end="url(#arrow)"/>
+
+          <rect class="box" x="20" y="496" width="320" height="64" rx="6"/>
+          <text class="t" x="36" y="521">Amazon Nova explains</text>
+          <text class="s" x="36" y="543">In your language, from the checked facts</text>
+
+          <path class="ln" d="M180 560V612" marker-end="url(#arrow)"/>
+
+          <rect class="box" x="20" y="616" width="320" height="84" rx="6"/>
+          <text class="t" x="36" y="641">You get</text>
+          <text class="s" x="36" y="663">Plain words, deadlines as calendar files</text>
+          <text class="s" x="36" y="683">A reply draft, or where to report it</text>
+        </svg>
+        <figcaption id="diagram-caption" class="visually-hidden">Pipeline diagram</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="rules" aria-labelledby="rules-title">
+    <div class="wrap">
+      <h2 id="rules-title">The rules</h2>
+      <p class="measure">Each rule is a few lines of plain code that run on the letter's text and on the quotes the model found. A strong sign adds 3 points, a warning sign adds 1, a note adds nothing.</p>
+      <div class="table-wrap stack">
+        <table>
+          <thead>
+            <tr><th scope="col">Rule</th><th scope="col">What it looks for</th><th scope="col">Weight</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>payment_gift_card</code></td><td>Payment by gift card: iTunes, Google Play, Steam, Amazon and similar cards</td><td>Strong (3)</td></tr>
+            <tr><td><code>payment_crypto_wire</code></td><td>Bitcoin or other crypto, USDT, wire transfer, Western Union, MoneyGram, bitcoin ATM</td><td>Strong (3)</td></tr>
+            <tr><td><code>payment_personal_upi</code></td><td>A UPI ID or payment app pointing to a personal handle or mobile number, when the sender claims to be a government body or utility</td><td>Strong (3)</td></tr>
+            <tr><td><code>credential_request</code></td><td>Asks for an OTP, PIN, password, CVV, full Social Security number, full Aadhaar number or net-banking login</td><td>Strong (3)</td></tr>
+            <tr><td><code>threat_arrest</code></td><td>Arrest, police, warrant, deportation, "digital arrest", FIR, CBI, or legal action "today"</td><td>Strong (3)</td></tr>
+            <tr><td><code>video_call_demand</code></td><td>Demands a video call, Skype or WhatsApp video, or that you stay on the call</td><td>Strong (3)</td></tr>
+            <tr><td><code>ai_instruction</code></td><td>Hidden text aimed at AI tools, trying to change the verdict. The quote is never shown; the result says it is visible in the image.</td><td>Strong (3)</td></tr>
+            <tr><td><code>lookalike_domain</code></td><td>A web or email address that imitates an official one (a letter or two changed, look-alike characters, punycode, extra words like <code>irs-gov-refund.com</code>) without being it</td><td>Strong (3)</td></tr>
+            <tr><td><code>urgency_short</code></td><td>Less than 72 hours to act: "today", "within 24 hours", "immediately", "tonight"</td><td>Warning (1)</td></tr>
+            <tr><td><code>freemail_official</code></td><td>A Gmail, Yahoo, Outlook, Hotmail, Proton or Rediffmail address given as an official contact</td><td>Warning (1)</td></tr>
+            <tr><td><code>secrecy</code></td><td>"Do not tell", "keep this confidential", "don't inform your bank or family"</td><td>Warning (1)</td></tr>
+            <tr><td><code>unknown_contact</code></td><td>A phone number or website not on the official list for the organisation. On its own this never makes a letter "likely scam".</td><td>Note (0), or Warning (1) when the organisation is on our list</td></tr>
+            <tr><td><code>injection_detected_model</code></td><td>The model itself reported text aimed at AI tools</td><td>Note (0)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="verdict" aria-labelledby="verdict-title">
+    <div class="wrap split">
+      <h2 id="verdict-title">The verdict</h2>
+      <div class="prose">
+        <ul>
+          <li><strong>Likely scam</strong> when the score is 3 or more: one strong sign, or three warning signs.</li>
+          <li><strong>Consistent with a genuine letter</strong> only when all of these hold: the organisation is on our official list, at least one of its web addresses or phone numbers in the letter matches the list, the score is 0, and the quotes were confirmed by the independent reading.</li>
+          <li><strong>Can't tell</strong> in every other case.</li>
+        </ul>
+        <p><strong>Quote checking.</strong> A quote counts as confirmed when, ignoring case, spacing and punctuation, it appears in Textract's reading of the letter or matches a passage very closely (a similarity of 0.85 or more). An unconfirmed strong sign is lowered to a warning sign and labelled as unconfirmed.</p>
+        <p><strong>The official contacts list.</strong> Each organisation has its official web domains and phone numbers, the page we took them from and the date we checked. Web domains are matched first, phone numbers second, because real organisations publish many numbers.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="never-safe" aria-labelledby="never-safe-title">
+    <div class="wrap split">
+      <h2 id="never-safe-title">Why it never says "safe"</h2>
+      <div class="prose">
+        <p>A scammer can copy a real letter exactly, down to the layout and the wording. A photo cannot prove who sent it. So the best Plainly can honestly say about a letter is that it is consistent with a genuine one.</p>
+        <p>That is why every result, including the reassuring ones, ends with the official number and where we found it. The last step is always a call you place yourself, to a number you did not get from the letter.</p>
+        <p>When the evidence is thin, Plainly says "Can't tell" rather than guessing. A wrong "this is fine" costs far more than an extra phone call.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="privacy" aria-labelledby="privacy-title">
+    <div class="wrap split">
+      <h2 id="privacy-title">Privacy</h2>
+      <div class="prose">
+        <ul>
+          <li>Your letter is processed in memory and discarded when the check ends. It is not saved to a database, a file or a log.</li>
+          <li>Logs hold only a request id, the verdict, which rules fired, timings and token counts. Never the words of the letter.</li>
+          <li>There is no share link and no account, so there is nothing about your letter to look up later.</li>
+          <li>To stop abuse, we count requests per network address for an hour, and total checks per day. Those counters expire on their own.</li>
+          <li>Your language and reading-level choice are remembered in your own browser only.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="limits" aria-labelledby="limits-title">
+    <div class="wrap split">
+      <h2 id="limits-title">Limits</h2>
+      <div class="prose">
+        <ul>
+          <li><strong>A short official list.</strong> We cover a small set of organisations in India, the United States and the United Kingdom. For anyone else, the best answer may be "Can't tell".</li>
+          <li><strong>Scripts other than Latin.</strong> Textract does not read Devanagari. Letters in Hindi are read by the model alone and their quotes are marked as not independently confirmed.</li>
+          <li><strong>Blurry or partial photos</strong> lose words, and a missed word can hide a warning sign. A clear, flat, well-lit photo of the whole page works best.</li>
+          <li><strong>Scams change.</strong> The rules catch the common patterns, not every new one. A clean result is not a guarantee.</li>
+          <li><strong>Not legal, tax or financial advice.</strong> For anything with money or legal steps at stake, use the official number or a trusted adviser.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @footer -->
+</body>
+</html>

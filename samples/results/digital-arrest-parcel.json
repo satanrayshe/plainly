@@ -1,0 +1,255 @@
+{
+  "id": "digital-arrest-parcel",
+  "mock": true,
+  "verdict": "likely_scam",
+  "verdict_label": "Likely scam",
+  "headline": "This notice threatens arrest over a parcel, demands a Skype video call and tells you to tell no one. The CBI and police never place anyone under \"digital arrest\".",
+  "agency": {
+    "key": "cbi",
+    "name": "Central Bureau of Investigation",
+    "country": "IN",
+    "official_phone": null,
+    "official_site": "https://cbi.gov.in",
+    "report_channel": {
+      "name": "National Cyber Crime Reporting Portal (helpline 1930)",
+      "url": "https://cybercrime.gov.in"
+    },
+    "source_url": "https://cbi.gov.in",
+    "checked_on": "2026-09-30"
+  },
+  "flags": [
+    {
+      "rule": "threat_arrest",
+      "severity": "strong",
+      "title": "Threatens you with arrest",
+      "quote": "You are hereby placed under DIGITAL ARREST with immediate effect",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "There is no such thing as a \"digital arrest\". Police do not arrest people over a phone or video call.",
+      "source": {
+        "name": "Ministry of Home Affairs, I4C advisory",
+        "url": "https://cybercrime.gov.in"
+      }
+    },
+    {
+      "rule": "video_call_demand",
+      "severity": "strong",
+      "title": "Demands that you stay on a video call",
+      "quote": "Keep your camera ON and stay on the call at all times until the officer releases you",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "Keeping you on a video call stops you from hanging up and asking family or the real police.",
+      "source": {
+        "name": "Ministry of Home Affairs, I4C advisory",
+        "url": "https://cybercrime.gov.in"
+      }
+    },
+    {
+      "rule": "payment_crypto_wire",
+      "severity": "strong",
+      "title": "Asks you to move your savings, or pay in crypto",
+      "quote": "transfer all savings in your bank accounts to the RBI Secure Verification Account given by the officer during the call, or in USDT to the wallet shared on the call",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "There is no \"verification account\". Money sent this way is almost never recovered.",
+      "source": {
+        "name": "Reserve Bank of India, BE(A)WARE booklet",
+        "url": "https://rbi.org.in"
+      }
+    },
+    {
+      "rule": "urgency_short",
+      "severity": "medium",
+      "title": "Gives you one hour to act",
+      "quote": "You must join a Skype video call with Investigating Officer Inspector R. K. Sharma within 1 hour",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "A very short deadline is meant to stop you from checking with anyone first.",
+      "source": {
+        "name": "FTC",
+        "url": "https://consumer.ftc.gov/articles/how-avoid-imposter-scams"
+      }
+    },
+    {
+      "rule": "secrecy",
+      "severity": "medium",
+      "title": "Tells you to keep it secret",
+      "quote": "Do not tell your family, your bank or any lawyer",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "Real officials never ask you to hide a case from your family or your bank.",
+      "source": {
+        "name": "FTC",
+        "url": "https://consumer.ftc.gov/articles/how-avoid-imposter-scams"
+      }
+    },
+    {
+      "rule": "freemail_official",
+      "severity": "medium",
+      "title": "Gives a Gmail address as an official contact",
+      "quote": "cbi.mumbai.cyberdesk@gmail.com",
+      "quote_redacted": false,
+      "grounded": true,
+      "why": "Government agencies write from their own domains, such as cbi.gov.in, not free email.",
+      "source": {
+        "name": "CBI",
+        "url": "https://cbi.gov.in"
+      }
+    }
+  ],
+  "trace": [
+    {
+      "step": "ocr",
+      "status": "done",
+      "detail": "Textract read 17 lines",
+      "ms": 1720
+    },
+    {
+      "step": "extract",
+      "status": "done",
+      "detail": "Nova 2 Lite recorded sender, 1 threat, 1 video-call demand, 1 secrecy request",
+      "ms": 3310
+    },
+    {
+      "step": "rule:payment_method",
+      "status": "flag",
+      "detail": "USDT and transfer to a \"verification account\" requested",
+      "ms": 0
+    },
+    {
+      "step": "rule:credential_request",
+      "status": "pass",
+      "detail": "No request for OTP, PIN or password",
+      "ms": 0
+    },
+    {
+      "step": "rule:threat_arrest",
+      "status": "flag",
+      "detail": "Arrest warrant and \"digital arrest\" mentioned",
+      "ms": 0
+    },
+    {
+      "step": "rule:video_call",
+      "status": "flag",
+      "detail": "Skype video call demanded",
+      "ms": 0
+    },
+    {
+      "step": "rule:ai_instruction",
+      "status": "pass",
+      "detail": "No instructions aimed at AI tools",
+      "ms": 0
+    },
+    {
+      "step": "rule:lookalike_domain",
+      "status": "pass",
+      "detail": "No links in the message",
+      "ms": 0
+    },
+    {
+      "step": "rule:urgency",
+      "status": "flag",
+      "detail": "Join the call within 1 hour; arrest within 2 hours",
+      "ms": 0
+    },
+    {
+      "step": "rule:freemail",
+      "status": "flag",
+      "detail": "cbi.mumbai.cyberdesk@gmail.com given as official contact",
+      "ms": 0
+    },
+    {
+      "step": "rule:secrecy",
+      "status": "flag",
+      "detail": "Asks you not to tell family or bank",
+      "ms": 0
+    },
+    {
+      "step": "registry",
+      "status": "unknown",
+      "detail": "CBI publishes no public phone line for this; only cbi.gov.in",
+      "ms": 0
+    },
+    {
+      "step": "grounding",
+      "status": "done",
+      "detail": "6 of 6 quotes found in the Textract reading",
+      "ms": 3
+    },
+    {
+      "step": "verdict",
+      "status": "done",
+      "detail": "Score 12 (3 + 3 + 3 + 1 + 1 + 1): likely_scam",
+      "ms": 0
+    }
+  ],
+  "extracted": {
+    "claimed_sender": "Central Bureau of Investigation, Mumbai",
+    "letter_date": "2026-09-29",
+    "phones": [
+      "+91 88888 01234"
+    ],
+    "urls": [],
+    "emails": [
+      "cbi.mumbai.cyberdesk@gmail.com"
+    ],
+    "amounts": [],
+    "deadlines": []
+  },
+  "grounding": {
+    "source": "textract",
+    "grounded": 6,
+    "total": 6
+  },
+  "meta": {
+    "model": "us.amazon.nova-2-lite-v1:0",
+    "ms": 5410,
+    "input_tokens": 0,
+    "output_tokens": 0
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "This is very likely a scam. No police force or the CBI will ever arrest you on a video call or ask you to keep it secret.",
+      "explanation": [
+        "The message says a parcel in your name held illegal items and that you are under arrest.",
+        "It tells you to stay on a video call and not tell your family or bank.",
+        "These calls usually end with a demand to move your money to a \"safe account\" for checking.",
+        "Real police would visit or send a written notice. They never demand money on a call."
+      ],
+      "actions": [
+        {
+          "step": "End the call and do not pay anything",
+          "how": "You can simply hang up. You are not under arrest.",
+          "by": null
+        },
+        {
+          "step": "Tell someone you trust",
+          "how": "Speak to a family member or your bank right away.",
+          "by": null
+        },
+        {
+          "step": "Report it",
+          "how": "Call 1930 or report at cybercrime.gov.in. If money has left your account, call 1930 immediately.",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "Digital arrest",
+          "meaning": "A made-up term scammers use. It does not exist in Indian law."
+        }
+      ],
+      "questions_to_ask": [
+        "Is there any real case registered against my name at my local police station?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "us.amazon.nova-2-lite-v1:0",
+        "ms": 3840,
+        "input_tokens": 0,
+        "output_tokens": 0
+      }
+    }
+  }
+}

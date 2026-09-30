@@ -1,0 +1,11 @@
+{
+  "id": "irs-unclaimed-refund-letter",
+  "label": "scam",
+  "kind": "letter",
+  "source_name": "IRS news release IR-2023-123 (IRS Newswire bulletin)",
+  "source_url": "https://content.govdelivery.com/accounts/USIRS/bulletins/3634dd2",
+  "published": "2023-07-03",
+  "text_is": "the passages the release quotes from the letter, joined in order",
+  "note": "\"This notice is\" and \"Filing Information\" are connecting words from the release's description; every other line is a verbatim quote.",
+  "text": "This notice is in relation to your unclaimed refund\nFiling Information\nA Clear Phone of Your Driver’s License That Clearly Displays All Four (4) Angles, Taken in a Place with Good Lighting.\n(You’ll Need to Get This to Get Your Refunds After Filing. These Must Be Given to a Filing Agent Who Will Help You Submit Your Unclaimed Property Claim. Once You Send All The Information Please Try to Be Checking Your Email for Response From The Agents Thanks"
+}

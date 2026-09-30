@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="plainly:render" content="width=412,height=892">
+<title>Sample: SIM block SMS (scam)</title>
+<style>
+  html, body { margin: 0; }
+  body { width: 412px; height: 892px; position: relative; overflow: hidden; background: #f2f2f6;
+         font: 16px/1.4 "Segoe UI", Roboto, Arial, sans-serif; color: #111; }
+  .status { height: 30px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 18px; font-size: 14px; font-weight: 600; background: #f7f7f9; }
+  .bar { background: #f7f7f9; border-bottom: 1px solid #d9d9df; padding: 8px 14px 12px; text-align: center; }
+  .back { position: absolute; left: 14px; top: 44px; font-size: 26px; color: #1a73e8; }
+  .avatar { width: 46px; height: 46px; border-radius: 50%; background: #9aa0a6; color: #fff; margin: 0 auto 4px;
+            display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .from { font-size: 15px; font-weight: 600; }
+  .sub { font-size: 12px; color: #666; }
+  .thread { padding: 16px 12px; }
+  .day { text-align: center; font-size: 12px; color: #777; margin: 6px 0 12px; }
+  .msg { max-width: 300px; background: #e5e5ea; border-radius: 18px; padding: 10px 14px; margin-bottom: 8px; }
+  .time { font-size: 11px; color: #888; margin: 0 0 14px 6px; }
+  .link { color: #1a57c9; text-decoration: underline; }
+  .note { font-size: 12px; color: #777; text-align: center; margin-top: 18px; padding: 0 20px; }
+  .compose { position: absolute; bottom: 0; left: 0; right: 0; height: 64px; background: #f7f7f9;
+             border-top: 1px solid #d9d9df; display: flex; align-items: center; padding: 0 14px; }
+  .compose div { flex: 1; height: 36px; border: 1px solid #c9c9cf; border-radius: 18px; background: #fff;
+                 color: #999; font-size: 14px; display: flex; align-items: center; padding-left: 14px; }
+  .foot { position: absolute; bottom: 70px; left: 12px; right: 12px; font-size: 10px; color: #777; text-align: center; }
+  .watermark { position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%) rotate(-32deg);
+               font: 700 27px/1 Arial, sans-serif; letter-spacing: .05em; white-space: nowrap;
+               color: rgba(176, 24, 24, .2); border: 4px solid rgba(176, 24, 24, .2);
+               padding: 6px 14px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="status"><span>10:42</span><span>4G &nbsp; 71%</span></div>
+<div class="bar">
+  <div class="back">&lsaquo;</div>
+  <div class="avatar">T</div>
+  <div class="from">+91 70000 55501</div>
+  <div class="sub">Text message</div>
+</div>
+
+<div class="thread">
+  <div class="day">Tue, 29 Sep 2026</div>
+
+  <div class="msg">TRAI ALERT: Dear customer, your mobile number will be BLOCKED within 2 hours because illegal
+    activity has been reported on a SIM issued with your Aadhaar. This is the final warning from Telecom
+    Regulatory Authority of India.</div>
+  <div class="time">10:39</div>
+
+  <div class="msg">To stop the block press 9 to speak to a TRAI officer, or call 070000 55501 immediately.
+    Share the OTP you receive with the officer to verify your Aadhaar. Ignore at your own risk.</div>
+  <div class="time">10:40</div>
+
+  <div class="msg">Complaint status: <span class="link">trai-sim-verify.in/status</span></div>
+  <div class="time">10:40</div>
+
+  <div class="note">The sender is not in your contacts.</div>
+</div>
+
+<div class="foot">Synthetic sample made for Plainly. The number and link are fictional.</div>
+<div class="compose"><div>Text message</div></div>
+<div class="watermark">SAMPLE &mdash; NOT A REAL NOTICE</div>
+</body>
+</html>

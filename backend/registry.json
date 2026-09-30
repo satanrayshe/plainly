@@ -1,0 +1,320 @@
+{
+  "version": "2026-09-30",
+  "report_channels": {
+    "US": {
+      "name": "FTC",
+      "url": "https://reportfraud.ftc.gov",
+      "source_url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam"
+    },
+    "IN": {
+      "name": "National Cyber Crime Reporting Portal / helpline 1930",
+      "url": "https://cybercrime.gov.in",
+      "phone": "1930",
+      "source_url": "https://cbi.gov.in/press-detail/ODAzMg=="
+    },
+    "UK": {
+      "name": "Report Fraud (formerly Action Fraud)",
+      "url": "https://www.reportfraud.police.uk",
+      "phone": "0300 123 2040",
+      "source_url": "https://www.reportfraud.police.uk/what-is-report-fraud"
+    }
+  },
+  "agencies": [
+    {
+      "key": "irs",
+      "name": "Internal Revenue Service",
+      "country": "US",
+      "aliases": ["IRS", "Internal Revenue Service", "Department of the Treasury", "U.S. Treasury"],
+      "domains": ["irs.gov"],
+      "phones": [
+        {"number": "800-829-1040", "label": "Individuals", "source_url": "https://www.irs.gov/help/let-us-help-you"},
+        {"number": "800-829-4933", "label": "Businesses", "source_url": "https://www.irs.gov/help/let-us-help-you"},
+        {"number": "844-545-5640", "label": "Taxpayer Assistance Center appointments", "source_url": "https://www.irs.gov/help/let-us-help-you"},
+        {"number": "800-829-4059", "label": "TTY/TDD", "source_url": "https://www.irs.gov/help/let-us-help-you"}
+      ],
+      "official_site": "https://www.irs.gov",
+      "never_does": [
+        "call to demand immediate payment by gift card, prepaid debit card or wire transfer",
+        "ask for or accept gift cards as payment for a tax bill",
+        "demand payment without giving you the chance to question or appeal the amount",
+        "threaten to have police, immigration officers or other law enforcement arrest you for not paying",
+        "threaten to revoke your driver's license, business licenses or immigration status"
+      ],
+      "source_url": "https://www.irs.gov/newsroom/holiday-scam-reminder-gift-cards-are-never-used-to-make-tax-payments",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "ssa",
+      "name": "Social Security Administration",
+      "country": "US",
+      "aliases": ["SSA", "Social Security Administration", "Social Security", "SSA OIG"],
+      "domains": ["ssa.gov"],
+      "phones": [
+        {"number": "1-800-772-1213", "label": "Social Security (national number)", "source_url": "https://oig.ssa.gov/scam-alerts/2026-08-31-protect-your-social-security-number/"}
+      ],
+      "official_site": "https://www.ssa.gov",
+      "never_does": [
+        "contact you unexpectedly to ask for personal information or bank account details",
+        "threaten to suspend your Social Security number or seize your bank account",
+        "tell you to transfer or move your money to protect it",
+        "demand payment by gift cards, gold, prepaid debit cards, payment apps, cryptocurrency, wire transfers or cash",
+        "ask you to keep secrets",
+        "ask for sensitive or personal information through social media, email or text message"
+      ],
+      "source_url": "https://oig.ssa.gov/scam-alerts/2026-08-31-protect-your-social-security-number/",
+      "extra_sources": ["https://www.ssa.gov/scam/"],
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "uscis",
+      "name": "U.S. Citizenship and Immigration Services",
+      "country": "US",
+      "aliases": ["USCIS", "U.S. Citizenship and Immigration Services", "US Citizenship and Immigration Services", "Citizenship and Immigration Services"],
+      "domains": ["uscis.gov"],
+      "known_fake_domains": ["uscis-online.org"],
+      "phones": [
+        {"number": "800-375-5283", "label": "USCIS Contact Center", "source_url": "https://www.uscis.gov/contactcenter"},
+        {"number": "800-767-1833", "label": "USCIS Contact Center TTY", "source_url": "https://www.uscis.gov/contactcenter"}
+      ],
+      "official_site": "https://www.uscis.gov",
+      "never_does": [
+        "ask you to transfer money to an individual",
+        "accept Western Union, MoneyGram, PayPal, Venmo or gift cards as payment for immigration fees",
+        "ask you to pay fees to a person on the phone or by email",
+        "contact you through your personal social media accounts",
+        "routinely email you to say you have been approved for a visa or other immigration benefit"
+      ],
+      "source_url": "https://www.uscis.gov/scams-fraud-and-misconduct/avoid-scams/common-scams",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "medicare",
+      "name": "Medicare (Centers for Medicare & Medicaid Services)",
+      "country": "US",
+      "aliases": ["Medicare", "Centers for Medicare & Medicaid Services", "Centers for Medicare and Medicaid Services", "1-800-MEDICARE"],
+      "domains": ["medicare.gov"],
+      "phones": [
+        {"number": "1-800-633-4227", "label": "1-800-MEDICARE", "source_url": "https://www.medicare.gov/basics/get-started-with-medicare/using-medicare/your-medicare-card"},
+        {"number": "1-877-486-2048", "label": "1-800-MEDICARE TTY", "source_url": "https://www.medicare.gov/basics/get-started-with-medicare/using-medicare/your-medicare-card"}
+      ],
+      "official_site": "https://www.medicare.gov",
+      "never_does": [
+        "call you uninvited and ask for personal or private information",
+        "call you to sell you anything or visit you at your home",
+        "threaten to cancel your health benefits to get your information or money"
+      ],
+      "source_url": "https://www.medicare.gov/basics/get-started-with-medicare/using-medicare/your-medicare-card",
+      "extra_sources": ["https://www.medicare.gov/basics/reporting-medicare-fraud-and-abuse"],
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "usps",
+      "name": "United States Postal Service",
+      "country": "US",
+      "aliases": ["USPS", "United States Postal Service", "U.S. Postal Service", "US Postal Service", "USPIS", "U.S. Postal Inspection Service", "Postal Inspection Service"],
+      "domains": ["usps.com", "usps.gov", "uspis.gov"],
+      "phones": [
+        {"number": "1-800-275-8777", "label": "1-800-ASK-USPS customer care", "source_url": "https://www.usps.com/help/contact-us.htm"},
+        {"number": "1-800-222-1811", "label": "USPS Tracking", "source_url": "https://www.usps.com/help/contact-us.htm"},
+        {"number": "1-877-876-2455", "label": "Postal Inspection Service (report mail fraud)", "source_url": "https://www.uspis.gov/news/scam-article/smishing-package-tracking-text-scams"}
+      ],
+      "official_site": "https://www.usps.com",
+      "never_does": [
+        "text or email you about a package unless you first requested tracking with a tracking number",
+        "put a link in its tracking texts or emails",
+        "charge for package tracking"
+      ],
+      "source_url": "https://www.uspis.gov/news/scam-article/smishing-package-tracking-text-scams",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "income_tax_in",
+      "name": "Income Tax Department",
+      "country": "IN",
+      "aliases": ["Income Tax Department", "Income Tax Dept", "CBDT", "Central Board of Direct Taxes", "Income Tax India", "आयकर विभाग"],
+      "domains": ["incometax.gov.in", "incometaxindia.gov.in"],
+      "phones": [
+        {"number": "1800 103 0025", "label": "e-Filing and Centralized Processing Center", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"},
+        {"number": "1800 419 0025", "label": "e-Filing and Centralized Processing Center", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"},
+        {"number": "+91-80-46122000", "label": "e-Filing and Centralized Processing Center", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"},
+        {"number": "+91-80-61464700", "label": "e-Filing and Centralized Processing Center", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"},
+        {"number": "1800 309 0130", "label": "Demand Facilitation Centre (outstanding tax demand)", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"},
+        {"number": "+91 8216671200", "label": "Demand Facilitation Centre outbound (calls to taxpayers come from this number)", "source_url": "https://www.incometax.gov.in/iec/foportal/contact-us"}
+      ],
+      "official_site": "https://www.incometax.gov.in",
+      "never_does": [
+        "ask for detailed personal information by email",
+        "email you asking for PINs, passwords or similar access details for cards, bank or other financial accounts",
+        "send a valid notice, order or letter without a DIN (Document Identification Number)"
+      ],
+      "source_url": "https://www.incometaxindia.gov.in/report-phishing",
+      "extra_sources": ["https://www.incometax.gov.in/iec/foportal/help/authenticate-notice-faq"],
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "uidai",
+      "name": "Unique Identification Authority of India (Aadhaar)",
+      "country": "IN",
+      "aliases": ["UIDAI", "Unique Identification Authority of India", "Aadhaar", "Aadhaar Seva Kendra", "भारतीय विशिष्ट पहचान प्राधिकरण"],
+      "domains": ["uidai.gov.in"],
+      "phones": [
+        {"number": "1947", "label": "UIDAI toll-free helpline", "source_url": "https://uidai.gov.in/en/"}
+      ],
+      "official_site": "https://uidai.gov.in",
+      "never_does": [
+        "ask you to disclose your Aadhaar OTP",
+        "ask you to share your mAadhaar PIN",
+        "claim money can be withdrawn from your bank account just because someone knows your Aadhaar number"
+      ],
+      "source_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1887539",
+      "extra_sources": ["https://uidai.gov.in/en/your-aadhaar"],
+      "note": "The OTP and PIN items are UIDAI advice to residents (never disclose them), not a statement about UIDAI's own calls.",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "epfo",
+      "name": "Employees' Provident Fund Organisation",
+      "country": "IN",
+      "aliases": ["EPFO", "Employees' Provident Fund Organisation", "Employees Provident Fund Organisation", "EPF", "Provident Fund", "कर्मचारी भविष्य निधि संगठन"],
+      "domains": ["epfindia.gov.in", "epfo.gov.in", "epfigms.gov.in"],
+      "phones": [
+        {"number": "14470", "label": "EPFO toll-free helpline", "source_url": "https://www.epfo.gov.in/contact-us/"},
+        {"number": "1800118005", "label": "EPFO help desk (toll-free)", "source_url": "https://passbook.epfindia.gov.in/MemberPassBook/login"}
+      ],
+      "official_site": "https://www.epfindia.gov.in",
+      "never_does": [
+        "request personal information such as Aadhaar, PAN or bank details over the phone",
+        "contact members or pensioners to ask for any money to be deposited",
+        "ask you to share your OTP on a call"
+      ],
+      "source_url": "https://unifiedportal-mem.epfindia.gov.in/memberinterface/",
+      "extra_sources": ["https://passbook.epfindia.gov.in/MemberPassBook/login"],
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "echallan_in",
+      "name": "e-Challan (Parivahan traffic challans)",
+      "country": "IN",
+      "aliases": ["e-Challan", "eChallan", "E Challan", "Parivahan", "Traffic Challan", "Traffic Police challan", "MoRTH", "Ministry of Road Transport and Highways"],
+      "domains": ["parivahan.gov.in"],
+      "phones": [
+        {"number": "0120-4925505", "label": "eChallan technical helpdesk", "source_url": "https://echallan.parivahan.gov.in/index/accused-challan"}
+      ],
+      "official_site": "https://echallan.parivahan.gov.in",
+      "never_does": [
+        "ask for your password or OTP by call, email, message or link",
+        "ask for payment details or sensitive personal information by call, email, message or link",
+        "ask you to pay through a website or app other than its official portal or app"
+      ],
+      "source_url": "https://echallan.parivahan.gov.in/index/accused-challan",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "india_post",
+      "name": "India Post",
+      "country": "IN",
+      "aliases": ["India Post", "Department of Posts", "Indian Postal Service", "Speed Post", "भारतीय डाक"],
+      "domains": ["indiapost.gov.in"],
+      "known_fake_domains": ["indund.cyou"],
+      "phones": [
+        {"number": "1800 266 6868", "label": "India Post customer care (toll-free)", "source_url": "https://www.indiapost.gov.in/contactus"}
+      ],
+      "official_site": "https://www.indiapost.gov.in",
+      "never_does": [
+        "send you to any website other than www.indiapost.gov.in",
+        "need your OTP through a link",
+        "need your banking, card or UPI details through a link"
+      ],
+      "source_url": "https://www.indiapost.gov.in/",
+      "note": "All three items come from India Post's fraud alert, which is advice to customers rather than a 'we never' statement.",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "trai",
+      "name": "Telecom Regulatory Authority of India / Department of Telecommunications",
+      "country": "IN",
+      "aliases": ["TRAI", "Telecom Regulatory Authority of India", "Department of Telecommunications", "Telecom Department", "Sanchar Saathi", "भारतीय दूरसंचार विनियामक प्राधिकरण"],
+      "domains": ["trai.gov.in", "sancharsaathi.gov.in"],
+      "phones": [],
+      "official_site": "https://www.trai.gov.in",
+      "never_does": [
+        "contact you about disconnecting your mobile number, by message or any other way",
+        "authorise any third-party agency to contact you about disconnection",
+        "conduct investigations against individual consumers",
+        "ask for Aadhaar, bank account, OTP or other personal details",
+        "issue arrest threats or warnings over digital platforms"
+      ],
+      "source_url": "https://www.trai.gov.in/sites/default/files/2025-08/PR_No.71of2025.pdf",
+      "extra_sources": ["https://www.trai.gov.in/sites/default/files/2025-04/PR_No.22of2025.pdf"],
+      "note": "No TRAI call line is listed. Disconnection for billing, KYC or misuse is done by your own telecom provider, so confirm with its customer care.",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "cbi",
+      "name": "Central Bureau of Investigation",
+      "country": "IN",
+      "aliases": ["CBI", "Central Bureau of Investigation", "केंद्रीय अन्वेषण ब्यूरो"],
+      "domains": ["cbi.gov.in"],
+      "phones": [
+        {"number": "011-24362755", "label": "CBI New Delhi (queries or complaints about people posing as CBI)", "source_url": "https://cbi.gov.in/advisory"},
+        {"number": "011-24361273", "label": "CBI New Delhi (queries or complaints about people posing as CBI)", "source_url": "https://cbi.gov.in/advisory"}
+      ],
+      "official_site": "https://cbi.gov.in",
+      "never_does": [
+        "place anyone under \"digital arrest\" or demand money over phone or video calls (true of police and every government agency)",
+        "offer to settle complaints or cases in exchange for money or favours",
+        "certify or validate foreign remittances or fund transfers"
+      ],
+      "source_url": "https://cbi.gov.in/press-detail/ODAzMg==",
+      "extra_sources": ["https://cbi.gov.in/advisory"],
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "hmrc",
+      "name": "HM Revenue & Customs",
+      "country": "UK",
+      "aliases": ["HMRC", "HM Revenue & Customs", "HM Revenue and Customs", "Her Majesty's Revenue and Customs", "His Majesty's Revenue and Customs"],
+      "domains": ["hmrc.gov.uk", "gov.uk"],
+      "phones": [
+        {"number": "0300 200 3300", "label": "Income Tax enquiries", "source_url": "https://www.gov.uk/find-hmrc-contacts/income-tax-enquiries"},
+        {"number": "+44 135 535 9022", "label": "Income Tax enquiries from outside the UK", "source_url": "https://www.gov.uk/find-hmrc-contacts/income-tax-enquiries"}
+      ],
+      "official_site": "https://www.gov.uk/government/organisations/hm-revenue-customs",
+      "never_does": [
+        "leave a voicemail threatening legal action",
+        "threaten arrest",
+        "ask you to pay with gift or payment vouchers",
+        "contact you on WhatsApp, apart from one-way UK Government Channel alerts"
+      ],
+      "source_url": "https://www.gov.uk/guidance/identify-hmrc-related-scam-phone-calls-emails-and-text-messages",
+      "note": "gov.uk is shared by all UK government departments; a gov.uk match confirms UK government, not HMRC specifically.",
+      "checked_on": "2026-09-30"
+    },
+    {
+      "key": "dvla",
+      "name": "Driver and Vehicle Licensing Agency",
+      "country": "UK",
+      "aliases": ["DVLA", "Driver and Vehicle Licensing Agency", "Driver & Vehicle Licensing Agency"],
+      "domains": ["dvla.gov.uk", "gov.uk"],
+      "phones": [
+        {"number": "0300 790 6801", "label": "Driving licence enquiries", "source_url": "https://www.gov.uk/contact-the-dvla/y/driving-licences-and-applications"},
+        {"number": "0300 790 6802", "label": "Vehicle tax and SORN enquiries", "source_url": "https://www.gov.uk/contact-the-dvla/y/vehicle-tax-and-sorn"}
+      ],
+      "official_site": "https://www.gov.uk/government/organisations/driver-and-vehicle-licensing-agency",
+      "never_does": [
+        "send emails asking you to confirm personal details or payment information",
+        "send texts about vehicle tax refunds",
+        "ask for bank or credit card details by text message or email",
+        "ask you to get in touch to claim a vehicle tax refund (refunds are automatic)",
+        "use a contact centre number that does not begin with 0300"
+      ],
+      "source_url": "https://www.gov.uk/government/news/7-tips-for-motorists-to-stay-safe-online",
+      "extra_sources": [
+        "https://www.gov.uk/government/news/dvla-releases-latest-scam-images-to-help-keep-motorists-safe-online",
+        "https://www.gov.uk/government/news/dvla-warns-motorists-to-be-aware-of-scams"
+      ],
+      "note": "gov.uk is shared by all UK government departments; a gov.uk match confirms UK government, not DVLA specifically.",
+      "checked_on": "2026-09-30"
+    }
+  ]
+}

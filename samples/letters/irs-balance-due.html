@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="plainly:render" content="width=794,height=1123">
+<title>Sample: IRS CP14-style balance due notice (genuine format)</title>
+<style>
+  html, body { margin: 0; background: #ffffff; }
+  body { width: 794px; height: 1123px; position: relative; overflow: hidden;
+         font: 13.5px/1.45 Arial, Helvetica, sans-serif; color: #111; }
+  .page { padding: 44px 56px 0; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .sender { font-size: 13px; line-height: 1.35; }
+  .sender b { font-size: 14px; }
+  .box { border: 1px solid #111; font-size: 12.5px; min-width: 250px; }
+  .box div { display: flex; justify-content: space-between; padding: 3px 10px; border-bottom: 1px solid #bbb; }
+  .box div:last-child { border-bottom: 0; }
+  .box .notice { font-weight: 700; font-size: 15px; background: #eee; }
+  .address { margin: 26px 0 20px; font: 13px/1.35 "Courier New", monospace; }
+  h1 { font-size: 21px; margin: 0 0 4px; }
+  .amount-line { font-size: 16px; font-weight: 700; margin: 0 0 14px; }
+  .cols { display: flex; gap: 28px; }
+  .cols > div { flex: 1; }
+  h2 { font-size: 14.5px; margin: 14px 0 6px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+  p { margin: 0 0 8px; }
+  ul { margin: 0 0 8px 18px; padding: 0; }
+  li { margin-bottom: 4px; }
+  table.bill { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.bill td { padding: 3px 0; border-bottom: 1px dotted #999; }
+  table.bill td:last-child { text-align: right; }
+  table.bill tr.total td { border-top: 2px solid #111; border-bottom: 0; font-weight: 700; padding-top: 6px; }
+  .stub { position: absolute; left: 56px; right: 56px; bottom: 48px; border-top: 1px dashed #111; padding-top: 12px;
+          display: flex; justify-content: space-between; font-size: 12.5px; }
+  .stub .due { border: 1px solid #111; padding: 6px 12px; text-align: right; }
+  .stub .due b { font-size: 16px; }
+  .foot { position: absolute; bottom: 16px; left: 56px; right: 56px; font-size: 10.5px; color: #555; }
+  .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-32deg);
+               font: 700 54px/1 Arial, sans-serif; letter-spacing: .06em; white-space: nowrap;
+               color: rgba(176, 24, 24, .17); border: 6px solid rgba(176, 24, 24, .17);
+               padding: 10px 26px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div class="sender">
+      <b>Department of the Treasury</b><br>
+      Internal Revenue Service<br>
+      P.O. Box 9019<br>
+      Holtsville, NY 11742-9019
+    </div>
+    <div class="box">
+      <div class="notice"><span>Notice</span><span>CP14</span></div>
+      <div><span>Tax year</span><span>2025</span></div>
+      <div><span>Notice date</span><span>September 14, 2026</span></div>
+      <div><span>Social security number</span><span>XXX-XX-0000</span></div>
+      <div><span>To contact us</span><span>Phone 800-829-1040</span></div>
+      <div><span>Page 1 of 4</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="address">
+    JORDAN A EXAMPLE<br>
+    100 SAMPLE AVE APT 0<br>
+    SPRINGFIELD, ST 00000-0000
+  </div>
+
+  <h1>You have a balance due for 2025</h1>
+  <p class="amount-line">Amount due: $1,284.60</p>
+
+  <div class="cols">
+    <div>
+      <p>Our records show you have unpaid taxes and/or penalties and interest on your 2025 Form 1040.</p>
+      <p>If you already paid your balance in full within the last 21 days or made payment arrangements,
+         please disregard this notice.</p>
+
+      <h2>Billing Summary</h2>
+      <table class="bill">
+        <tr><td>Tax you owed</td><td>$6,412.00</td></tr>
+        <tr><td>Payments and credits</td><td>-5,300.00</td></tr>
+        <tr><td>Failure-to-pay penalty</td><td>111.20</td></tr>
+        <tr><td>Interest charges</td><td>61.40</td></tr>
+        <tr class="total"><td>Amount due by October 5, 2026</td><td>$1,284.60</td></tr>
+      </table>
+    </div>
+    <div>
+      <h2>What you need to do</h2>
+      <p><b>If you agree with the amount due</b></p>
+      <ul>
+        <li>Pay the amount due of $1,284.60 by October 5, 2026, to avoid additional penalty and interest charges.</li>
+        <li>Pay online or mail a check or money order with the attached payment stub. You can pay online now
+            at www.irs.gov/payments.</li>
+      </ul>
+      <p><b>If you can't pay the full amount</b></p>
+      <ul>
+        <li>Pay as much as you can now and visit www.irs.gov/paymentplan to set up a payment plan.</li>
+      </ul>
+      <p><b>If you disagree with the amount due</b></p>
+      <ul>
+        <li>Call us at 800-829-1040 to review your account with a representative. Have this notice with you
+            when you call.</li>
+      </ul>
+      <p>To make sure we receive your payment within 21 calendar days from the date of this notice, pay by
+         October 5, 2026. For more information, visit www.irs.gov/cp14.</p>
+    </div>
+  </div>
+</div>
+
+<div class="stub">
+  <div>
+    Make your check or money order payable to the <b>United States Treasury</b>.<br>
+    Write your social security number, the tax year (2025) and the form number (1040) on your payment.<br>
+    Internal Revenue Service, Cincinnati, OH 45999-0149
+  </div>
+  <div class="due">Amount due by<br>October 5, 2026<br><b>$1,284.60</b></div>
+</div>
+<div class="foot">Synthetic sample made for Plainly in the format of an IRS CP14 notice. The taxpayer and all identifiers are fictional.</div>
+<div class="watermark">SAMPLE &mdash; NOT A REAL NOTICE</div>
+</body>
+</html>

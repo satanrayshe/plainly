@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Source for site/assets/og.png (1200x630). Render: python scripts/render_art.py -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="plainly:render" content="width=1200,height=630">
+<style>
+  @font-face { font-family: "Newsreader"; src: url("../../site/assets/fonts/newsreader-latin.woff2") format("woff2"); font-weight: 200 800; }
+  :root { --paper: #f7f3ea; --sheet: #fffdf8; --ink: #1c1b18; --ink-2: #4a463e; --rule: #d5cdbb;
+          --scam: #a3211b; --ok: #0b6453; --amber: #e5b240; --amber-ink: #3d2800; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body { background: var(--paper); color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif;
+         display: grid; grid-template-columns: 1fr 430px; gap: 56px; padding: 72px 80px; }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 600; }
+  .brand svg { width: 30px; height: 30px; }
+  h1 { font-family: "Newsreader", Georgia, serif; font-weight: 600; font-size: 92px; line-height: 1.0;
+       letter-spacing: -0.02em; margin-top: 64px; }
+  p.sub { font-size: 29px; line-height: 1.4; color: var(--ink-2); margin-top: 30px; max-width: 560px; }
+  .card { background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 10px; padding: 34px 32px;
+          align-self: center; box-shadow: 0 1px 0 var(--rule); }
+  .card h2 { font-family: "Newsreader", Georgia, serif; font-weight: 600; font-size: 30px; margin-bottom: 22px; }
+  .stamp { display: flex; align-items: center; gap: 14px; border-radius: 7px; padding: 17px 20px; font-size: 25px;
+           font-weight: 700; color: #fff; }
+  .stamp + .stamp { margin-top: 14px; }
+  .scam { background: var(--scam); }
+  .ok { background: var(--ok); }
+  .unsure { background: var(--amber); color: var(--amber-ink); }
+  .stamp svg { width: 26px; height: 26px; flex: none; }
+  .foot { margin-top: 22px; font-size: 19px; color: var(--ink-2); line-height: 1.4; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 11h8M9 15h8M9 19h5" stroke="currentColor" stroke-width="1.8"/></svg>
+      Plainly
+    </div>
+    <h1>Is this letter real?</h1>
+    <p class="sub">Checks official-looking letters, texts and emails for scam signs, then explains them in your language.</p>
+  </div>
+  <div class="card">
+    <h2>One of three answers</h2>
+    <div class="stamp scam"><svg viewBox="0 0 24 24"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.4" fill="currentColor"/></svg>Likely scam</div>
+    <div class="stamp ok"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>Consistent with genuine</div>
+    <div class="stamp unsure"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.2 9.3a2.9 2.9 0 1 1 4 2.7c-.8.4-1.2 1-1.2 1.8v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.3" fill="currentColor"/></svg>Can't tell</div>
+    <p class="foot">Never "safe". Always confirm on the official number.</p>
+  </div>
+</body>
+</html>

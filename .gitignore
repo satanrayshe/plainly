@@ -1,0 +1,40 @@
+# Build output
+build/
+dist/
+*.zip
+infra/packaged*.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.coverage
+htmlcov/
+
+# Node (dev tools only; the site has no npm build)
+node_modules/
+
+# Secrets and local credentials. Never commit these.
+.env
+.env.*
+.aws/
+*.pem
+
+# Local agent settings
+.claude/settings.local.json
+
+# Scratch files
+scratch/
+scratchpad/
+tmp/
+*.tmp
+*.bak
+*.log
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

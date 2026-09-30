@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- @head -->
+<title>Plainly: Is this letter real?</title>
+<meta name="description" content="Photograph an official-looking letter, text or email. Plainly checks it for scam signs in code, shows you the official number to call, and explains it in your language. Nothing is stored.">
+<meta property="og:title" content="Plainly: Is this letter real?">
+<meta property="og:description" content="Likely scam, consistent with a genuine letter, or can't tell. Every warning sign is quoted from the letter and checked in code. Then a plain-language explanation in your language.">
+<meta property="og:url" content="/">
+</head>
+<body>
+<!-- @header -->
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <h1>Is this letter real?</h1>
+        <p class="lede">Take a photo of a letter, text message or email that says it is from the tax office, the police, the electricity company or your bank. Plainly checks it for the signs scammers use, tells you who to call to be sure, and explains what it says in your language.</p>
+        <div class="btn-row">
+          <a class="btn" href="/try/">Check your own letter</a>
+          <a href="#examples">See three checked examples</a>
+        </div>
+        <p class="hero-note">Free. No account. Your letter is not stored.</p>
+      </div>
+
+      <aside class="answers" aria-labelledby="answers-title">
+        <h2 id="answers-title">You get one of three answers</h2>
+        <ol>
+          <li>
+            <span class="stamp stamp-scam"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="17" r="1.4" fill="currentColor"/></svg>Likely scam</span>
+            <p>Strong warning signs, such as a demand for gift cards or a threat of arrest. Don't pay, and don't call the number in the letter.</p>
+          </li>
+          <li>
+            <span class="stamp stamp-ok"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>Consistent with a genuine letter. Confirm on the official number.</span>
+            <p>Its contacts match the real organisation and nothing looks wrong. Still call the official number we show you before you act.</p>
+          </li>
+          <li>
+            <span class="stamp stamp-unsure"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.2 9.3a2.9 2.9 0 1 1 4 2.7c-.8.4-1.2 1-1.2 1.8v.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.6" r="1.3" fill="currentColor"/></svg>Can't tell</span>
+            <p>Not enough to decide either way. We show you how to check it yourself.</p>
+          </li>
+        </ol>
+        <p class="foot">Plainly never says a letter is "safe". A scam can copy a real letter perfectly, so the last step is always the official number. <a href="/how-it-works/#never-safe">Why we do it this way</a></p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="examples" aria-labelledby="examples-title">
+    <div class="wrap">
+      <div class="samples-head">
+        <h2 id="examples-title">Three letters, checked</h2>
+        <p class="muted">These are made-up sample letters, each marked "Sample, not a real notice". Under each one is Plainly's result, so you can see how it works without uploading anything.</p>
+      </div>
+      <div class="sample-grid">
+<!-- @samples:landing -->
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <h2 id="how-title">How it decides</h2>
+      <p class="lede section-lede">The AI reads and explains. Plain code makes the call, and every check leaves a receipt you can open.</p>
+      <ol class="steps">
+        <li>
+          <h3>An independent reader reads the letter</h3>
+          <p>Amazon Textract turns your photo into text. This reading is separate from the AI model, so every line the model quotes can be checked against it.</p>
+        </li>
+        <li>
+          <h3>Code checks it against rules and an official contacts list</h3>
+          <p>Fixed rules look for payment by gift card or crypto, threats of arrest, requests for an OTP or PIN, look-alike web addresses and more. Phone numbers and websites are compared with a list of official contacts, each with its source.</p>
+        </li>
+        <li>
+          <h3>Amazon Nova explains it in your language</h3>
+          <p>Plain words in English, हिन्दी, Español or another language. The real deadline as a calendar file, and a reply you can send when the letter looks genuine.</p>
+        </li>
+      </ol>
+      <p class="after-steps"><a href="/how-it-works/">See every rule and how the verdict is worked out</a></p>
+    </div>
+  </section>
+
+  <section class="section" id="privacy" aria-labelledby="privacy-title">
+    <div class="wrap split">
+      <h2 id="privacy-title">Your letter stays yours</h2>
+      <ul class="plain-list">
+        <li>Your photo is read in memory and then discarded. Nothing about your letter is saved.</li>
+        <li>Our logs record which checks ran and how long they took. Never the words of your letter.</li>
+        <li>No account, no email address, no tracking cookies.</li>
+        <li>Tip: cover full ID numbers, such as Aadhaar, Social Security or bank card numbers, before you take the photo. Plainly does not need them.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section cta-band" aria-labelledby="cta-title">
+    <div class="wrap">
+      <h2 id="cta-title">Got a letter you are not sure about?</h2>
+      <p class="lede">Check it before you pay anyone or call the number printed on it.</p>
+      <a class="btn" href="/try/">Check your own letter</a>
+    </div>
+  </section>
+</main>
+
+<!-- @footer -->
+</body>
+</html>
