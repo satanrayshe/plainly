@@ -73,7 +73,10 @@ class FakeBedrock:
         tools = [t["toolSpec"] for t in (toolConfig or {}).get("tools", []) if "toolSpec" in t]
         tool = tools[0] if tools else None
         if tool and tool["name"] == "record_letter":
-            answer = mock_model.extract(prompt, self.registry)
+            # Read only the document, not the instructions wrapped around it.
+            start, end = prompt.find("<document>"), prompt.find("</document>")
+            document = prompt[start + len("<document>"):end].strip() if 0 <= start < end else prompt
+            answer = mock_model.extract(document, self.registry)
         else:
             answer = mock_model.narrate(system_text + "\n" + prompt)
         if tool:

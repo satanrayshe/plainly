@@ -37,8 +37,8 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 1,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 908 in / 537 out tokens)"
+        "ms": 4,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 976 in / 537 out tokens)"
       },
       {
         "step": "registry",
@@ -134,7 +134,7 @@
         "step": "dates",
         "status": "done",
         "detail": "Letter date 2026-09-14 (quoted from the letter). 1 deadline(s) worked out in code.",
-        "ms": 1
+        "ms": 0
       },
       {
         "step": "grounding",
@@ -181,8 +181,8 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 10,
-      "input_tokens": 908,
+      "ms": 11,
+      "input_tokens": 976,
       "output_tokens": 537
     }
   },
@@ -210,7 +210,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 960,
+        "input_tokens": 941,
         "output_tokens": 151
       }
     },
@@ -237,7 +237,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 960,
+        "input_tokens": 941,
         "output_tokens": 151
       }
     },
@@ -264,10 +264,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 960,
+        "input_tokens": 941,
         "output_tokens": 151
       }
     }
   },
-  "generated_at": "2026-09-30T14:46:14+00:00"
+  "generated_at": "2026-09-30T15:27:15+00:00"
 }

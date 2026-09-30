@@ -40,7 +40,7 @@
       <figure class="diagram" aria-labelledby="diagram-caption">
         <svg viewBox="0 0 360 716" role="img" aria-labelledby="diagram-title diagram-desc">
           <title id="diagram-title">How a letter moves through Plainly</title>
-          <desc id="diagram-desc">Your letter goes to two independent readers, Amazon Textract and Amazon Nova. Plain code applies rules, the official contacts list, date arithmetic and quote checks, and produces the verdict with receipts. Amazon Nova then explains it in your language. All of this runs in memory in AWS Lambda and nothing is stored.</desc>
+          <desc id="diagram-desc">Your letter goes to two independent readers, Amazon Textract and Amazon Nova. Plain code applies rules, the official contacts list, date arithmetic and quote checks, and produces the verdict with receipts. Amazon Nova then explains it in your language. All of this runs in memory in AWS Lambda, and Plainly stores nothing.</desc>
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0L10 5L0 10z" fill="#1c1b18"/>
@@ -175,7 +175,8 @@
       <h2 id="privacy-title">Privacy</h2>
       <div class="prose">
         <ul>
-          <li>Your letter is processed in memory and discarded when the check ends. It is not saved to a database, a file or a log.</li>
+          <li>Plainly processes your letter in memory and drops it when the check ends. Plainly does not save it to a database, a file or a log.</li>
+          <li>To read the letter, Plainly sends it to two AWS services in us-east-1. Amazon Bedrock does not store it or use it to train models. Amazon Textract <a href="https://aws.amazon.com/textract/faqs/" rel="noopener">may keep inputs to improve the service</a> unless the AWS account has opted out with an <a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" rel="noopener">AI services opt-out policy</a>. The opt-out for Plainly's account is listed on the <a href="/evidence/">evidence page</a> once it is in place.</li>
           <li>Logs hold only a request id, the verdict, which rules fired, timings and token counts. Never the words of the letter.</li>
           <li>There is no share link and no account, so there is nothing about your letter to look up later.</li>
           <li>To stop abuse, we count requests per network address for an hour, and total checks per day. Those counters expire on their own.</li>

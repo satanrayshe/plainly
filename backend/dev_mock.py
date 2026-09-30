@@ -105,8 +105,16 @@ class FakeBedrockRuntime:
         if tool == "record_letter":
             document = _between(prompt, "<document>", "</document>").strip()
             if document == "(none)" and has_image:
-                document = ""  # a real model would read the image; the mock can only say it saw nothing
+                document = ""
             data = mock_extract(document)
+            image = next((block["image"]["source"]["bytes"] for message in request["messages"]
+                          for block in message["content"] if "image" in block), None)
+            if image is not None and "`transcript`" in prompt:
+                # Like the real model, "read" the whole image, Devanagari included, when a transcript is wanted.
+                seen = fake_ocr_text(image)
+                if "missing from the OCR text" not in prompt or _latin_share(seen) < 0.95:
+                    data = mock_extract(seen)
+                    data["transcript"] = seen
         elif tool == "record_explanation":
             system = request["system"][0]["text"]
             language = _between(system, "human-readable field in ", ".") or "English"

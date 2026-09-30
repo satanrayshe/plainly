@@ -90,8 +90,8 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 0,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 739 in / 195 out tokens)"
+        "ms": 2,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 807 in / 195 out tokens)"
       },
       {
         "step": "registry",
@@ -222,8 +222,8 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 49,
-      "input_tokens": 739,
+      "ms": 31,
+      "input_tokens": 807,
       "output_tokens": 195
     }
   },
@@ -256,7 +256,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 918,
+        "input_tokens": 899,
         "output_tokens": 149
       }
     },
@@ -288,7 +288,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 918,
+        "input_tokens": 899,
         "output_tokens": 149
       }
     },
@@ -320,10 +320,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 918,
+        "input_tokens": 899,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T14:46:14+00:00"
+  "generated_at": "2026-09-30T15:27:15+00:00"
 }

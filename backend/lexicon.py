@@ -18,7 +18,7 @@ GIFT_CARD = re.compile(
 
 CRYPTO_WIRE = re.compile(
     r"\bbitcoins?\b|\bbtc\b|\bcrypto(?:currency|currencies)?\b|\busdt\b|\btether\b|\bethereum\b"
-    r"|\b(?:bitcoin|crypto|btc)\s*atm\b|\bwire\s*transfer\b|\bwire\s+(?:the\s+)?(?:money|funds|amount|payment)\b"
+    r"|\b(?:bitcoin|crypto|btc)\s*atm\b|\bwire\s*transfers?\b|\bwire\s+(?:the\s+)?(?:money|funds|amount|payment)\b"
     r"|\bwestern\s*union\b|\bmoney\s*gram\b|\b(?:safe|secure|secret)\s+(?:bank\s+)?account\b"
     r"|\brbi\s+(?:verification\s+|safe\s+|escrow\s+)?account\b|बिटकॉइन|क्रिप्टो",
     _I,
@@ -26,13 +26,21 @@ CRYPTO_WIRE = re.compile(
 
 UPI_CONTEXT = re.compile(r"\bupi\b|\bvpa\b|\bphone\s*pe\b|\bg\s?pay\b|\bgoogle\s*pay\b|\bpaytm\b|\bbhim\b"
                          r"|\bscan\b|\bqr\b|फोनपे|पेटीएम|यूपीआई", _I)
-PAYMENT_APP_TO_MOBILE = re.compile(
-    r"(?:\bphone\s*pe\b|\bg\s?pay\b|\bgoogle\s*pay\b|\bpaytm\b|\bbhim\b|\bupi\b|फोनपे|पेटीएम|यूपीआई)"
-    r"[^.\n।]{0,40}?(?<!\d)(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}(?!\d)"
-    r"|(?<!\d)(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}(?!\d)[^.\n।]{0,30}?"
-    r"(?:\bphone\s*pe\b|\bg\s?pay\b|\bgoogle\s*pay\b|\bpaytm\b|\bbhim\b|\bupi\b|फोनपे|पेटीएम)",
-    _I,
-)
+_PAYMENT_APP = r"(?:\bphone\s*pe\b|\bg\s?pay\b|\bgoogle\s*pay\b|\bpaytm\b|\bbhim\b|\bupi\b|फोनपे|पेटीएम|यूपीआई)"
+_MOBILE = r"(?<!\d)(?:\+?91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}(?!\d)"
+# Only connecting words may sit between the app and the number ("PhonePe to 98100 12345", "GPay on +91 ..."), so
+# "Pay via Paytm or Google Pay, WhatsApp 87459 99808 for a bill copy" is two separate things.
+_APP_LINK = r"[\s:(\-/]*(?:(?:to|on|at|number|no\.?|mobile|id|via|by|through|using|पर|को|नंबर)[\s:(\-/]+)*"
+PAYMENT_APP_TO_MOBILE = re.compile(rf"{_PAYMENT_APP}{_APP_LINK}{_MOBILE}|{_MOBILE}{_APP_LINK}{_PAYMENT_APP}", _I)
+PAY_VERB = re.compile(r"\b(?:pay|paid|payment|send|transfer|deposit|remit|clear)\b|भुगतान|भेज|जमा", _I)
+# Words that say what kind of sender it is, not who. They never mark a UPI handle as the sender's own.
+GENERIC_NAME_WORDS = {
+    "limited", "private", "power", "electricity", "electric", "energy", "bill", "bills", "notice", "final",
+    "department", "government", "india", "indian", "office", "services", "service", "company", "corporation",
+    "board", "water", "supply", "distribution", "authority", "ministry", "bank", "dear", "customer", "consumer",
+    "sample", "date", "your", "account", "payment", "from", "with", "this", "that", "urgent", "alert", "text",
+    "message", "disconnection", "reminder", "state", "national", "central", "public", "municipal", "city",
+}
 UPI_PROVIDERS = {
     "okaxis", "okhdfcbank", "okicici", "oksbi", "ybl", "ibl", "axl", "paytm", "ptyes", "ptaxis", "pthdfc", "ptsbi",
     "upi", "apl", "yapl", "rapl", "jio", "fam", "axisbank", "icici", "sbi", "hdfcbank", "kotak", "idfcbank", "axisb",
@@ -43,25 +51,40 @@ UPI_PROVIDERS = {
 
 CREDENTIAL = (
     r"\bOTP\b|\bone[\s-]?time[\s-]?(?:password|pin|passcode|code)\b"
-    r"|\b(?:UPI|ATM|M|T|card|debit\s+card|credit\s+card|secret|net\s?banking)[\s-]?PIN\b|\bPIN\b(?!\s*(?:code|:?\s*\d{6}))"
+    r"|\b(?:UPI|ATM|M|T|card|debit\s+card|credit\s+card|secret|net\s?banking)[\s-]?PIN\b"
+    r"|(?<!IP\s)(?<!Protection\s)\bPIN\b(?!\s*(?:code|:?\s*\d{6}))"  # an IRS IP PIN goes on your own return
     r"|\bpass\s?words?\b|\bpass\s?code\b|\bCVV\b|\bCVC\b|\bcard\s+verification\b"
     r"|\b(?:full|complete|entire|whole)\s+(?:SSN|social\s+security\s+(?:number|no))\b|\ball\s+9\s+digits\b"
     r"|\b(?:full|complete|entire|whole|12[\s-]digit)\s+aadhaa?r\b"
     r"|\bnet[\s-]?banking\s+(?:login|user\s*(?:name|id)|password|credentials|details)\b"
     r"|\blog\s?in\s+(?:credentials|details)\b|ओटीपी|पिन|पासवर्ड|सीवीवी"
 )
-REQUEST_VERB = (
-    r"\b(?:share|send|provide|tell|give|confirm|enter|reply(?:\s+with)?|forward|read\s+out|read\s+back|verify|update|"
-    r"submit|disclose|type|mention|note\s+down|dictate|spell\s+out)\b"
+# Verbs that hand a secret over to whoever sent the letter.
+HANDOVER_VERB = (
+    r"\b(?:share|send|provide|tell|give|reply(?:\s+with)?|forward|read\s+out|read\s+back|disclose|mention|"
+    r"note\s+down|dictate|spell\s+out)\b"
     r"|बताएं|बताइए|बताओ|बताना|भेजें|भेजिए|भेजो|शेयर\s*करें|शेयर\s*कीजिए|साझा\s*करें|दीजिए"
 )
+# Verbs that also describe signing in to an official portal yourself ("log in to incometax.gov.in and enter the
+# OTP"). They only count when the sentence names no official site. "e-verify" is India's return process.
+ENTRY_VERB = r"\b(?:confirm|enter|(?<![-\w])verify|update|submit|type)\b"
+ENTRY_VERB_WORD = re.compile(ENTRY_VERB, _I)
 CREDENTIAL_REQUEST = re.compile(
-    rf"(?P<verb>{REQUEST_VERB})(?:[^.\n।?!]|\.(?=\S)){{0,60}}?(?P<cred>{CREDENTIAL})"
-    rf"|(?P<cred2>{CREDENTIAL})(?:[^.\n।?!]|\.(?=\S)){{0,30}}?(?P<verb2>{REQUEST_VERB})",
+    rf"(?P<verb>{HANDOVER_VERB}|{ENTRY_VERB})(?:[^.\n।?!]|\.(?=\S)){{0,60}}?(?P<cred>{CREDENTIAL})"
+    rf"|(?P<cred2>{CREDENTIAL})(?:[^.\n।?!]|\.(?=\S)){{0,30}}?(?P<verb2>{HANDOVER_VERB})",
     _I,
 )
-# Negation directly before the request verb: "never share", "do not ever share", "न बताएं".
-VERB_NEGATION = re.compile(r"(?:\bnever|\bnot|n't|\bno\s+one|\bnobody|न|मत|नहीं|कभी)\s*(?:\w+\s+)?$", _I)
+OFFICIAL_PORTAL = re.compile(r"\bportal\b|\bonline\s+account\b|\be-?filing\b|\bofficial\s+(?:website|site|app)\b", _I)
+# Negation governing the request verb: "never share", "do not ever share", "will never ask you to share",
+# "no one from the IRS will ask you to share", "न बताएं". Only these filler words may sit in between, so
+# "do not disconnect and share the OTP" still counts as a request.
+VERB_NEGATION = re.compile(
+    r"(?:\bnever|\bnot|n't|\bno\s+one|\bnobody|न|मत|नहीं|कभी)\s*"
+    r"(?:(?:ever|ask|asks|asked|request|requests|requested|require|requires|required|want|wants|expect|need|"
+    r"you|to|be|will|would|anyone|us|them|for|from|the|our|staff|officer|officers|call|email|text|contact|"
+    r"(?-i:[A-Z]{2,6}))\s+){0,7}$",
+    _I,
+)
 
 THREAT = re.compile(
     r"\barrest(?:ed|ing)?\b|\bdigital\s+arrest\b|\bwarrants?\b|\bdeport(?:ed|ation)?\b|(?-i:\bFIR\b)"
@@ -166,4 +189,9 @@ CONDITIONAL = re.compile(r"\bif\b|\bunless\b|\bwhether\b|अगर|यदि", _
 # "Do not ignore this or police will arrest you": the negation does not cover what follows "or ...".
 # A plain list ("gift cards or crypto") keeps the negation.
 RESUMES = re.compile(r"\bor\s+(?:else|you|we|they|the\s+police|police|your|legal|action|arrest|face|be)\b"
-                     r"|\botherwise\b|\belse\b|\bfailing\s+(?:which|this|that)\b|वरना|नहीं\s*तो", _I)
+                     r"|\botherwise\b|\belse\b|\bfailing\s+(?:which|this|that)\b|\bbut\b|\binstead\b"
+                     r"|\band\s+(?:you|then|please)\b|वरना|नहीं\s*तो", _I)
+# "We will never ask/demand/accept ...": a negated verb like this covers the whole list after it, commas and all.
+PROTECTIVE_VERB = re.compile(
+    r"^\s*(?:\S+\s+){0,3}?(?:ask|demand|request|require|accept|take|threaten|contact|use|want|expect|need|seek|"
+    r"collect)(?:s|ed|ing)?\b", _I)

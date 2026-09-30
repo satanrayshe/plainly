@@ -146,9 +146,27 @@ def detect_country(text, agency_country):
     return "US" if re.search(r"\$\s?\d|\bIRS\b|social security|\bU\.?S\.?\b", text) else "other"
 
 
+# "Aadhaar number", "Aadhaar-linked", "Social Security number": an ID document named in the body, not the sender.
+_ID_DOCUMENT_AFTER = re.compile(r"[\s-]*(?:numbers?|no\b|card|linked|details|seeded)")
+
+
+def _sender(registry, lowered):
+    """The registry agency named first in the text, which is where a letterhead or SMS sender sits."""
+    best, best_at = None, None
+    for agency in registry:
+        for name in agency["names"]:
+            for m in re.finditer(r"\b" + re.escape(name) + r"\b", lowered):
+                if _ID_DOCUMENT_AFTER.match(lowered, m.end()):
+                    continue
+                if best_at is None or m.start() < best_at:
+                    best, best_at = agency, m.start()
+                break
+    return best
+
+
 def extract(text, registry):
     lowered = text.lower()
-    agency = next((a for a in registry for n in a["names"] if re.search(r"\b" + re.escape(n) + r"\b", lowered)), None)
+    agency = _sender(registry, lowered)
     country = detect_country(text, agency and agency["country"])
     first_line = next((line.strip() for line in text.splitlines() if line.strip()), "")
     matched_name = next((n for n in (agency or {}).get("names", []) if n in lowered), None)

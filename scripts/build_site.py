@@ -297,13 +297,14 @@ def render_tiles(out: Path) -> str:
         sid = entry["id"]
         ready = result_path(sid) is not None
         image = letter_image(sid)
-        thumb = (f'<img src="{esc(letter_preview(sid, out))}" alt="" loading="lazy">' if image
+        preview = letter_preview(sid, out) if image else None
+        thumb = (f'<img src="{esc(preview)}" alt="" loading="lazy">' if image
                  else '<span aria-hidden="true">¶</span>')
         sub = esc(entry["kind"]) if ready else "Result coming soon"
         disabled = "" if ready else " disabled"
         items.append(f'<li><button type="button" class="tile" data-sample="{esc(sid)}" '
                      f'data-title="{esc(entry["title"])}" data-alt="{esc(entry.get("alt") or "")}" '
-                     f'data-image="{esc(image or "")}"{disabled}>'
+                     f'data-image="{esc(image or "")}" data-preview="{esc(preview or "")}"{disabled}>'
                      f'<span class="tile-thumb">{thumb}</span>'
                      f'<span><span class="tile-title">{esc(entry["title"])}</span>'
                      f'<span class="tile-sub">{sub}</span></span></button></li>')

@@ -1,8 +1,8 @@
 # Plainly evaluation
 
-- Generated: 2026-09-30T14:43:01+00:00
+- Generated: 2026-09-30T15:29:47+00:00
 - Mode: offline: AWS faked, extraction by the keyword reader in eval/mock_model.py. These numbers measure the deterministic rules plus a crude reader, not the model; latency and tokens are not meaningful
-- Rules under test (frozen, sha256 prefix): verifier.py 2dbee6fd69a7, registry.json c9aa3bcd3339
+- Rules under test (frozen, sha256 prefix): verifier.py 8ee98d2ac255, registry.json c9aa3bcd3339
 - Positive class for precision/recall: `likely_scam`. "Can't tell" on a scam counts as a miss for recall, never as a pass.
 
 ## Holdout: government-published examples
@@ -19,7 +19,7 @@ Real scam messages quoted by the IRS, FTC and FBI IC3, and IRS sample notices as
 | Genuine letters marked consistent_with_genuine | 9/11 (82%) |
 | Deadline accuracy (letters with a labeled deadline) | 5/5 (100%) |
 | Quote grounding (grounded / checked quotes) | 86/86 (100%) |
-| Latency p50 / p95, /api/check wall clock | 6 ms / 14 ms |
+| Latency p50 / p95, /api/check wall clock | 9 ms / 19 ms |
 | Average tokens in / out | 854 / 194 |
 
 | True label | likely_scam | consistent_with_genuine | cant_tell |
@@ -61,8 +61,8 @@ Genuine letters left at cant_tell (safe direction, but not confirmed): 2
 | Genuine letters marked consistent_with_genuine | 12/12 (100%) |
 | Deadline accuracy (letters with a labeled deadline) | 9/9 (100%) |
 | Quote grounding (grounded / checked quotes) | 53/53 (100%) |
-| Latency p50 / p95, /api/check wall clock | 2 ms / 4 ms |
-| Average tokens in / out | 558 / 170 |
+| Latency p50 / p95, /api/check wall clock | 3 ms / 4 ms |
+| Average tokens in / out | 558 / 168 |
 
 | True label | likely_scam | consistent_with_genuine | cant_tell |
 |---|---|---|---|

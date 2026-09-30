@@ -16,8 +16,10 @@ import bedrock
 import verifier
 
 MIN_OCR_CHARS = 40
+MIN_TRANSCRIPT_LETTERS = 20  # non-Latin letters a transcript must add before it counts as text the OCR missed
 MAX_TEXT_CHARS = 20000
 MAX_IMAGE_B64_CHARS = 2_200_000
+MAX_CHECK_CHARS = 40_000  # the sample /api/check results (minus letter_text) are 4-8 KB
 TOTAL_BUDGET_MS = 25000
 LAMBDA_SAFETY_MS = 1500
 EXTRACT_MAX_TOKENS = 1500
@@ -117,7 +119,7 @@ def textract():
             from botocore.config import Config
             _textract = boto3.client("textract", region_name=os.environ.get("AWS_REGION", "us-east-1"),
                                      config=Config(read_timeout=8, connect_timeout=3,
-                                                   retries={"max_attempts": 2, "mode": "standard"}))
+                                                   retries={"max_attempts": 1, "mode": "standard"}))
     return _textract
 
 
@@ -195,30 +197,50 @@ def record_letter_tool(agency_keys):
     }
 
 
-def extract(image_bytes, image_format, letter_text, *, agency_keys, need_transcript, budget):
+def extract(image_bytes, image_format, letter_text, *, agency_keys, transcript, budget):
+    """transcript: "full" when OCR read (almost) nothing; "missing" to ask only for text in a script the OCR
+    skipped (Textract reads no Devanagari, so a Hindi body under an English letterhead is invisible to it)."""
     content = []
     if image_bytes:
         content.append({"image": {"format": image_format, "source": {"bytes": image_bytes}}})
     prompt = ("Text of the document as read by OCR or pasted by the user (may be partial):\n"
               f"<document>\n{letter_text or '(none)'}\n</document>\n")
-    if need_transcript:
+    if transcript == "full":
         prompt += ("\nThe OCR text is missing or too short, perhaps because the letter uses a non-Latin script. "
                    "Fill `transcript` with the full text of the letter exactly as written, in its original script.\n")
+    elif transcript == "missing":
+        prompt += ("\nIf the image has text in a script that is missing from the OCR text above (for example Hindi "
+                   "in Devanagari), fill `transcript` with the full text of the letter exactly as written, in its "
+                   "original script. If the OCR text already covers the letter, leave `transcript` empty.\n")
     prompt += "\nCall record_letter now."
     content.append({"text": prompt})
     return bedrock.call_tool(
         system=EXTRACT_SYSTEM, messages=[{"role": "user", "content": content}],
         tool=record_letter_tool(agency_keys),
-        max_tokens=TRANSCRIPT_MAX_TOKENS if need_transcript else EXTRACT_MAX_TOKENS,
+        max_tokens=TRANSCRIPT_MAX_TOKENS if transcript else EXTRACT_MAX_TOKENS,
         remaining_ms=budget.remaining_ms)
+
+
+def _adds_missing_script(transcript, ocr_text):
+    """True when the model's transcript carries non-Latin text that the OCR reading lacks."""
+    def non_latin(text):
+        return sum(1 for c in text if c.isalpha() and ord(c) > 0x24F)
+
+    added = non_latin(transcript)
+    return added >= MIN_TRANSCRIPT_LETTERS and non_latin(ocr_text) < added * 0.2
 
 
 # ---------------------------------------------------------------- /api/check
 
 def run_check(payload, context=None, registry=None):
+    return check_request(parse_check_request(payload), context, registry)
+
+
+def check_request(request, context=None, registry=None):
+    """request: what parse_check_request returned."""
     budget = Budget(context)
     registry = registry or agencies.load_registry()
-    image_bytes, image_format, pasted, today = parse_check_request(payload)
+    image_bytes, image_format, pasted, today = request
     trace = []
 
     ocr_text = ""
@@ -244,9 +266,9 @@ def run_check(payload, context=None, registry=None):
 
     extraction, meta = {}, {"model": None, "ms": 0, "input_tokens": 0, "output_tokens": 0}
     try:
+        wanted = "full" if source == "none" else "missing" if image_bytes and source == "textract" else None
         result = extract(image_bytes, image_format, letter_text,
-                         agency_keys=[a["key"] for a in registry["agencies"]],
-                         need_transcript=source == "none", budget=budget)
+                         agency_keys=[a["key"] for a in registry["agencies"]], transcript=wanted, budget=budget)
         extraction = result.data
         meta = result.meta()
         how = {"tool": "forced tool call", "any": "tool call (any)", "text": "JSON in text"}[result.mode]
@@ -258,13 +280,20 @@ def run_check(payload, context=None, registry=None):
                       "detail": "The AI reader was unavailable; rules ran on the text alone"})
         _log_warning("extract_failed", str(exc))
 
+    transcript = verifier.normalize_extraction(extraction)["transcript"]
+    independent_text = None
     if source == "none":
-        transcript = verifier.normalize_extraction(extraction)["transcript"]
         letter_text = transcript or letter_text
+    elif source == "textract" and _adds_missing_script(transcript, ocr_text):
+        # The rules read both parts; quotes can only be grounded in the part Textract read.
+        independent_text = letter_text
+        letter_text = f"{letter_text}\n\n{transcript}"
+        trace[-1]["detail"] += "; it also transcribed text in a script Textract cannot read"
     if not letter_text.strip() and not extraction:
         raise PipelineError("We couldn't read any text in that photo. Try a sharper, well-lit photo, or paste the text.")
 
-    checked = verifier.verify(letter_text, extraction, grounding_source=source, today=today, registry=registry)
+    checked = verifier.verify(letter_text, extraction, grounding_source=source, today=today, registry=registry,
+                              independent_text=independent_text)
     meta["ms"] = budget.elapsed_ms()
     return {
         "verdict": checked["verdict"],
@@ -340,27 +369,51 @@ def parse_explain_request(payload):
     if not _LANGUAGE_NAME.fullmatch(language) or not any(c.isalpha() for c in language):
         raise BadRequest("Please pick a language from the list, or type its name (up to 40 letters).")
     level = payload.get("level") if payload.get("level") in LEVELS else "normal"
+    if len(json.dumps(payload["check"], ensure_ascii=False)) > MAX_CHECK_CHARS:
+        raise BadRequest("That result is too large to explain. Please check the letter again.")
     return letter_text[:MAX_TEXT_CHARS], payload["check"], language, level
 
 
+def _clip(value, limit):
+    return value.strip()[:limit] if isinstance(value, str) else None
+
+
+def _dict(value):
+    return value if isinstance(value, dict) else {}
+
+
+def _items(value, limit):
+    return [v for v in value[:limit] if isinstance(v, dict)] if isinstance(value, list) else []
+
+
 def _brief(check):
-    """What the explainer may know: the verified result, never the raw model extraction."""
-    agency = check.get("agency") or {}
-    extracted = check.get("extracted") or {}
+    """What the explainer may know: the verified result, never the raw model extraction.
+
+    `check` comes back from the browser, so every field is clipped here and the verdict label is rebuilt from
+    the verdict itself; nothing the client sends can grow the prompt.
+    """
+    agency = _dict(check.get("agency"))
+    extracted = _dict(check.get("extracted"))
+    verdict = check.get("verdict") if check.get("verdict") in verifier.VERDICTS else "cant_tell"
+    name = _clip(agency.get("name"), 120)
+    channel = _dict(check.get("report_channel")) or _dict(agency.get("report_channel"))
+    amounts = extracted.get("amounts") if isinstance(extracted.get("amounts"), list) else []
     return {
-        "verdict": check.get("verdict"),
-        "verdict_label": check.get("verdict_label"),
-        "headline": check.get("headline"),
-        "agency": {k: agency.get(k) for k in ("name", "official_phone", "official_site")} if agency else None,
-        "report_channel": check.get("report_channel") or agency.get("report_channel"),
-        "flags": [{"title": f.get("title"), "why": f.get("why"),
-                   "quote": None if f.get("quote_redacted") else f.get("quote")}
-                  for f in (check.get("flags") or [])[:12] if isinstance(f, dict)],
-        "claimed_sender": extracted.get("claimed_sender"),
-        "letter_date": extracted.get("letter_date"),
-        "amounts": (extracted.get("amounts") or [])[:10],
-        "deadlines": [{"date": d.get("date"), "what": d.get("what"), "computed_from": d.get("computed_from")}
-                      for d in (extracted.get("deadlines") or [])[:10] if isinstance(d, dict)],
+        "verdict": verdict,
+        "verdict_label": verifier.verdict_label(verdict, name),
+        "headline": _clip(check.get("headline"), 400),
+        "agency": {"name": name, "official_phone": _clip(agency.get("official_phone"), 40),
+                   "official_site": _clip(agency.get("official_site"), 200)} if agency else None,
+        "report_channel": {k: _clip(channel.get(k), 200) for k in ("name", "url", "phone")} if channel else None,
+        "flags": [{"title": _clip(f.get("title"), 120), "why": _clip(f.get("why"), 400),
+                   "quote": None if f.get("quote_redacted") else _clip(f.get("quote"), 300)}
+                  for f in _items(check.get("flags"), 12)],
+        "claimed_sender": _clip(extracted.get("claimed_sender"), 200),
+        "letter_date": _clip(extracted.get("letter_date"), 10),
+        "amounts": [_clip(a, 40) for a in amounts[:10] if isinstance(a, str)],
+        "deadlines": [{"date": _clip(d.get("date"), 10), "what": _clip(d.get("what"), 200),
+                       "computed_from": _clip(d.get("computed_from"), 120)}
+                      for d in _items(extracted.get("deadlines"), 10)],
     }
 
 

@@ -3,7 +3,7 @@
 <head>
 <!-- @head -->
 <title>Check a letter | Plainly</title>
-<meta name="description" content="Upload a photo or PDF of an official-looking letter, or paste a text message or email. Plainly checks it for scam signs and explains it in your language. Nothing is stored.">
+<meta name="description" content="Upload a photo or PDF of an official-looking letter, or paste a text message or email. Plainly checks it for scam signs and explains it in your language. Plainly doesn't store your letter.">
 <meta name="plainly-api" content="/api">
 <meta property="og:title" content="Check a letter with Plainly">
 <meta property="og:description" content="Photo, PDF or pasted text. Get a verdict, the quoted warning signs, the official number to call and a plain-language explanation.">
@@ -77,11 +77,15 @@
       <div class="submit-row">
         <p class="form-error" id="form-error" role="alert" hidden></p>
         <button class="btn" type="submit" id="submit-btn">Check this letter</button>
-        <p class="privacy-inline">Your letter is read, checked and then discarded. Nothing is stored.</p>
+        <p class="privacy-inline">Plainly doesn't store your letter. It is read by Amazon Textract and Amazon Bedrock; <a href="/how-it-works/#privacy">what AWS keeps</a>.</p>
       </div>
     </form>
 
-    <section id="results" class="results" aria-live="polite" tabindex="-1"></section>
+    <section id="results" class="results" tabindex="-1" aria-labelledby="results-title" hidden>
+      <h2 id="results-title" class="visually-hidden">Result</h2>
+      <div id="results-body"></div>
+    </section>
+    <p id="results-status" class="visually-hidden" role="status" aria-live="polite"></p>
 
     <section class="tiles-section" id="samples" aria-labelledby="samples-title">
       <h2 id="samples-title">No letter handy? Open a sample</h2>

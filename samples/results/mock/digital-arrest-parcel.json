@@ -6,20 +6,20 @@
   "check": {
     "verdict": "likely_scam",
     "verdict_label": "Likely scam",
-    "headline": "This looks like a scam: it asks for crypto, a wire transfer or a \"safe account\". Do not use the contact details in it. Unique Identification Authority of India (Aadhaar)'s official line is 1947.",
+    "headline": "This looks like a scam: it asks for crypto, a wire transfer or a \"safe account\". Do not use the contact details in it. Central Bureau of Investigation's official line is 011-24362755.",
     "agency": {
-      "key": "uidai",
-      "name": "Unique Identification Authority of India (Aadhaar)",
+      "key": "cbi",
+      "name": "Central Bureau of Investigation",
       "country": "IN",
-      "official_phone": "1947",
-      "official_site": "https://uidai.gov.in",
+      "official_phone": "011-24362755",
+      "official_site": "https://cbi.gov.in",
       "report_channel": {
         "name": "National Cyber Crime Reporting Portal / helpline 1930",
         "url": "https://cybercrime.gov.in",
         "phone": "1930",
         "source_url": "https://cbi.gov.in/press-detail/ODAzMg=="
       },
-      "source_url": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=1887539",
+      "source_url": "https://cbi.gov.in/press-detail/ODAzMg==",
       "checked_on": "2026-09-30"
     },
     "report_channel": {
@@ -114,7 +114,7 @@
         "quote": "For the Skype ID and further instructions contact the investigation desk on WhatsApp +91 88888 01234 or email cbi.mumbai.cyberdesk@gmail.com .",
         "quote_redacted": false,
         "grounded": true,
-        "why": "+91 88888 01234 is not on Unique Identification Authority of India (Aadhaar)'s official contact list (checked 2026-09-30). Use 1947 instead.",
+        "why": "+91 88888 01234 is not on Central Bureau of Investigation's official contact list (checked 2026-09-30). Use 011-24362755 instead.",
         "source": {
           "name": "FTC",
           "url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonator-scam"
@@ -131,13 +131,13 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 2,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 900 in / 422 out tokens)"
+        "ms": 3,
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 969 in / 427 out tokens)"
       },
       {
         "step": "registry",
         "status": "done",
-        "detail": "Matched Unique Identification Authority of India (Aadhaar) because the letter names Unique Identification Authority of India (Aadhaar). Official contacts from https://www.pib.gov.in/PressReleasePage.aspx?PRID=1887539 (checked 2026-09-30).",
+        "detail": "Matched Central Bureau of Investigation because the letter names Central Bureau of Investigation. Official contacts from https://cbi.gov.in/press-detail/ODAzMg== (checked 2026-09-30).",
         "ms": 0
       },
       {
@@ -244,7 +244,7 @@
       }
     ],
     "extracted": {
-      "claimed_sender": "Aadhaar",
+      "claimed_sender": "Central Bureau Of Investigation",
       "letter_date": "2026-09-29",
       "phones": [
         "+91 88888 01234"
@@ -263,9 +263,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 7,
-      "input_tokens": 900,
-      "output_tokens": 422
+      "ms": 9,
+      "input_tokens": 969,
+      "output_tokens": 427
     }
   },
   "explanations": {
@@ -297,7 +297,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1470,
+        "input_tokens": 1453,
         "output_tokens": 149
       }
     },
@@ -329,7 +329,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1470,
+        "input_tokens": 1452,
         "output_tokens": 149
       }
     },
@@ -361,10 +361,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 1470,
+        "input_tokens": 1453,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T14:46:14+00:00"
+  "generated_at": "2026-09-30T15:27:15+00:00"
 }

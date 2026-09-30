@@ -178,20 +178,39 @@ function renderReport(check) {
 
 // ---------- deadlines ----------
 
-function renderDeadlines(check) {
+// Samples were prepared on a fixed date, so their deadlines are shown against the letter's own date,
+// not against today (which would drift into "12 days ago" during judging).
+function whenNote(d, check, sample) {
+  if (sample) {
+    const gap = daysBetween(check.extracted?.letter_date, d.date);
+    return gap == null ? "" : gap === 0 ? "the letter's own date" : `${gap} days after the letter date`;
+  }
+  return describeCountdown(daysFromToday(d.date));
+}
+
+function daysBetween(fromIso, toIso) {
+  const from = parseDay(fromIso);
+  const to = parseDay(toIso);
+  return from && to ? Math.round((to - from) / 86400000) : null;
+}
+
+function renderDeadlines(check, sample) {
   const deadlines = (check.extracted?.deadlines || []).filter((d) => parseDay(d.date));
   if (!deadlines.length) return null;
   const scam = check.verdict === "likely_scam";
   const items = deadlines.map((d) => {
-    const countdown = describeCountdown(daysFromToday(d.date));
+    const note = whenNote(d, check, sample);
     const li = h("li", null,
-      h("p", { class: "when" }, formatDay(d.date), countdown ? h("span", { class: "count" }, ` (${countdown})`) : null),
+      h("p", { class: "when" }, formatDay(d.date), note ? h("span", { class: "count" }, ` (${note})`) : null),
       d.what ? h("p", { class: "what" }, d.what) : null,
       d.computed_from ? h("p", { class: "computed" }, `Worked out in code: ${d.computed_from.replace(/_/g, " ")}.`) : null,
       d.quote ? h("blockquote", { class: "quote" }, h("span", { class: "quote-label" }, "From the letter"), `“${d.quote}”`) : null
     );
     if (scam) {
       li.append(h("p", { class: "why" }, "This deadline is part of the pressure. Do not act on it."));
+    } else if (daysFromToday(d.date) < 0) {
+      li.append(h("p", { class: "why" }, sample ? "This sample's date has passed, so there is nothing to add to a calendar."
+        : "This date has passed. Contact the sender on the official number to ask what happens now."));
     } else {
       li.append(h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: () => saveDeadline(d, check) }, "Add to calendar"));
     }
@@ -229,6 +248,9 @@ function renderReceipts(check) {
   let groundingLine = null;
   if (g?.source === "textract") {
     groundingLine = `Quotes found in the independent reading (Amazon Textract): ${g.grounded} of ${g.total}.`;
+    if (g.partial) {
+      groundingLine += ` Part of the letter is in a script Textract can't read, so the AI model's reading of it was used and ${g.unverified || 0} quote(s) from it could not be checked.`;
+    }
   } else if (g?.source === "pasted_text") {
     groundingLine = `Quotes checked against the text you pasted: ${g.grounded} of ${g.total}.`;
   } else if (g?.source === "none") {
@@ -271,10 +293,10 @@ export function renderCheck(check, { sample = null } = {}) {
         check.headline ? h("p", { class: "result-headline" }, check.headline) : null,
         check.extracted?.claimed_sender ? h("p", { class: "result-meta" }, `Says it is from: ${check.extracted.claimed_sender}`) : null),
       sample?.image ? h("a", { class: "letter-thumb", href: sample.image, title: "Open the sample letter" },
-        h("img", { src: sample.image, alt: sample.alt || `The sample letter: ${sample.title}`, width: 96 })) : null)
+        h("img", { src: sample.preview || sample.image, alt: sample.alt || `The sample letter: ${sample.title}`, width: 96 })) : null)
   );
   sheet.append(top, renderOfficial(check), renderFlags(check));
-  const deadlines = renderDeadlines(check);
+  const deadlines = renderDeadlines(check, sample);
   if (deadlines) sheet.append(deadlines);
   sheet.append(renderReceipts(check));
   return sheet;

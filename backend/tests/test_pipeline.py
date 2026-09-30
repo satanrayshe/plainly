@@ -64,6 +64,46 @@ def test_short_ocr_means_not_independently_grounded():
     assert result["verdict"] != "consistent_with_genuine"
 
 
+HINDI_BODY_ENGLISH_HEADER = """Government of India
+Ministry of Home Affairs
+Ref No: MHA/2026/7781
+Date: 25-09-2026
+आपके खिलाफ गिरफ्तारी वारंट जारी किया गया है।
+इस मामले के बारे में किसी को न बताएं।"""
+
+
+def test_hindi_body_under_english_letterhead_is_transcribed_and_checked():
+    result = pipeline.run_check(image_payload(HINDI_BODY_ENGLISH_HEADER), Ctx())
+    assert result["grounding"]["source"] == "textract"
+    assert result["grounding"]["partial"] is True
+    assert "गिरफ्तारी" in result["letter_text"]
+    threat = next(f for f in result["flags"] if f["rule"] == "threat_arrest")
+    assert threat["severity"] == "strong" and threat["grounded"] is None
+    assert result["verdict"] == "likely_scam"
+
+
+def test_english_letter_does_not_get_a_transcript():
+    result = pipeline.run_check(image_payload(SCAM_LETTER), Ctx())
+    assert "partial" not in result["grounding"]
+
+
+def test_ungrounded_hindi_model_quotes_are_not_downgraded_when_ocr_cannot_read_hindi(registry):
+    lines = HINDI_BODY_ENGLISH_HEADER.splitlines()
+    ocr, transcript = "\n".join(lines[:4]), "\n".join(lines[4:])
+    extraction = {"threats": [{"quote": "आपके खिलाफ गिरफ्तारी वारंट जारी किया गया है"}],
+                  "secrecy": [{"quote": "इस मामले के बारे में किसी को न बताएं"}]}
+    result = pipeline.verifier.verify(f"{ocr}\n\n{transcript}", extraction, grounding_source="textract",
+                                      registry=registry, independent_text=ocr)
+    assert {f["rule"]: f["severity"] for f in result["flags"]}["threat_arrest"] == "strong"
+    assert all(f["grounded"] is None for f in result["flags"] if f["rule"] in ("threat_arrest", "secrecy"))
+    assert result["verdict"] == "likely_scam"
+
+
+def test_check_request_takes_parsed_values():
+    request = pipeline.parse_check_request({"text": SCAM_LETTER})
+    assert pipeline.check_request(request)["verdict"] == "likely_scam"
+
+
 def test_textract_failure_degrades(monkeypatch):
     monkeypatch.setenv("PLAINLY_MOCK_FAIL", "textract")
     payload = image_payload(SCAM_LETTER)
@@ -179,3 +219,28 @@ def test_explain_language_accepted(language):
 def test_explain_language_rejected(language):
     with pytest.raises(pipeline.BadRequest):
         pipeline.parse_explain_request({"check": {}, "language": language})
+
+
+def test_explain_brief_is_clipped_and_label_comes_from_the_verdict(monkeypatch):
+    seen = {}
+
+    def fake_call(**kw):
+        seen["system"], seen["prompt"] = kw["system"], kw["messages"][0]["content"][0]["text"]
+        return bedrock.ToolResult({"tldr": "t", "explanation": [], "actions": [], "reply_draft": ""},
+                                  "m", 1, 1, 1, "tool")
+
+    monkeypatch.setattr(bedrock, "call_tool", fake_call)
+    blob = "z" * 100_000
+    check = {"verdict": "likely_scam", "verdict_label": blob, "headline": blob,
+             "agency": {"name": blob, "report_channel": {"name": blob, "url": blob, "extra": blob}},
+             "flags": [{"title": blob, "why": blob, "quote": blob}] * 50,
+             "extracted": {"claimed_sender": blob, "amounts": [blob] * 50, "letter_date": blob,
+                           "deadlines": [{"date": blob, "what": blob, "computed_from": blob}] * 50}}
+    pipeline.narrate("hi", check, "English", "normal")
+    assert '"Likely scam"' in seen["system"] and blob not in seen["system"]
+    assert len(seen["system"]) < 3000 and len(seen["prompt"]) < 20_000  # was megabytes
+
+
+def test_unknown_verdict_in_explain_is_treated_as_cant_tell():
+    brief = pipeline._brief({"verdict": "totally_safe", "verdict_label": "Safe!"})
+    assert brief["verdict"] == "cant_tell" and brief["verdict_label"] == "Can't tell"

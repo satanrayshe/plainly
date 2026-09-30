@@ -11,6 +11,7 @@ counts only, never letter text.
 """
 import base64
 import hmac
+import ipaddress
 import json
 import os
 import time
@@ -39,6 +40,9 @@ def counters():
     if _counters is None:
         table_name = os.environ.get("TABLE_NAME")
         if table_name:
+            if not os.environ.get("IP_HASH_SALT"):
+                # The default salt is public, so hashed IPs in the table could be reversed by brute force.
+                print(json.dumps({"level": "warning", "event": "ip_hash_salt_unset"}))
             import boto3
             table = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "us-east-1")).Table(table_name)
             _counters = limits.DynamoCounters(table)
@@ -74,6 +78,20 @@ def client_ip(event):
     return event.get("requestContext", {}).get("http", {}).get("sourceIp", "unknown")
 
 
+def rate_key(ip):
+    """What the per-IP limit counts. IPv6 viewers are grouped by /64: one home or server gets a whole /64, so a
+    fresh address per request would otherwise dodge the limit."""
+    try:
+        address = ipaddress.ip_address(ip)
+    except ValueError:
+        return ip
+    if address.version == 6:
+        if address.ipv4_mapped:
+            return str(address.ipv4_mapped)
+        return f"{ipaddress.ip_network(f'{address}/64', strict=False).network_address}/64"
+    return str(address)
+
+
 def from_cloudfront(event):
     """CloudFront adds x-origin-verify (value in ORIGIN_VERIFY). Without it, anyone could call the API origin
     directly with a forged CloudFront-Viewer-Address and dodge the per-IP limit. Unset locally."""
@@ -92,7 +110,8 @@ def enforce_limits(route, event):
         daily_cap = int(os.environ.get("EXPLAIN_DAILY_CAP", str(daily_cap * 2)))
     window = limits.hour_window(now)
     store = counters()
-    if not store.take(f"rl#{route}#{limits.ip_hash(client_ip(event))}#{window}", per_hour, (window + 2) * 3600):
+    if not store.take(f"rl#{route}#{limits.ip_hash(rate_key(client_ip(event)))}#{window}", per_hour,
+                      (window + 2) * 3600):
         raise HttpError(429, "You've checked a lot of letters this hour. Please try again a little later, "
                              "or look at the sample letters meanwhile.")
     if not store.take(f"cap#{route}#{limits.utc_day(now)}", daily_cap, now + 2 * 86400):
@@ -125,9 +144,9 @@ def language_bucket(language):
 # ---------------------------------------------------------------- routes
 
 def check(event, context, fields):
-    payload = read_json(event)
+    request = pipeline.parse_check_request(read_json(event))  # a bad request never uses up the limits
     enforce_limits("check", event)
-    result = pipeline.run_check(payload, context)
+    result = pipeline.check_request(request, context)
     counters().bump(["checks_total", f"verdict_{result['verdict']}"])
     fields.update(verdict=result["verdict"], rules=[f["rule"] for f in result["flags"]],
                   grounding=result["grounding"]["source"], model=result["meta"]["model"],

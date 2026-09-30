@@ -11,7 +11,7 @@ allowed.
 
 | Item | State | Replaced by |
 |---|---|---|
-| `samples/results/electricity-final-notice.json`, `irs-balance-due.json`, `digital-arrest-parcel.json` | Hand-written placeholders, `"mock": true` | Step 5 overwrites them |
+| `samples/results/irs-balance-due.json`, `digital-arrest-parcel.json` | Hand-written placeholders, `"mock": true` | Step 5 overwrites them |
 | `samples/results/mock/*.json` (all six) | Offline pipeline run with fake Textract/Bedrock, `"mock": true` | Only used when `samples/results/<id>.json` is missing |
 | `eval/results-offline.md` | Offline wiring check (keyword reader, not the model) | Step 9 writes `eval/results.md` |
 | `/evidence/` page | Five placeholder boxes | Step 10 |
@@ -34,7 +34,23 @@ export AWS_PROFILE=plainly-agent AWS_REGION=us-east-1
 Connect the AWS MCP Server in Claude Code with `AWS_MCP_PROXY_PROFILES=plainly-agent` and check `/mcp` shows it
 connected. Save the masked `get-caller-identity` output and the `/mcp` line for `/evidence/`.
 
-## 2. Account plan and quotas
+## 2. Account plan, CloudFront access and quotas
+
+Do the CloudFront check first. Brand-new accounts are often refused CloudFront resources ("Your account must be
+verified before you can add new CloudFront resources") until AWS Support verifies them, which can take hours to days.
+The quickest test is a throwaway infrastructure deploy, which also exercises the whole stack:
+
+```bash
+ALLOW_MOCK_SAMPLES=1 ALERT_EMAIL=<shrey's email> scripts/deploy.sh    # or: Shrey creates and deletes a test distribution in the console
+```
+
+If CloudFront is refused, open the AWS Support case at once and carry on with steps 3 to 6 while it is pending. If
+the create fails for another reason, `deploy.sh` stops on the `ROLLBACK_COMPLETE` stack with the commands to find
+the cause and delete it (see step 7).
+
+Also confirm the admin set up the AI services opt-out policy (`infra/README-infra.md`, one-time setup step 6). Until
+it is attached, Amazon Textract may keep letter images to improve the service, and the site only promises that
+Plainly itself stores nothing.
 
 ```bash
 aws freetier get-account-plan-state                           # a "free" plan can block Bedrock; upgrade in Billing if so
@@ -115,6 +131,15 @@ scripts/deploy.sh --site-only
 
 Confirm the SNS subscription email, or no alarm email ever arrives.
 
+If the stack ends in `ROLLBACK_COMPLETE` (its first create failed), it can't be updated, only deleted. Find the first
+failure, fix it, delete the stack from your own shell (not MCP, where `DeleteStack` is denied) and start again:
+
+```bash
+aws cloudformation describe-stack-events --stack-name plainly \
+  --query "StackEvents[?ResourceStatus=='CREATE_FAILED'].[LogicalResourceId,ResourceStatusReason]"
+aws cloudformation delete-stack --stack-name plainly && aws cloudformation wait stack-delete-complete --stack-name plainly
+```
+
 ## 8. Verify the live site
 
 ```bash
@@ -139,8 +164,11 @@ unless `TABLE_NAME` is set in your shell. Copy the tables into `{{EVAL_TABLE}}` 
 
 ## 10. Fill the evidence
 
-- CloudTrail: create the trail through MCP (bucket named `plainly-trail-<account id>`; the agent policy denies
-  deleting objects in it), then capture events whose source is `aws-mcp.amazonaws.com`:
+- CloudTrail: create the trail through MCP. Create the bucket `plainly-trail-<account id>` first, with versioning
+  on and CloudTrail's bucket policy (the agent policy never lets the agent write, overwrite or delete objects in it).
+  Once the trail is logging, Shrey attaches `plainly-agent-lock` (`infra/README-infra.md`, setup step 8), and after
+  the first deploy narrows CloudFront writes to Plainly's distribution (step 9). Then capture events whose source is
+  `aws-mcp.amazonaws.com`:
   ```bash
   aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=ExecuteChangeSet --max-results 5
   ```
@@ -149,6 +177,10 @@ unless `TABLE_NAME` is set in your shell. Copy the tables into `{{EVAL_TABLE}}` 
 - Fill the five boxes in `site/evidence/index.html`, the `{{AGENT_PROOF}}` block and `{{CONFIRM: ...}}` items in
   `docs/SUBMISSION.md` / `README.md`, the rows after deploy in `docs/agent-log.md`, then `scripts/deploy.sh --site-only`.
 - If the real MCP setup differs from what `/evidence/` and step 5 of `/judges/` describe, rewrite those sentences.
+- Before publishing anything (evidence page, agent log, screenshots): mask the account id **and** every stack ARN or
+  stack UUID (`arn:aws:cloudformation:...:stack/plainly/<uuid>`, `StackId`, change-set output). Also never publish
+  `describe-stacks` parameter output, Lambda environment variables or the distribution config: they hold the
+  origin-verify secret and the IP-hash salt.
 
 ## 11. Commit and publish the repo
 

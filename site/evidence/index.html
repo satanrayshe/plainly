@@ -60,7 +60,7 @@
 
     <section class="section prose" id="policy" aria-labelledby="policy-title">
       <h2 id="policy-title">Least-privilege policy</h2>
-      <p>The agent's permissions cover only the services Plainly uses. On top of that, an explicit deny applies whenever a call comes through the MCP server, so the agent cannot stop the audit trail or delete the stack, bucket, table or IAM entities, and cannot create access keys.</p>
+      <p>The agent's permissions cover only the services Plainly uses. An explicit deny applies whenever a call comes through the MCP server, so the agent cannot delete the stack, bucket, table or IAM entities, and cannot create access keys. It can never write to, overwrite or delete the CloudTrail log files. The agent created the trail itself; once it was running, the account owner attached a second, deny-only policy, so the agent can no longer stop or reconfigure the trail, change its bucket, log group or delivery role, or silence the alarm and budget emails. One limit remains: a CloudFormation change set run through MCP can still remove stack resources, because CloudFormation makes those calls itself.</p>
       <div class="placeholder">
         <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
         <p>The final policy JSON as deployed, including the deny statement conditioned on <code>aws:ViaAWSMCPService</code>, and the permissions boundary on roles the agent can create.</p>

@@ -86,3 +86,25 @@ def test_add_days_business():
 def test_deadline_dates_need_a_cue():
     text = "Notice date September 15, 2026. Pay by October 6, 2026. Tax period ending December 31, 2025."
     assert [d[0] for d in dates.deadline_dates(text, "US")] == [date(2026, 10, 6)]
+
+
+def test_many_ungrounded_quotes_against_a_long_text_stay_fast():
+    import random
+    import time
+
+    rng = random.Random(7)
+    vocabulary = [f"{w}{i}" for i, w in enumerate(("notice", "amount", "payment", "balance", "account",
+                                                   "letter", "office", "return", "refund", "penalty") * 40)]
+    text = " ".join(rng.choice(vocabulary) for _ in range(3000))[:20000]
+    quotes = [" ".join(rng.choice(vocabulary)[::-1] for _ in range(18)) for _ in range(20)]
+    reader = grounding.Reader(text)
+    started = time.perf_counter()
+    assert not any(reader.is_grounded(q) for q in quotes)
+    assert time.perf_counter() - started < grounding.FUZZY_BUDGET_S + 1.0
+
+
+def test_reader_stops_fuzzy_matching_when_out_of_time():
+    reader = grounding.Reader(OCR, fuzzy_budget_s=0)
+    assert reader.is_grounded("Pay the amount due of $1,245.67 by October 6, 2026.")  # exact still works
+    assert not reader.is_grounded("Notice date: Septernber 15, 2026")
+    assert reader.out_of_time

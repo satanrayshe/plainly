@@ -16,6 +16,7 @@ CloudWatch: 14-day logs, 4 alarms -> SNS email, dashboard      Budgets: $10/mont
 | `cf-function.js` | Source of the CloudFront Function. The code is inlined in `template.yaml`, and `deploy.sh` refuses to run if the two differ |
 | `agent-iam-policy.json` | Customer managed policy for the `plainly-agent` IAM user that the coding agent signs in as |
 | `plainly-boundary-policy.json` | Permissions boundary that every role the agent creates must carry |
+| `agent-lock-policy.json` | Deny-only policy attached to `plainly-agent` once the audit trail is running: the trail, its bucket, log group and delivery role, the alert subscription, alarms and budget can no longer be changed |
 | `../scripts/package_lambda.py` | Builds a reproducible Lambda zip: `build/lambda-<sha256[:12]>.zip` |
 | `../scripts/deploy.sh` | Package, upload, deploy (or create a change set only), build and sync the site, then invalidate |
 
@@ -30,18 +31,48 @@ CloudWatch: 14-day logs, 4 alarms -> SNS email, dashboard      Budgets: $10/mont
    - Then export `CFN_ROLE_ARN=arn:aws:iam::<account>:role/plainly-cfn-deploy` before running `deploy.sh`.
    - Why: stack operations then run as the role, not as the agent's session. The MCP-only denies can then never block a rollback or a replacement.
    - The agent can pass this role but can't edit it. Its policy only allows role edits on roles that carry the `plainly-boundary` boundary, and an administrator creates this role without one.
-5. In a terminal:
+5. Create API Gateway's service-linked role, which the first HTTP API with access logging needs (it is fine if AWS
+   says the role already exists). The agent policy also allows exactly this one role, as a fallback.
+   ```
+   aws iam create-service-linked-role --aws-service-name ops.apigateway.amazonaws.com
+   ```
+6. Opt the account out of AI service data use, so Amazon Textract doesn't keep letter images to improve the service
+   (Bedrock never does). **AWS Organizations > Create organization** (a single-account organization is fine), then
+   **Policies > AI services opt-out policies > Enable**, create a policy with this content and attach it to the root:
+   ```json
+   {"services": {"default": {"opt_out_policy": {"@@assign": "optOut"}}}}
+   ```
+   Save a screenshot of the attached policy for `/evidence/`.
+7. In a terminal:
    ```
    aws login --profile plainly-agent --region us-east-1
    aws sts get-caller-identity --profile plainly-agent
    ```
+8. **After the agent has created and started the CloudTrail trail** (RUNBOOK step 10): create a policy from
+   `agent-lock-policy.json` named `plainly-agent-lock` and attach it to the `plainly-agent` user. From then on the
+   agent can't change or stop the trail, touch its bucket, log group or delivery role, or silence the alarm and budget
+   emails. It can't detach the lock either: it has no `iam:DetachUserPolicy` or policy-version permissions. Stack
+   updates that change the alarms, the topic or the budget must then run with `CFN_ROLE_ARN` (the role doesn't carry
+   the lock).
+9. **After the first deploy**, narrow CloudFront writes to Plainly's own distribution. In `plainly-agent-policy`,
+   replace the `CloudFront` statement's `"Resource": "*"` with:
+   ```json
+   ["arn:aws:cloudfront::<account>:distribution/<DistributionId from the stack outputs>",
+    "arn:aws:cloudfront::<account>:function/plainly-*",
+    "arn:aws:cloudfront::<account>:origin-access-control/*",
+    "arn:aws:cloudfront::<account>:origin-request-policy/*"]
+   ```
+   Reads (`cloudfront:Get*`, `cloudfront:List*`) stay account-wide through `ReadAnywhere`.
 
 ### What the agent policy allows and denies
 - **Allows:**
   - CloudFormation on `plainly*` stacks and change sets
   - Lambda, DynamoDB, SNS and S3 on `plainly-*` names
-  - HTTP APIs, CloudFront, Logs and CloudWatch
-  - Budgets
+  - HTTP APIs, CloudFront (all distributions until step 9 narrows it) and CloudWatch
+  - Logs: full control of `/aws/lambda/plainly-*`, `/aws/apigateway/plainly-*` and `plainly-trail*` log groups only;
+    account-wide reads and the log-delivery calls HTTP API access logging needs
+  - Budgets: read, and changes to `plainly-*` budgets
+  - `iam:CreateServiceLinkedRole` for API Gateway's service-linked role only
   - CloudTrail: read, plus create, update, start and set event selectors on `plainly-*` trails
   - Nova invoke and Bedrock catalog reads
   - Textract
@@ -61,9 +92,13 @@ CloudWatch: 14-day logs, 4 alarms -> SNS email, dashboard      Budgets: $10/mont
 
   Per the AWS docs, the AWS MCP Server needs no `aws-mcp:*` actions any more; they are deprecated and have no effect.
 - **Always denied:**
-  - Deleting objects or changing the lifecycle in `plainly-trail-*` buckets. Name the CloudTrail bucket `plainly-trail-<account id>`.
+  - Writing, overwriting or deleting anything in `plainly-trail-*` buckets, or changing their lifecycle. Name the
+    CloudTrail bucket `plainly-trail-<account id>` and turn on versioning when you create it. CloudTrail delivers as a
+    service principal, which the agent's policy doesn't affect.
   - Any action outside us-east-1. Global services and Bedrock are exempt, because the `us.` inference profile routes to us-east-2 and us-west-2.
-- **Size:** the policy is about 5.8k of the 6,144 non-whitespace characters a managed policy allows.
+- **Denied once `plainly-agent-lock` is attached (step 8):** everything that could reconfigure or stop the trail (`UpdateTrail`, `PutEventSelectors`, `StopLogging`, `DeleteTrail`), bucket policy, versioning and ACL changes on the trail bucket, deleting or re-routing the trail's log group, editing its delivery role, unsubscribing from the alert topic, and changing alarms or the budget.
+- **Before the lock** the agent could still reconfigure the trail it creates. That window is the setup itself; the evidence page says so.
+- **Size:** the policy is about 6.06k of the 6,144 non-whitespace characters a managed policy allows. Read-only actions share one `ReadAnywhere` statement to save space.
 
 ## Deploy
 
@@ -116,16 +151,19 @@ After a deploy:
 ```
 curl -sI  https://<SiteUrl>/how-it-works          # 200, text/html (rewritten to /how-it-works/index.html)
 curl -s   https://<SiteUrl>/api/health            # {"ok": true, ...}
-curl -s -o /dev/null -w "%{http_code}\n" <ApiEndpoint>/api/health   # 403 once app.py enforces ORIGIN_VERIFY
+curl -s -o /dev/null -w "%{http_code}\n" <ApiEndpoint>/api/health   # 403: no x-origin-verify header
 ```
 
 ## What the backend must honour
 - **Environment variables:**
   - `TABLE_NAME`, `MODEL_IDS` (comma-separated, in order), `DAILY_CAP`, `RATE_LIMIT_PER_HOUR`, `LOG_LEVEL`
   - `APP_VERSION`: the S3 key of the zip, which works well as the `version` in `/api/health`
-  - `ORIGIN_VERIFY`
+  - `ORIGIN_VERIFY` and `IP_HASH_SALT`: random 64-hex values from the NoEcho parameters `OriginVerifySecret` and
+    `IpHashSalt`. `deploy.sh` generates them on the first create and keeps them afterwards; set
+    `ORIGIN_VERIFY_SECRET` / `IP_HASH_SALT` in the shell only to rotate them. The Lambda logs `ip_hash_salt_unset`
+    if the salt is missing.
 - **`x-origin-verify`:** CloudFront adds this header to every `/api/*` request. The Lambda should answer 403 when the header is not equal to `ORIGIN_VERIFY`. Without that check, anyone can call the execute-api URL directly with a forged `CloudFront-Viewer-Address` and dodge the per-IP limit.
-- **Client IP:** the rate-limit key is `CloudFront-Viewer-Address`, whose value is `ip:port` (IPv6 without brackets), so strip the part after the last `:`. Only this header, `Content-Type`, `Accept` and `Accept-Language` reach the origin. `X-Forwarded-For` does too, but it is client-controlled, so don't trust it.
+- **Client IP:** the rate-limit key is `CloudFront-Viewer-Address`, whose value is `ip:port` (IPv6 without brackets), so strip the part after the last `:`. IPv6 viewers are counted per /64, because one home or server holds a whole /64. Only this header, `Content-Type`, `Accept` and `Accept-Language` reach the origin. `X-Forwarded-For` does too, but it is client-controlled, so don't trust it.
 - **Bedrock throttling:** log the botocore error code (`ThrottlingException`) on Bedrock throttling. A metric filter turns those lines into `Plainly/BedrockThrottles`.
 - **DynamoDB:** the Lambda role has only `GetItem`, `PutItem` and `UpdateItem` on the table. Rate-limit and counter items should set `expiresAt` (epoch seconds) so TTL removes them.
 - **Packaging:** the zip holds `backend/*.py` (not tests or `conftest.py`) plus `backend/registry.json`, flat at the root. `dev_mock.py` ships only if another module imports it. A non-stdlib import other than boto3/botocore fails the build, and so does a module removed in 3.13 such as `cgi`.
@@ -144,6 +182,12 @@ curl -s -o /dev/null -w "%{http_code}\n" <ApiEndpoint>/api/health   # 403 once a
 - **Content types:** on Windows the CLI guesses content types from the registry, and `.js` can come out as `text/plain`, which `nosniff` then blocks. That is why the sync uses explicit `--content-type` groups.
 - **Clean URLs:** the URI rewrite serves `/try` from `/try/index.html` without a redirect. Pages should therefore reference assets with root-absolute paths (`/assets/app.css`), not relative ones.
 - **No custom error responses on the distribution.** They would also rewrite `/api/*` errors. Missing pages return S3's 404, because the bucket policy grants the distribution `s3:ListBucket`.
+- **A failed first create** leaves the stack in `ROLLBACK_COMPLETE`, which can only be deleted. `deploy.sh`
+  stops with the commands to find the cause and delete the stack; run the delete from your own shell, since
+  `DeleteStack` is denied through MCP.
+- **New accounts and CloudFront:** a brand-new account can be refused CloudFront resources ("Your account must be
+  verified before you can add new CloudFront resources") until AWS Support verifies it, which can take hours to days.
+  RUNBOOK step 2 checks this first.
 - **Teardown (Shrey, CLI, not through MCP):**
   1. Empty the site bucket.
   2. Run `aws cloudformation delete-stack --stack-name plainly`.

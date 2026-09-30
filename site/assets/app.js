@@ -8,7 +8,11 @@ import { renderCheck, renderProgress, renderExplanation } from "./js/render.js";
 
 const $ = (sel) => document.querySelector(sel);
 const form = $("#check-form");
-const results = $("#results");
+// The result sheet is not a live region (a screen reader would read all of it twice, once as it appears and
+// again when focus moves there). Only a short status line is announced.
+const resultsRegion = $("#results");
+const results = $("#results-body");
+const resultsStatus = $("#results-status");
 const textInput = $("#text-input");
 const languageSelect = $("#language");
 const otherWrap = $("#other-lang-wrap");
@@ -25,6 +29,11 @@ const LANGUAGE_NAMES = { English: "English", Hindi: "हिन्दी", Spanis
 let prepared = null;
 // The last check shown, used by "explain in another language".
 let current = null;
+// Bumped whenever the results area moves on (new check, sample, start over), so a slow /api/check answer
+// can't replace what is on screen now.
+let viewSeq = 0;
+// Bumped whenever the explanation slot moves on, so only the newest /api/explain answer is shown.
+let explainSeq = 0;
 
 // ---------- preferences ----------
 
@@ -190,11 +199,12 @@ form.addEventListener("submit", async (e) => {
 });
 
 async function runLiveCheck({ image, text, language, level }) {
+  const view = ++viewSeq;
   submitBtn.disabled = true;
   const steps = image ? CHECK_STEPS_IMAGE : CHECK_STEPS_TEXT;
   const progress = renderProgress("Checking your letter", steps);
-  results.replaceChildren(progress.el);
-  scrollToEl(results);
+  showInResults(progress.el);
+  scrollToEl(resultsRegion);
 
   // The check is one request; the steps advance on typical timings so the wait is legible.
   const timeline = image ? [["ocr", 0], ["extract", 2500], ["rules", 8000]] : [["extract", 0], ["rules", 5000]];
@@ -204,12 +214,13 @@ async function runLiveCheck({ image, text, language, level }) {
   try {
     check = await postJson("/check", { image, text: text || null, today: todayIso() });
   } catch (err) {
-    showCheckError(err, () => runLiveCheck({ image, text, language, level }));
+    if (view === viewSeq) showCheckError(err, () => runLiveCheck({ image, text, language, level }));
     return;
   } finally {
     timers.forEach(clearTimeout);
     submitBtn.disabled = false;
   }
+  if (view !== viewSeq) return;
 
   const { letter_text: letterText = "", ...publicCheck } = check;
   current = { check: publicCheck, letterText, sample: null };
@@ -218,15 +229,17 @@ async function runLiveCheck({ image, text, language, level }) {
 }
 
 function showResult(check, sample) {
+  explainSeq++;
   const explainSlot = h("section", { class: "block panel", id: "explanation", "aria-labelledby": "explain-title" },
     h("h2", { id: "explain-title" }, "In plain words"));
-  results.replaceChildren(
+  showInResults(
     renderCheck(check, { sample }),
     explainSlot,
     h("p", null, h("button", { type: "button", class: "btn btn-quiet", onclick: startOver }, "Check another letter"))
   );
-  results.focus({ preventScroll: true });
-  scrollToEl(results);
+  announce(check.verdict_label || "Result ready");
+  resultsRegion.focus({ preventScroll: true });
+  scrollToEl(resultsRegion);
 }
 
 function explanationSlot() {
@@ -236,6 +249,9 @@ function explanationSlot() {
 }
 
 async function explainLive(language, level) {
+  const seq = ++explainSeq;
+  const shown = current;
+  const stale = () => seq !== explainSeq || shown !== current;
   const slot = explanationSlot();
   const progress = renderProgress(`Writing the explanation in ${LANGUAGE_NAMES[language] || language}`,
     [{ key: "narrate", label: "Explaining in plain words", who: "Amazon Nova, using only the checked facts above" }]);
@@ -245,8 +261,10 @@ async function explainLive(language, level) {
     const explain = await postJson("/explain", {
       letter_text: current.letterText, check: current.check, language, level,
     });
-    showExplanation(explain);
+    if (stale()) return;
+    showExplanation(explain, fallbackNote(explain, language, level), language);
   } catch (err) {
+    if (stale()) return;
     progress.el.remove();
     slot.append(h("div", { class: "notice notice-error" },
       h("h3", null, "The explanation couldn't be written just now"),
@@ -255,9 +273,34 @@ async function explainLive(language, level) {
   }
 }
 
-function showExplanation(explain, note) {
+function showExplanation(explain, note, requestedLanguage) {
   const slot = explanationSlot();
-  slot.append(renderExplanation(explain, current.check, { onCopy: copyReply, note }), renderLanguageSwitch(explain.language));
+  slot.append(renderExplanation(explain, current.check, { onCopy: copyReply, note }),
+    renderLanguageSwitch(requestedLanguage || explain.language));
+  announce("Explanation ready");
+}
+
+function showInResults(...nodes) {
+  results.replaceChildren(...nodes);
+  resultsRegion.hidden = nodes.length === 0;
+}
+
+function announce(message) {
+  resultsStatus.textContent = "";
+  // Set after a tick, so the same message twice in a row is still announced.
+  setTimeout(() => { resultsStatus.textContent = message; }, 50);
+}
+
+// When no model could write the explanation, the server sends a short English one built from the check.
+function fallbackNote(explain, language, level) {
+  const sameLanguage = (explain.language || "").toLowerCase() === language.toLowerCase();
+  if (!explain.meta?.fallback && sameLanguage) return null;
+  const wanted = LANGUAGE_NAMES[language] || language;
+  const text = language.toLowerCase() === "english"
+    ? "We couldn't write the full explanation just now, so here is a short version. "
+    : `We couldn't write this in ${wanted} just now, so here is a short version in English. `;
+  return [text, h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: () => explainLive(language, level) },
+    "Try again")];
 }
 
 function renderLanguageSwitch(currentLanguage) {
@@ -290,8 +333,10 @@ async function copyReply(area, status) {
 }
 
 function startOver() {
+  viewSeq++;
+  explainSeq++;
   current = null;
-  results.replaceChildren();
+  showInResults();
   clearFile();
   textInput.value = "";
   scrollToEl(form);
@@ -327,9 +372,9 @@ function showCheckError(err, retry) {
     h("button", { type: "button", class: f.limit ? "btn btn-small" : "btn btn-quiet btn-small",
       onclick: () => { scrollToEl($("#samples")); $("#samples .tile:not(:disabled)")?.focus({ preventScroll: true }); } },
       "Open a sample letter"));
-  results.replaceChildren(h("div", { class: `notice ${f.limit ? "notice-limit" : "notice-error"}`, role: "alert" },
+  showInResults(h("div", { class: `notice ${f.limit ? "notice-limit" : "notice-error"}`, role: "alert" },
     h("h2", null, f.title), h("p", null, f.body), actions));
-  scrollToEl(results);
+  scrollToEl(resultsRegion);
 }
 
 // ---------- samples ----------
@@ -345,11 +390,13 @@ async function openSample(tile) {
   }
   const check = data.check && typeof data.check === "object" ? data.check : data;
   const { letter_text: _unused, explanations, explain, ...publicCheck } = check;
+  viewSeq++;
   const sample = {
     id,
     title: tile.dataset.title,
     alt: tile.dataset.alt || null,
     image: tile.dataset.image || null,
+    preview: tile.dataset.preview || null,
     mock: Boolean(data.mock),
     explanations: normalizeExplanations(data.explanations || explanations || data.explain || explain),
   };
@@ -366,6 +413,7 @@ function normalizeExplanations(value) {
 }
 
 function showSampleExplanation(language) {
+  explainSeq++;
   const all = current.sample.explanations;
   const key = Object.keys(all).find((k) => k.toLowerCase() === language.toLowerCase());
   if (key) return showExplanation(all[key]);
@@ -397,7 +445,7 @@ if (deepLink) {
   if (tile && !tile.disabled) {
     openSample(tile);
   } else {
-    results.replaceChildren(h("div", { class: "notice notice-limit" },
+    showInResults(h("div", { class: "notice notice-limit" },
       h("h2", null, "That sample isn't ready yet"),
       h("p", null, "Its result is still being prepared. The other samples below open instantly.")));
   }

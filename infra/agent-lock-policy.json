@@ -1,0 +1,79 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TrailCannotBeReconfigured",
+      "Effect": "Deny",
+      "Action": [
+        "cloudtrail:UpdateTrail",
+        "cloudtrail:PutEventSelectors",
+        "cloudtrail:PutInsightSelectors",
+        "cloudtrail:StopLogging",
+        "cloudtrail:DeleteTrail",
+        "cloudtrail:RemoveTags"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "TrailBucketIsLocked",
+      "Effect": "Deny",
+      "Action": [
+        "s3:PutBucketPolicy",
+        "s3:DeleteBucketPolicy",
+        "s3:PutBucketVersioning",
+        "s3:PutBucketAcl",
+        "s3:PutBucketOwnershipControls",
+        "s3:PutBucketObjectLockConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutLifecycleConfiguration",
+        "s3:PutReplicationConfiguration",
+        "s3:PutObject*",
+        "s3:Delete*"
+      ],
+      "Resource": [
+        "arn:aws:s3:::plainly-trail-*",
+        "arn:aws:s3:::plainly-trail-*/*"
+      ]
+    },
+    {
+      "Sid": "TrailLogGroupIsLocked",
+      "Effect": "Deny",
+      "Action": [
+        "logs:Delete*",
+        "logs:PutRetentionPolicy",
+        "logs:PutDataProtectionPolicy",
+        "logs:AssociateKmsKey",
+        "logs:DisassociateKmsKey",
+        "logs:PutSubscriptionFilter"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:*:log-group:plainly-trail*"
+    },
+    {
+      "Sid": "TrailDeliveryRoleIsLocked",
+      "Effect": "Deny",
+      "Action": [
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:DeleteRole"
+      ],
+      "Resource": "arn:aws:iam::*:role/plainly-trail*"
+    },
+    {
+      "Sid": "AlertsCannotBeSilenced",
+      "Effect": "Deny",
+      "Action": [
+        "sns:Unsubscribe",
+        "sns:SetSubscriptionAttributes",
+        "sns:DeleteTopic",
+        "sns:SetTopicAttributes",
+        "budgets:ModifyBudget",
+        "cloudwatch:DisableAlarmActions",
+        "cloudwatch:DeleteAlarms"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

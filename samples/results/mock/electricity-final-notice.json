@@ -66,13 +66,13 @@
         "step": "extract",
         "status": "done",
         "ms": 6,
-        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 772 in / 220 out tokens)"
+        "detail": "us.amazon.nova-2-lite-v1:0 read the letter (forced tool call, 840 in / 210 out tokens)"
       },
       {
         "step": "registry",
         "status": "unknown",
         "detail": "No match: no agency in our registry is named in the letter.",
-        "ms": 5
+        "ms": 6
       },
       {
         "step": "contacts",
@@ -178,7 +178,7 @@
       }
     ],
     "extracted": {
-      "claimed_sender": "Text of the document as read by OCR or pasted by the user (may be partial):",
+      "claimed_sender": "ELECTRICITY DISTRIBUTION DEPARTMENT",
       "letter_date": "2026-09-29",
       "phones": [
         "98765 43210"
@@ -198,9 +198,9 @@
     },
     "meta": {
       "model": "us.amazon.nova-2-lite-v1:0",
-      "ms": 17,
-      "input_tokens": 772,
-      "output_tokens": 220
+      "ms": 18,
+      "input_tokens": 840,
+      "output_tokens": 210
     }
   },
   "explanations": {
@@ -232,7 +232,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 949,
+        "input_tokens": 924,
         "output_tokens": 149
       }
     },
@@ -264,7 +264,7 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 948,
+        "input_tokens": 924,
         "output_tokens": 149
       }
     },
@@ -296,10 +296,10 @@
       "meta": {
         "model": "us.amazon.nova-2-lite-v1:0",
         "ms": 0,
-        "input_tokens": 949,
+        "input_tokens": 924,
         "output_tokens": 149
       }
     }
   },
-  "generated_at": "2026-09-30T14:46:14+00:00"
+  "generated_at": "2026-09-30T15:27:15+00:00"
 }

@@ -313,3 +313,77 @@ def test_word_inside_word_is_not_a_deadline_cue(check):
                    "Contact us within 30 days of the date of this notice.")
     assert [d["date"] for d in result["extracted"]["deadlines"]] == ["2026-10-15"]
     assert "urgency_short" not in rules_of(result)
+
+
+# ---------------------------------------------------------------- review regressions (Sep 30)
+
+CPC_HEADER = ("Income Tax Department\nCentralized Processing Centre\nwww.incometax.gov.in  1800 103 0025\n"
+              "Date: 20-09-2026\n")
+IRS_OFFICIAL = "Internal Revenue Service\nwww.irs.gov  800-829-1040\nNotice date: September 20, 2026\n"
+ADANI_HEADER = "Adani Electricity Mumbai Limited\nElectricity Bill\nBill Date: 20-09-2026\nDue Date: 05-10-2026\n"
+
+
+@pytest.mark.parametrize("text", [
+    CPC_HEADER + "Please e-verify your return within 30 days using Aadhaar OTP, net banking or EVC.",
+    CPC_HEADER + "Please log in to the e-Filing portal www.incometax.gov.in with your user ID and password and "
+                 "submit your response within 30 days.",
+    IRS_OFFICIAL + "The IRS will never ask you to share your PIN or password by phone or email.",
+    IRS_OFFICIAL + "Please sign in to your IRS Online Account at irs.gov/account and enter a one-time code we "
+                   "send to your phone.",
+    IRS_OFFICIAL + "No one from the IRS will ask you to share your OTP.",
+    IRS_OFFICIAL + "Enter your IP PIN on your return.",
+])
+def test_genuine_sign_in_and_warning_wording_is_not_a_credential_request(check, text):
+    result = check(text)
+    assert "credential_request" not in rules_of(result)
+    assert result["verdict"] != "likely_scam"
+
+
+@pytest.mark.parametrize("text", [
+    "Enter the OTP you receive on the link below to stop the block.",
+    "Please do not hesitate to share the OTP with our officer.",
+])
+def test_credential_request_still_caught(check, text):
+    assert "credential_request" in rules_of(check(IRS_HEADER + text))
+
+
+@pytest.mark.parametrize("text", [
+    IRS_OFFICIAL + "The IRS will never demand that you use a specific payment method, such as a prepaid debit "
+                   "card, gift card or wire transfer.",
+    IRS_OFFICIAL + "We will never contact you to demand gift cards, wire transfers or to threaten arrest.",
+])
+def test_protective_lists_stay_negated_across_commas(check, text):
+    result = check(text)
+    assert not rules_of(result) & {"payment_gift_card", "payment_crypto_wire", "threat_arrest"}
+    assert result["verdict"] != "likely_scam"
+
+
+@pytest.mark.parametrize("text, rule", [
+    ("Pay the balance today by wire transfers to our processing agent.", "payment_crypto_wire"),
+    ("Since you did not respond to our previous notices a warrant has been issued for your arrest.",
+     "threat_arrest"),
+    ("If you do not pay within 24 hours, police will arrest you.", "threat_arrest"),
+    ("Do not ignore this notice, police will arrest you tonight.", "threat_arrest"),
+])
+def test_scam_wording_not_hidden_by_an_unrelated_negation(check, text, rule):
+    assert rule in rules_of(check(IRS_HEADER + text))
+
+
+@pytest.mark.parametrize("text", [
+    ADANI_HEADER + "Pay using UPI ID adanielectricity@hdfcbank or scan the QR code.",
+    ADANI_HEADER + "Pay via Paytm, PhonePe or Google Pay, WhatsApp 8745999808 for bill copy.",
+])
+def test_utility_own_upi_and_app_list_are_not_personal_payments(check, text):
+    result = check(text)
+    assert "payment_personal_upi" not in rules_of(result)
+    assert result["verdict"] != "likely_scam"
+
+
+def test_unexplained_merchant_handle_is_only_medium(check):
+    result = check(ADANI_HEADER + "UPI ID: collect.dues@okaxis")
+    assert flag(result, "payment_personal_upi")["severity"] == "medium"
+
+
+def test_payment_wording_before_an_abbreviation_dot_still_counts(check):
+    result = check("ELECTRICITY BOARD\nPay Rs. 2515 by UPI to lineman.kumar@okicici to avoid disconnection.")
+    assert flag(result, "payment_personal_upi")["severity"] == "strong"

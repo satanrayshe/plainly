@@ -2,9 +2,50 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "WhoAmI",
+      "Sid": "ReadAnywhere",
       "Effect": "Allow",
-      "Action": "sts:GetCallerIdentity",
+      "Action": [
+        "sts:GetCallerIdentity",
+        "cloudformation:ValidateTemplate",
+        "cloudformation:GetTemplateSummary",
+        "cloudformation:EstimateTemplateCost",
+        "cloudformation:ListStacks",
+        "cloudformation:ListExports",
+        "cloudformation:DescribeAccountLimits",
+        "lambda:ListFunctions",
+        "lambda:GetAccountSettings",
+        "s3:ListAllMyBuckets",
+        "s3:GetBucketLocation",
+        "dynamodb:ListTables",
+        "dynamodb:DescribeLimits",
+        "dynamodb:DescribeEndpoints",
+        "sns:ListTopics",
+        "sns:ListSubscriptions",
+        "bedrock:ListFoundationModels",
+        "bedrock:GetFoundationModel",
+        "bedrock:GetFoundationModelAvailability",
+        "bedrock:ListInferenceProfiles",
+        "bedrock:GetInferenceProfile",
+        "servicequotas:GetServiceQuota",
+        "servicequotas:GetAWSDefaultServiceQuota",
+        "servicequotas:ListServiceQuotas",
+        "iam:ListRoles",
+        "iam:ListPolicies",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
+        "budgets:ViewBudget",
+        "budgets:DescribeBudget*",
+        "logs:Describe*",
+        "logs:Get*",
+        "logs:List*",
+        "logs:StartQuery",
+        "logs:StopQuery",
+        "logs:FilterLogEvents",
+        "cloudfront:Get*",
+        "cloudfront:List*",
+        "freetier:GetAccountPlanState"
+      ],
       "Resource": "*"
     },
     {
@@ -28,32 +69,10 @@
       ]
     },
     {
-      "Sid": "StackReadAnywhere",
-      "Effect": "Allow",
-      "Action": [
-        "cloudformation:ValidateTemplate",
-        "cloudformation:GetTemplateSummary",
-        "cloudformation:EstimateTemplateCost",
-        "cloudformation:ListStacks",
-        "cloudformation:ListExports",
-        "cloudformation:DescribeAccountLimits"
-      ],
-      "Resource": "*"
-    },
-    {
       "Sid": "LambdaFunctions",
       "Effect": "Allow",
       "Action": "lambda:*",
       "Resource": "arn:aws:lambda:us-east-1:*:function:plainly-*"
-    },
-    {
-      "Sid": "LambdaRead",
-      "Effect": "Allow",
-      "Action": [
-        "lambda:ListFunctions",
-        "lambda:GetAccountSettings"
-      ],
-      "Resource": "*"
     },
     {
       "Sid": "HttpApi",
@@ -67,6 +86,17 @@
         "apigateway:UntagResource"
       ],
       "Resource": "arn:aws:apigateway:us-east-1::/*"
+    },
+    {
+      "Sid": "ApiGatewayServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "arn:aws:iam::*:role/aws-service-role/ops.apigateway.amazonaws.com/AWSServiceRoleForAPIGateway",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "ops.apigateway.amazonaws.com"
+        }
+      }
     },
     {
       "Sid": "CloudFront",
@@ -84,36 +114,35 @@
       ]
     },
     {
-      "Sid": "BucketDiscovery",
-      "Effect": "Allow",
-      "Action": [
-        "s3:ListAllMyBuckets",
-        "s3:GetBucketLocation"
-      ],
-      "Resource": "*"
-    },
-    {
       "Sid": "Tables",
       "Effect": "Allow",
       "Action": "dynamodb:*",
       "Resource": "arn:aws:dynamodb:us-east-1:*:table/plainly-*"
     },
     {
-      "Sid": "TablesRead",
+      "Sid": "Metrics",
       "Effect": "Allow",
-      "Action": [
-        "dynamodb:ListTables",
-        "dynamodb:DescribeLimits",
-        "dynamodb:DescribeEndpoints"
-      ],
+      "Action": "cloudwatch:*",
       "Resource": "*"
     },
     {
-      "Sid": "Observability",
+      "Sid": "OwnLogGroups",
+      "Effect": "Allow",
+      "Action": "logs:*",
+      "Resource": [
+        "arn:aws:logs:us-east-1:*:log-group:/aws/lambda/plainly-*",
+        "arn:aws:logs:us-east-1:*:log-group:/aws/apigateway/plainly-*",
+        "arn:aws:logs:us-east-1:*:log-group:plainly-trail*"
+      ]
+    },
+    {
+      "Sid": "HttpApiAccessLogDelivery",
       "Effect": "Allow",
       "Action": [
-        "logs:*",
-        "cloudwatch:*"
+        "logs:CreateLogDelivery",
+        "logs:UpdateLogDelivery",
+        "logs:DeleteLogDelivery",
+        "logs:PutResourcePolicy"
       ],
       "Resource": "*"
     },
@@ -124,29 +153,15 @@
       "Resource": "arn:aws:sns:us-east-1:*:plainly-*"
     },
     {
-      "Sid": "SubscriptionsAndTopicListing",
-      "Effect": "Allow",
-      "Action": [
-        "sns:ListTopics",
-        "sns:ListSubscriptions",
-        "sns:GetSubscriptionAttributes",
-        "sns:SetSubscriptionAttributes",
-        "sns:Unsubscribe"
-      ],
-      "Resource": "*"
-    },
-    {
       "Sid": "Budgets",
       "Effect": "Allow",
       "Action": [
-        "budgets:ViewBudget",
         "budgets:ModifyBudget",
-        "budgets:DescribeBudget*",
         "budgets:ListTagsForResource",
         "budgets:TagResource",
         "budgets:UntagResource"
       ],
-      "Resource": "*"
+      "Resource": "arn:aws:budgets::*:budget/plainly-*"
     },
     {
       "Sid": "AuditTrailRead",
@@ -187,33 +202,11 @@
       ]
     },
     {
-      "Sid": "BedrockRead",
-      "Effect": "Allow",
-      "Action": [
-        "bedrock:ListFoundationModels",
-        "bedrock:GetFoundationModel",
-        "bedrock:GetFoundationModelAvailability",
-        "bedrock:ListInferenceProfiles",
-        "bedrock:GetInferenceProfile"
-      ],
-      "Resource": "*"
-    },
-    {
       "Sid": "Ocr",
       "Effect": "Allow",
       "Action": [
         "textract:DetectDocumentText",
         "textract:AnalyzeDocument"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "QuotaRead",
-      "Effect": "Allow",
-      "Action": [
-        "servicequotas:GetServiceQuota",
-        "servicequotas:GetAWSDefaultServiceQuota",
-        "servicequotas:ListServiceQuotas"
       ],
       "Resource": "*"
     },
@@ -268,18 +261,6 @@
       }
     },
     {
-      "Sid": "IamRead",
-      "Effect": "Allow",
-      "Action": [
-        "iam:ListRoles",
-        "iam:ListPolicies",
-        "iam:GetPolicy",
-        "iam:GetPolicyVersion",
-        "iam:ListPolicyVersions"
-      ],
-      "Resource": "*"
-    },
-    {
       "Sid": "BoundaryIsFixed",
       "Effect": "Deny",
       "Action": [
@@ -298,8 +279,8 @@
       "Sid": "AuditLogsAreAppendOnly",
       "Effect": "Deny",
       "Action": [
-        "s3:DeleteObject",
-        "s3:DeleteObjectVersion",
+        "s3:PutObject*",
+        "s3:Delete*",
         "s3:PutLifecycleConfiguration"
       ],
       "Resource": [

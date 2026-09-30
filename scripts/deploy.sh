@@ -13,6 +13,7 @@
 #   PERMISSIONS_BOUNDARY_ARN  default arn:aws:iam::<account>:policy/plainly-boundary; set to "" for none
 #   CFN_ROLE_ARN              CloudFormation service role to run stack operations as
 #   MODEL_IDS, DAILY_CAP, RATE_LIMIT_PER_HOUR, LOG_LEVEL, MONTHLY_BUDGET_USD   template parameter overrides
+#   ORIGIN_VERIFY_SECRET, IP_HASH_SALT   set only to rotate them; generated on first create, then kept
 #   PYTHON                    interpreter for the helper scripts
 #   IMMUTABLE_DIRS            dist/ subdirectories cached for a year, default "assets/fonts vendor"
 #   ALLOW_MOCK_SAMPLES        set to 1 to publish even if landing samples are missing or mock
@@ -120,6 +121,19 @@ stack_status() {
     --query 'Stacks[0].StackStatus' 2>/dev/null || echo NONE
 }
 
+# A failed first create leaves the stack in ROLLBACK_COMPLETE, which can only be deleted.
+refuse_rolled_back_stack() {
+  [[ "$1" == ROLLBACK_COMPLETE ]] || return 0
+  die "stack $STACK_NAME is ROLLBACK_COMPLETE: its first create failed, and it can't be updated.
+  1. Find the first failure:
+       aws cloudformation describe-stack-events --stack-name $STACK_NAME \\
+         --query \"StackEvents[?ResourceStatus=='CREATE_FAILED'].[LogicalResourceId,ResourceStatusReason]\"
+  2. Fix the cause, then delete the stack from your own shell (DeleteStack is denied through the MCP server):
+       aws cloudformation delete-stack --stack-name $STACK_NAME
+       aws cloudformation wait stack-delete-complete --stack-name $STACK_NAME
+  3. Run this script again."
+}
+
 # ------------------------------------------------------------------ artifacts
 
 ensure_artifacts_bucket() {
@@ -163,6 +177,28 @@ collect_parameters() {
     local key="${pair%%:*}" var="${pair#*:}"
     if [[ -n "${!var:-}" ]]; then
       PARAMS+=("$key=${!var}")
+    fi
+  done
+}
+
+# The two NoEcho secrets (see the template). Random on first create; afterwards they are left out, so
+# CloudFormation keeps the previous values. Nothing here prints them.
+add_secret_parameters() {
+  local status="$1" pair key var known
+  for pair in OriginVerifySecret:ORIGIN_VERIFY_SECRET IpHashSalt:IP_HASH_SALT; do
+    key="${pair%%:*}" var="${pair#*:}"
+    if [[ -n "${!var:-}" ]]; then
+      PARAMS+=("$key=${!var}")
+      continue
+    fi
+    known=""
+    if [[ "$status" != NONE && "$status" != REVIEW_IN_PROGRESS ]]; then
+      known="$(aws_text cloudformation describe-stacks --stack-name "$STACK_NAME" \
+        --query "Stacks[0].Parameters[?ParameterKey=='$key'].ParameterKey")"
+    fi
+    if [[ -z "$known" || "$known" == None ]]; then
+      log "Generating a random $key"
+      PARAMS+=("$key=$(py_out -c 'import secrets; print(secrets.token_hex(32))')")
     fi
   done
 }
@@ -215,6 +251,7 @@ EOF
   if [[ -n "${CFN_ROLE_ARN:-}" ]]; then role_args=(--role-arn "$CFN_ROLE_ARN"); fi
 
   log "Creating $type change set $name"
+  # This runs as an `if` condition, so set -e is off in here: every step that can fail is checked.
   CHANGE_SET_ARN="$(aws_text cloudformation create-change-set \
     --stack-name "$STACK_NAME" \
     --change-set-name "$name" \
@@ -224,7 +261,9 @@ EOF
     --capabilities CAPABILITY_NAMED_IAM \
     --tags Key=app,Value="$APP_NAME" Key=project,Value=zero-to-shipped \
     ${role_args[@]+"${role_args[@]}"} \
-    --query Id)"
+    --query Id)" || { rm -f "$params_file"; die "create-change-set failed (see the error above)"; }
+  rm -f "$params_file"  # it may hold the generated secrets
+  [[ -n "$CHANGE_SET_ARN" ]] || die "create-change-set returned no change set id"
 
   if ! aws_ cloudformation wait change-set-create-complete --change-set-name "$CHANGE_SET_ARN" 2>/dev/null; then
     local reason
@@ -343,10 +382,12 @@ case "$MODE" in
     lint_template
     resolve_account
     STATUS="$(stack_status)"
+    refuse_rolled_back_stack "$STATUS"
     require_alert_email_for_create "$STATUS"
     ensure_artifacts_bucket
     upload_lambda
     collect_parameters
+    add_secret_parameters "$STATUS"
     if create_change_set "$STATUS"; then
       log "Change set ready and NOT executed. Execute it (e.g. through the AWS MCP server) with:
     aws cloudformation execute-change-set --change-set-name $CHANGE_SET_ARN
@@ -359,10 +400,12 @@ then wait for the stack, and publish the site with: scripts/deploy.sh --site-onl
     lint_template
     resolve_account
     STATUS="$(stack_status)"
+    refuse_rolled_back_stack "$STATUS"
     require_alert_email_for_create "$STATUS"
     ensure_artifacts_bucket
     upload_lambda
     collect_parameters
+    add_secret_parameters "$STATUS"
     deploy_stack
     publish_site
     ;;

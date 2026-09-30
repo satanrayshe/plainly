@@ -458,6 +458,8 @@ legend, .field-label {
 .file-input:focus-visible + label { outline: 3px solid var(--link); outline-offset: 3px; }
 .only-touch { display: none; }
 @media (pointer: coarse) { .only-touch { display: inline-flex; } }
+/* Without its visible label, the camera input must not be a silent tab stop on desktop. */
+@media not (pointer: coarse) { #camera-input { display: none; } }
 .drop-hint { color: var(--ink-2); font-size: 1rem; }
 @media (pointer: coarse) { .drop-hint { display: none; } }
 
@@ -567,8 +569,7 @@ textarea:focus, input[type="text"]:focus, select:focus { border-color: var(--lin
 
 /* ---------- Results (/try/) ---------- */
 
-.results { display: grid; gap: 28px; }
-.results:empty { display: none; }
+.results-body { display: grid; gap: 28px; }
 .result-sheet { display: grid; gap: 24px; }
 .result-top { display: grid; gap: 14px; }
 .result-top .stamp { font-size: 1.35rem; padding: 16px 18px; }

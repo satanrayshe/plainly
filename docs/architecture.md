@@ -114,7 +114,7 @@ The check and the explanation are separate requests because API Gateway HTTP API
 
 ## Guardrails
 
-- Nothing about a letter is stored. The letter text lives in the Lambda's memory for one request and is returned to the browser. Logs hold request ids, verdicts, rule ids, timings and token counts.
+- Plainly stores nothing about a letter; Textract's own retention is switched off with an AI services opt-out policy (RUNBOOK step 2). The letter text lives in the Lambda's memory for one request and is returned to the browser. Logs hold request ids, verdicts, rule ids, timings and token counts.
 - The per-IP limit is 20 checks an hour. The IP comes from the `CloudFront-Viewer-Address` header, which the client cannot set, falling back to the API Gateway source IP.
 - A global cap of 400 checks a day, counted in DynamoDB. Past either limit the API returns 429 or 503 and the page offers the pre-computed sample letters instead.
 - The server rejects image payloads over 2.2 MB of base64.

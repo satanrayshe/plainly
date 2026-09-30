@@ -12,6 +12,10 @@ import time
 
 DEFAULT_MODELS = "us.amazon.nova-2-lite-v1:0,us.amazon.nova-pro-v1:0,us.amazon.nova-lite-v1:0"
 READ_TIMEOUT_S = 14
+CONNECT_TIMEOUT_S = 2
+# Kept free after any model call for the rules, the response and a margin before Lambda's own timeout.
+HEADROOM_MS = 3000
+MIN_MS_FOR_CALL = 6000        # below this even the first call (or the toolChoice retry) is not started
 MIN_MS_FOR_FALLBACK = 8000
 # Slow failures (timeouts, throttling, bad output) count against this; instant ones (access denied, unknown
 # model id) just move on to the next model in the chain.
@@ -19,7 +23,8 @@ MAX_SLOW_ATTEMPTS = 2
 
 _FAST_FAIL = {"AccessDeniedException", "ResourceNotFoundException", "ValidationException",
               "UnrecognizedClientException", "ModelNotReadyException"}
-_client = None
+_client = None              # a test or dev-server stand-in; used for every call when set
+_clients_by_timeout = {}
 
 
 class BedrockUnavailable(Exception):
@@ -44,29 +49,38 @@ def model_ids():
     return [m.strip() for m in os.environ.get("MODEL_IDS", DEFAULT_MODELS).split(",") if m.strip()]
 
 
-def client():
+def client(read_timeout_s=READ_TIMEOUT_S):
+    """A bedrock-runtime client whose read timeout is `read_timeout_s` (one cached client per whole second)."""
     global _client
-    if _client is None:
-        if os.environ.get("PLAINLY_MOCK") == "1":
-            import dev_mock
-            _client = dev_mock.FakeBedrockRuntime()
-        else:
-            import boto3
-            from botocore.config import Config
-            _client = boto3.client(
-                "bedrock-runtime",
-                region_name=os.environ.get("AWS_REGION", "us-east-1"),
-                # mode=standard makes max_attempts mean total attempts, so botocore never retries by itself;
-                # the fallback loop below owns retries and the time budget.
-                config=Config(read_timeout=READ_TIMEOUT_S, connect_timeout=3,
-                              retries={"max_attempts": 1, "mode": "standard"}),
-            )
-    return _client
+    if _client is None and os.environ.get("PLAINLY_MOCK") == "1":
+        import dev_mock
+        _client = dev_mock.FakeBedrockRuntime()
+    if _client is not None:
+        return _client
+    seconds = int(read_timeout_s)
+    if seconds not in _clients_by_timeout:
+        import boto3
+        from botocore.config import Config
+        _clients_by_timeout[seconds] = boto3.client(
+            "bedrock-runtime",
+            region_name=os.environ.get("AWS_REGION", "us-east-1"),
+            # mode=standard makes max_attempts mean total attempts, so botocore never retries by itself;
+            # the fallback loop below owns retries and the time budget.
+            config=Config(read_timeout=seconds, connect_timeout=CONNECT_TIMEOUT_S,
+                          retries={"max_attempts": 1, "mode": "standard"}),
+        )
+    return _clients_by_timeout[seconds]
 
 
 def reset_client():
     global _client
     _client = None
+    _clients_by_timeout.clear()
+
+
+def read_timeout_for(remaining_ms):
+    """Seconds a call may wait so that it ends, connect time included, with HEADROOM_MS still in the budget."""
+    return max(1, min(READ_TIMEOUT_S, (remaining_ms - HEADROOM_MS) // 1000 - CONNECT_TIMEOUT_S))
 
 
 def parse_json(text):
@@ -92,11 +106,11 @@ def call_tool(*, system, messages, tool, max_tokens=1500, remaining_ms=None):
     slow_failures = 0
     errors = []
     for index, model in enumerate(model_ids()):
-        if index > 0 and remaining_ms() < MIN_MS_FOR_FALLBACK:
-            errors.append("skipped fallbacks: time budget")
+        if remaining_ms() < (MIN_MS_FOR_FALLBACK if index else MIN_MS_FOR_CALL):
+            errors.append("skipped fallbacks: time budget" if index else "not started: time budget")
             break
         try:
-            return _call_model(model, system, messages, tool, max_tokens)
+            return _call_model(model, system, messages, tool, max_tokens, remaining_ms)
         except Exception as exc:  # noqa: BLE001 - classified below, never swallowed silently
             code = error_code(exc)
             errors.append(f"{model}: {code}")
@@ -107,7 +121,7 @@ def call_tool(*, system, messages, tool, max_tokens=1500, remaining_ms=None):
     raise BedrockUnavailable("; ".join(errors))
 
 
-def _call_model(model, system, messages, tool, max_tokens):
+def _call_model(model, system, messages, tool, max_tokens, remaining_ms):
     request = {
         "modelId": model,
         "system": [{"text": system}],
@@ -118,13 +132,15 @@ def _call_model(model, system, messages, tool, max_tokens):
     started = time.perf_counter()
     mode = "tool"
     try:
-        response = client().converse(**request)
+        response = client(read_timeout_for(remaining_ms())).converse(**request)
     except Exception as exc:  # noqa: BLE001
         if error_code(exc) != "ValidationException" or "tool" not in str(exc).lower():
             raise
+        if remaining_ms() < MIN_MS_FOR_CALL:
+            raise
         mode = "any"
         request["toolConfig"]["toolChoice"] = {"any": {}}
-        response = client().converse(**request)
+        response = client(read_timeout_for(remaining_ms())).converse(**request)
     ms = int((time.perf_counter() - started) * 1000)
 
     content = response.get("output", {}).get("message", {}).get("content", [])

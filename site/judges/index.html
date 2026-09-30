@@ -23,12 +23,12 @@
       <ol class="tour">
         <li>
           <h3>A scam that looks official <span class="time">15 s</span></h3>
-          <p>An electricity "final notice" demanding payment to a personal UPI ID tonight. Look for the red verdict, each warning sign quoted from the letter, and the official number to call instead.</p>
+          <p>An electricity "final notice" demanding payment to a personal UPI ID tonight. Look for the red verdict, each warning sign quoted from the letter, and where to report it.</p>
           <p><a href="/try/?sample=electricity-final-notice">Open the electricity notice</a></p>
         </li>
         <li>
           <h3>A notice in the genuine format <span class="time">15 s</span></h3>
-          <p>An IRS balance-due notice whose contacts match the official list. The verdict still sends you to the official number. The deadline is worked out in code; save it with "Add to calendar", then switch the explanation to हिन्दी at the bottom.</p>
+          <p>An IRS balance-due notice whose contacts match the official list. The verdict still sends you to the official number. The deadline is worked out in code from the letter's own date (on a live check, "Add to calendar" saves any date still ahead). Then switch the explanation to हिन्दी at the bottom.</p>
           <p><a href="/try/?sample=irs-balance-due">Open the IRS notice</a></p>
         </li>
         <li>
@@ -43,7 +43,7 @@
         </li>
         <li>
           <h3>The build agent's receipts <span class="time">10 s</span></h3>
-          <p>The coding agent was connected to AWS through the AWS MCP Server under a policy that denies it deleting resources or stopping the audit trail. CloudTrail shows what it did.</p>
+          <p>The coding agent was connected to AWS through the AWS MCP Server under a least-privilege policy: no deletes through MCP, and no way to stop or reconfigure the audit trail once it was running. CloudTrail shows what it did.</p>
           <p><a href="/evidence/">Open the evidence</a></p>
         </li>
       </ol>
@@ -64,7 +64,7 @@
             </tr>
             <tr>
               <th scope="row">Implementation Quality</th>
-              <td>Serverless on AWS: CloudFront, API Gateway, Lambda, Amazon Textract, Amazon Bedrock (Nova) and DynamoDB. Least-privilege access, per-address and daily limits, and nothing about a letter is stored.</td>
+              <td>Serverless on AWS: CloudFront, API Gateway, Lambda, Amazon Textract, Amazon Bedrock (Nova) and DynamoDB. Least-privilege access, per-address and daily limits, and Plainly stores nothing about a letter.</td>
               <td><a href="/evidence/">Evidence</a>, <a href="/how-it-works/#privacy">Privacy</a></td>
             </tr>
             <tr>

@@ -201,7 +201,7 @@ def test_unexpected_error_is_friendly_and_logged_by_type(table, monkeypatch, cap
     def boom(*a, **k):
         raise KeyError("secret letter words")
 
-    monkeypatch.setattr(pipeline, "run_check", boom)
+    monkeypatch.setattr(pipeline, "check_request", boom)
     status, body = call("POST", "/api/check", {"text": SCAM})
     assert status == 502 and "went wrong" in body["error"]
     out = capsys.readouterr().out
@@ -229,3 +229,35 @@ def test_origin_verify_header_required_when_configured(table, monkeypatch):
     assert call("GET", "/api/health")[0] == 403
     assert call("GET", "/api/health", headers={"x-origin-verify": "wrong"})[0] == 403
     assert call("GET", "/api/health", headers={"X-Origin-Verify": "stack-uuid"})[0] == 200
+
+
+@pytest.mark.parametrize("ip, key", [
+    ("203.0.113.9", "203.0.113.9"),
+    ("2001:db8:1:2:aaaa::1", "2001:db8:1:2::/64"),
+    ("2001:db8:1:2:ffff:ffff:ffff:ffff", "2001:db8:1:2::/64"),
+    ("::ffff:198.51.100.4", "198.51.100.4"),
+    ("unknown", "unknown"),
+])
+def test_rate_key_groups_ipv6_by_prefix(ip, key):
+    assert app.rate_key(ip) == key
+
+
+def test_new_ipv6_address_per_request_shares_one_bucket(table, monkeypatch):
+    monkeypatch.setenv("RATE_LIMIT_PER_HOUR", "2")
+    for suffix in ("1", "2"):
+        assert call("POST", "/api/check", {"text": SCAM}, ip=f"[2001:db8:5:6::{suffix}]")[0] == 200
+    assert call("POST", "/api/check", {"text": SCAM}, ip="[2001:db8:5:6::3]")[0] == 429
+
+
+def test_bad_requests_do_not_use_up_the_limits(table, monkeypatch):
+    monkeypatch.setenv("RATE_LIMIT_PER_HOUR", "1")
+    monkeypatch.setenv("DAILY_CAP", "1")
+    for bad in ({}, {"image": {"type": "image/gif", "data": "R0lG"}}, {"image": {"type": "image/jpeg", "data": "%%"}}):
+        assert call("POST", "/api/check", bad, ip="198.51.100.20")[0] == 400
+    assert call("POST", "/api/check", {"text": SCAM}, ip="198.51.100.20")[0] == 200
+
+
+def test_oversized_explain_check_is_rejected(table):
+    check = {"verdict": "cant_tell", "flags": [{"title": "x" * 50_000}]}
+    status, body = call("POST", "/api/explain", {"letter_text": "hi", "check": check, "language": "English"})
+    assert status == 400 and "too large" in body["error"]
