@@ -5,7 +5,7 @@
   "mock": false,
   "ai_mode": "off",
   "reader": "rules",
-  "text_source": "device_ocr-equivalent (sample text)",
+  "text_source": "sample_text (transcribed from the sample HTML; not an OCR run)",
   "check": {
     "verdict": "consistent_with_genuine",
     "verdict_label": "Consistent with a genuine Internal Revenue Service letter — confirm on the official number",
@@ -34,8 +34,8 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 4,
-        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 39 line(s) of the text your device read from the photo"
+        "ms": 3,
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 39 line(s) of the sample letter's text (transcribed from its source, not read from a photo)"
       },
       {
         "step": "registry",
@@ -220,12 +220,12 @@
       ]
     },
     "grounding": {
-      "source": "device_ocr",
+      "source": "sample_text",
       "grounded": 11,
       "total": 11
     },
     "meta": {
-      "model": "rules-v2f45d6bcab",
+      "model": "rules-v14001583c8",
       "reader": "rules",
       "ai_mode": "off",
       "ms": 11,
@@ -236,7 +236,7 @@
   "explanations": {
     "English": {
       "language": "English",
-      "tldr": "This looks like a genuine Internal Revenue Service letter: its contact details match the official ones and we found no warning signs. Still, confirm it on the official number for Internal Revenue Service, 800-829-1040 before you pay or share anything.",
+      "tldr": "This looks like a genuine Internal Revenue Service letter: its contact details match the official ones and we found no warning signs. Still, before you pay or share anything, confirm it on the official number for Internal Revenue Service (800-829-1040).",
       "explanation": [
         "The contact details in the letter match the official list we keep for Internal Revenue Service, and the wording has none of the warning signs we check for.",
         "The deadline in the letter is 5 October 2026.",
@@ -245,14 +245,14 @@
       ],
       "actions": [
         {
+          "step": "Confirm with Internal Revenue Service first",
+          "how": "Contact the official number for Internal Revenue Service (800-829-1040) or its website (https://www.irs.gov) and ask them to confirm the notice. Don't rely only on a number printed in the letter.",
+          "by": null
+        },
+        {
           "step": "Deadline: 5 October 2026",
           "how": "The letter says: “Amount due by October 5, 2026 $1,284.60”.",
           "by": "2026-10-05"
-        },
-        {
-          "step": "Confirm with Internal Revenue Service first",
-          "how": "Contact the official number for Internal Revenue Service, 800-829-1040 (or https://www.irs.gov) and ask them to confirm the notice. Don't rely only on a number printed in the letter.",
-          "by": null
         },
         {
           "step": "Pay only through the official website",
@@ -310,9 +310,9 @@
         "Can I pay in instalments, or get more time?",
         "What happens if I miss the 5 October 2026 deadline?"
       ],
-      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe these amounts, please let me know whether I can pay them in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -323,24 +323,24 @@
     },
     "Hindi": {
       "language": "Hindi",
-      "tldr": "यह Internal Revenue Service के असली पत्र जैसा लगता है: इसके संपर्क विवरण आधिकारिक विवरण से मिलते हैं और हमें कोई चेतावनी का संकेत नहीं मिला। फिर भी, पैसे देने या कोई जानकारी देने से पहले Internal Revenue Service का आधिकारिक नंबर 800-829-1040 पर इसकी पुष्टि करें।",
+      "tldr": "यह Internal Revenue Service के असली पत्र जैसा लगता है: इसके संपर्क विवरण आधिकारिक विवरण से मिलते हैं और हमें चेतावनी का कोई संकेत नहीं मिला। फिर भी, पैसे देने या कोई जानकारी देने से पहले Internal Revenue Service के आधिकारिक नंबर 800-829-1040 पर इसकी पुष्टि करें।",
       "explanation": [
         "पत्र में दिए संपर्क विवरण Internal Revenue Service की उस आधिकारिक सूची से मिलते हैं जो हमारे पास है, और इसकी भाषा में वे चेतावनी के संकेत नहीं हैं जिन्हें हम जाँचते हैं।",
         "पत्र में आख़िरी तारीख़ 5 अक्टूबर 2026 है।",
-        "इसमें यह रकम लिखी है: $1,284.60, $6,412.00।",
+        "इसमें ये रकमें लिखी हैं: $1,284.60, $6,412.00।",
         "यह अच्छा संकेत है, पर पक्का सबूत नहीं: ठग असली पत्र की नक़ल भी कर सकते हैं। हमेशा आधिकारिक नंबर इस्तेमाल करें, सिर्फ़ पत्र पर छपा नंबर नहीं।",
-        "नीचे दिया जवाब का मसौदा अंग्रेज़ी में है, क्योंकि पत्र उसी भाषा में है और दफ़्तर उसे पढ़ सकेगा।"
+        "नीचे दिया गया जवाब का मसौदा अंग्रेज़ी में है, क्योंकि पत्र उसी भाषा में है और दफ़्तर उसे पढ़ सकेगा।"
       ],
       "actions": [
+        {
+          "step": "पहले Internal Revenue Service से पुष्टि करें",
+          "how": "Internal Revenue Service के आधिकारिक नंबर 800-829-1040 (या वेबसाइट https://www.irs.gov) पर संपर्क करें और नोटिस की पुष्टि करने को कहें। सिर्फ़ पत्र में छपे नंबर पर भरोसा न करें।",
+          "by": null
+        },
         {
           "step": "आख़िरी तारीख़: 5 अक्टूबर 2026",
           "how": "पत्र में लिखा है: “Amount due by October 5, 2026 $1,284.60”।",
           "by": "2026-10-05"
-        },
-        {
-          "step": "पहले Internal Revenue Service से पुष्टि करें",
-          "how": "Internal Revenue Service का आधिकारिक नंबर 800-829-1040 (या वेबसाइट https://www.irs.gov) पर संपर्क करें और नोटिस की पुष्टि करने को कहें। सिर्फ़ पत्र में छपे नंबर पर भरोसा न करें।",
-          "by": null
         },
         {
           "step": "भुगतान सिर्फ़ आधिकारिक वेबसाइट से करें",
@@ -354,7 +354,7 @@
         },
         {
           "step": "समय पर भुगतान न कर पाएँ तो मदद माँगें",
-          "how": "आख़िरी तारीख़ से पहले पूछने पर दफ़्तर अक्सर किस्तों में भुगतान या ज़्यादा समय दे देते हैं। नीचे दिया जवाब का मसौदा इसमें मदद करेगा।",
+          "how": "आख़िरी तारीख़ से पहले पूछने पर दफ़्तर अक्सर किस्तों में भुगतान या ज़्यादा समय दे देते हैं। नीचे दिया गया जवाब का मसौदा इसमें मदद करेगा।",
           "by": null
         }
       ],
@@ -398,10 +398,10 @@
         "क्या मैं किस्तों में भुगतान कर सकता/सकती हूँ, या मुझे और समय मिल सकता है?",
         "अगर 5 अक्टूबर 2026 की आख़िरी तारीख़ छूट जाए तो क्या होगा?"
       ],
-      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe these amounts, please let me know whether I can pay them in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
       "meta": {
-        "model": "rules-v2f45d6bcab",
-        "ms": 1,
+        "model": "rules-v14001583c8",
+        "ms": 2,
         "input_tokens": 0,
         "output_tokens": 0,
         "fallback": false,
@@ -411,7 +411,7 @@
     },
     "Spanish": {
       "language": "Spanish",
-      "tldr": "Parece una carta auténtica de Internal Revenue Service: sus datos de contacto coinciden con los oficiales y no encontramos señales de alerta. Aun así, antes de pagar o dar datos, confírmela con Internal Revenue Service en su número oficial, 800-829-1040.",
+      "tldr": "Parece una carta auténtica de Internal Revenue Service: sus datos de contacto coinciden con los oficiales y no encontramos señales de alerta. Aun así, antes de pagar o dar datos, confírmela con Internal Revenue Service en su número oficial (800-829-1040).",
       "explanation": [
         "Los datos de contacto de la carta coinciden con la lista oficial que tenemos de Internal Revenue Service, y el texto no tiene ninguna de las señales de alerta que revisamos.",
         "La fecha límite de la carta es el 5 de octubre de 2026.",
@@ -421,14 +421,14 @@
       ],
       "actions": [
         {
+          "step": "Confírmelo primero con Internal Revenue Service",
+          "how": "Contacte a Internal Revenue Service en su número oficial (800-829-1040) o en su sitio web (https://www.irs.gov) y pida que le confirmen el aviso. No se fíe solo de un número impreso en la carta.",
+          "by": null
+        },
+        {
           "step": "Fecha límite: 5 de octubre de 2026",
           "how": "La carta dice: “Amount due by October 5, 2026 $1,284.60”.",
           "by": "2026-10-05"
-        },
-        {
-          "step": "Confírmelo primero con Internal Revenue Service",
-          "how": "Contacte a Internal Revenue Service en su número oficial, 800-829-1040 (o en https://www.irs.gov) y pida que le confirmen el aviso. No se fíe solo de un número impreso en la carta.",
-          "by": null
         },
         {
           "step": "Pague solo en el sitio web oficial",
@@ -486,9 +486,9 @@
         "¿Puedo pagar a plazos o tener más tiempo?",
         "¿Qué pasa si no cumplo la fecha límite del 5 de octubre de 2026?"
       ],
-      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe these amounts, please let me know whether I can pay them in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 2,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -498,5 +498,5 @@
       }
     }
   },
-  "generated_at": "2026-10-01T00:13:20+00:00"
+  "generated_at": "2026-10-01T00:48:23+00:00"
 }

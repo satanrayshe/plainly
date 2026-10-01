@@ -5,7 +5,7 @@
   "mock": false,
   "ai_mode": "off",
   "reader": "rules",
-  "text_source": "device_ocr-equivalent (sample text)",
+  "text_source": "sample_text (transcribed from the sample HTML; not an OCR run)",
   "check": {
     "verdict": "likely_scam",
     "verdict_label": "Likely scam",
@@ -141,8 +141,8 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 5,
-        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 19 line(s) of the text your device read from the photo"
+        "ms": 3,
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 19 line(s) of the sample letter's text (transcribed from its source, not read from a photo)"
       },
       {
         "step": "registry",
@@ -315,15 +315,15 @@
       "deadlines": []
     },
     "grounding": {
-      "source": "device_ocr",
+      "source": "sample_text",
       "grounded": 1,
       "total": 1
     },
     "meta": {
-      "model": "rules-v2f45d6bcab",
+      "model": "rules-v14001583c8",
       "reader": "rules",
       "ai_mode": "off",
-      "ms": 12,
+      "ms": 9,
       "input_tokens": 0,
       "output_tokens": 0
     }
@@ -352,7 +352,7 @@
         },
         {
           "step": "Contact Central Bureau of Investigation yourself",
-          "how": "If you are worried it might be real, contact the official number for Central Bureau of Investigation, 011-24362755 (or https://cbi.gov.in) and ask.",
+          "how": "If you are worried it might be real, contact the official number for Central Bureau of Investigation (011-24362755) or its website (https://cbi.gov.in) and ask.",
           "by": null
         },
         {
@@ -411,7 +411,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -443,7 +443,7 @@
         },
         {
           "step": "Central Bureau of Investigation से ख़ुद संपर्क करें",
-          "how": "अगर आपको लगता है कि यह असली हो सकता है, तो Central Bureau of Investigation का आधिकारिक नंबर 011-24362755 (या वेबसाइट https://cbi.gov.in) पर संपर्क करके पूछें।",
+          "how": "अगर आपको लगता है कि यह असली हो सकता है, तो Central Bureau of Investigation के आधिकारिक नंबर 011-24362755 (या वेबसाइट https://cbi.gov.in) पर संपर्क करके पूछें।",
           "by": null
         },
         {
@@ -502,7 +502,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -534,7 +534,7 @@
         },
         {
           "step": "Contacte usted mismo a Central Bureau of Investigation",
-          "how": "Si le preocupa que pueda ser real, contacte a Central Bureau of Investigation en su número oficial, 011-24362755 (o en https://cbi.gov.in) y pregunte.",
+          "how": "Si le preocupa que pueda ser real, contacte a Central Bureau of Investigation en su número oficial (011-24362755) o en su sitio web (https://cbi.gov.in) y pregunte.",
           "by": null
         },
         {
@@ -593,7 +593,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -603,5 +603,5 @@
       }
     }
   },
-  "generated_at": "2026-10-01T00:13:20+00:00"
+  "generated_at": "2026-10-01T00:48:23+00:00"
 }

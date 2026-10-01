@@ -1,7 +1,9 @@
 """/api/explain without a model: plain-language explanations built from written templates.
 
-Used when AI_MODE=off (the live site on the AWS Free plan). Everything here is fixed text, written by people, in
-English, Hindi (हिन्दी) and Spanish (Español), filled with facts from the verified check only:
+Used when AI_MODE=off (the live site on the AWS Free plan). Everything here is fixed, pre-written text in English,
+Hindi (हिन्दी) and Spanish (Español); nothing is generated when a letter is checked, and the same facts always give
+the same words. The text was drafted with the coding agent (Claude Code) during the Option B build on 1 Oct 2026 and
+has not yet had a native-speaker review. It is filled with facts from the verified check only:
   - tldr and 3-6 explanation points for the verdict, with one plain line for each rule that flagged,
   - actions: standard steps for the verdict, the deadlines code worked out, and one step for each flagged rule,
   - jargon: terms from a glossary of common official-letter words that appear in the letter,
@@ -48,10 +50,11 @@ MONTHS = {
 
 PHRASES = {
     "en": {
-        "official_phone_site": "the official number for {agency}, {phone} (or {site})",
-        "official_phone": "the official number for {agency}, {phone}",
-        "official_site": "the official website for {agency}, {site}",
-        "official_none": "the organisation on a number you look up yourself, on its own website or an old bill or card",
+        "official_phone_site": "the official number for {agency} ({phone}) or its website ({site})",
+        "official_phone": "the official number for {agency} ({phone})",
+        "official_site": "the official website for {agency} ({site})",
+        "official_none": "the organisation, using a number you look up yourself (on its own website, or on an old "
+                         "bill or card)",
         "official_short_none": "the official number",
         "site_none": "the official website or app, which you open yourself",
         "report_url_phone": "{name}: {url} (or call {phone})",
@@ -64,8 +67,15 @@ PHRASES = {
         "computed_letter": " Worked out in code: {days} days after the letter's date.",
         "computed_receipt": " Worked out in code: {days} days after the day you received it (taken as {received}).",
         "amounts": "It mentions {amounts}.",
+        "amounts_one": "It mentions {amounts}.",
         "one_deadline": "The deadline in the letter is {date}.",
         "many_deadlines": "The letter has {n} deadlines. The first is {date}.",
+        "one_deadline_past": "The deadline in the letter, {date}, has already passed.",
+        "many_deadlines_next": "The letter has {n} deadlines. The next one still ahead is {date}.",
+        "many_deadlines_past": "The letter has {n} deadlines, and all of them have already passed. The last was "
+                               "{date}.",
+        "deadline_past_step": "Date already passed: {date}",
+        "deadline_past_how": " This date has already passed, so ask the office what you need to do now.",
         "no_deadline": "We did not find a deadline in the letter.",
         "reply_other_language": "The reply draft below is in {letter_language}, the language of the letter, so the "
                                 "office can read it.",
@@ -73,8 +83,8 @@ PHRASES = {
         "sender_unknown": "the sender",
     },
     "hi": {
-        "official_phone_site": "{agency} का आधिकारिक नंबर {phone} (या वेबसाइट {site})",
-        "official_phone": "{agency} का आधिकारिक नंबर {phone}",
+        "official_phone_site": "{agency} के आधिकारिक नंबर {phone} (या वेबसाइट {site})",
+        "official_phone": "{agency} के आधिकारिक नंबर {phone}",
         "official_site": "{agency} की आधिकारिक वेबसाइट {site}",
         "official_none": "संस्था के ऐसे नंबर (जो आप ख़ुद ढूँढें, जैसे उसकी अपनी वेबसाइट या किसी पुराने बिल या कार्ड से)",
         "official_short_none": "आधिकारिक नंबर",
@@ -88,21 +98,27 @@ PHRASES = {
         "deadline_plain": "पत्र में इस तारीख़ वाली पंक्ति देखें।",
         "computed_letter": " यह तारीख़ कोड ने गिनी है: पत्र की तारीख़ से {days} दिन बाद।",
         "computed_receipt": " यह तारीख़ कोड ने गिनी है: पत्र मिलने के दिन ({received} माना गया) से {days} दिन बाद।",
-        "amounts": "इसमें यह रकम लिखी है: {amounts}।",
+        "amounts": "इसमें ये रकमें लिखी हैं: {amounts}।",
+        "amounts_one": "इसमें यह रकम लिखी है: {amounts}।",
         "one_deadline": "पत्र में आख़िरी तारीख़ {date} है।",
         "many_deadlines": "पत्र में {n} आख़िरी तारीख़ें हैं। पहली {date} है।",
+        "one_deadline_past": "पत्र में दी गई आख़िरी तारीख़ ({date}) निकल चुकी है।",
+        "many_deadlines_next": "पत्र में {n} आख़िरी तारीख़ें हैं। अगली आने वाली तारीख़ {date} है।",
+        "many_deadlines_past": "पत्र में {n} आख़िरी तारीख़ें हैं, और सभी निकल चुकी हैं। आख़िरी तारीख़ {date} थी।",
+        "deadline_past_step": "तारीख़ निकल चुकी है: {date}",
+        "deadline_past_how": " यह तारीख़ निकल चुकी है, इसलिए दफ़्तर से पूछें कि अब आपको क्या करना है।",
         "no_deadline": "हमें पत्र में कोई आख़िरी तारीख़ नहीं मिली।",
-        "reply_other_language": "नीचे दिया जवाब का मसौदा {letter_language} में है, क्योंकि पत्र उसी भाषा में है और "
+        "reply_other_language": "नीचे दिया गया जवाब का मसौदा {letter_language} में है, क्योंकि पत्र उसी भाषा में है और "
                                 "दफ़्तर उसे पढ़ सकेगा।",
         "letter_languages": {"en": "अंग्रेज़ी", "hi": "हिन्दी", "es": "स्पैनिश"},
         "sender_unknown": "भेजने वाले",
     },
     "es": {
-        "official_phone_site": "{agency} en su número oficial, {phone} (o en {site})",
-        "official_phone": "{agency} en su número oficial, {phone}",
-        "official_site": "{agency} en su sitio web oficial, {site}",
-        "official_none": "la organización por un número que usted mismo busque, en su sitio web o en una factura o "
-                         "tarjeta anterior",
+        "official_phone_site": "{agency} en su número oficial ({phone}) o en su sitio web ({site})",
+        "official_phone": "{agency} en su número oficial ({phone})",
+        "official_site": "{agency} en su sitio web oficial ({site})",
+        "official_none": "la organización por un número que usted mismo busque (en su sitio web o en una factura o "
+                         "tarjeta anterior)",
         "official_short_none": "el número oficial",
         "site_none": "el sitio web o la aplicación oficial, abiertos por usted mismo",
         "report_url_phone": "{name}: {url} (o llame al {phone})",
@@ -116,8 +132,14 @@ PHRASES = {
         "computed_receipt": " Calculada en código: {days} días después del día en que la recibió (se tomó el "
                             "{received}).",
         "amounts": "Menciona estas cantidades: {amounts}.",
+        "amounts_one": "Menciona esta cantidad: {amounts}.",
         "one_deadline": "La fecha límite de la carta es el {date}.",
         "many_deadlines": "La carta tiene {n} fechas límite. La primera es el {date}.",
+        "one_deadline_past": "La fecha límite de la carta, el {date}, ya pasó.",
+        "many_deadlines_next": "La carta tiene {n} fechas límite. La próxima es el {date}.",
+        "many_deadlines_past": "La carta tiene {n} fechas límite y todas ya pasaron. La última fue el {date}.",
+        "deadline_past_step": "Fecha ya vencida: {date}",
+        "deadline_past_how": " Esta fecha ya pasó, así que pregunte a la oficina qué debe hacer ahora.",
         "no_deadline": "No encontramos ninguna fecha límite en la carta.",
         "reply_other_language": "El borrador de respuesta de abajo está en {letter_language}, el idioma de la carta, "
                                 "para que la oficina pueda leerlo.",
@@ -167,7 +189,7 @@ VERDICT_TEXT = {
     "consistent_with_genuine": {
         "en": {
             "tldr": "This looks like a genuine {agency} letter: its contact details match the official ones and we "
-                    "found no warning signs. Still, confirm it on {official_short} before you pay or share anything.",
+                    "found no warning signs. Still, before you pay or share anything, confirm it on {official_short}.",
             "intro": "The contact details in the letter match the official list we keep for {agency}, and the "
                      "wording has none of the warning signs we check for.",
             "points": [
@@ -177,7 +199,7 @@ VERDICT_TEXT = {
         },
         "hi": {
             "tldr": "यह {agency} के असली पत्र जैसा लगता है: इसके संपर्क विवरण आधिकारिक विवरण से मिलते हैं और हमें "
-                    "कोई चेतावनी का संकेत नहीं मिला। फिर भी, पैसे देने या कोई जानकारी देने से पहले "
+                    "चेतावनी का कोई संकेत नहीं मिला। फिर भी, पैसे देने या कोई जानकारी देने से पहले "
                     "{official_short} पर इसकी पुष्टि करें।",
             "intro": "पत्र में दिए संपर्क विवरण {agency} की उस आधिकारिक सूची से मिलते हैं जो हमारे पास है, और "
                      "इसकी भाषा में वे चेतावनी के संकेत नहीं हैं जिन्हें हम जाँचते हैं।",
@@ -301,10 +323,10 @@ RULE_TEXT = {
                "step": "संदेश में दी गई UPI आईडी या नंबर पर पैसे न भेजें",
                "how": "बिल सिर्फ़ उसी आधिकारिक ऐप या वेबसाइट से भरें जिसे आप ख़ुद खोलें। अगर पैसे भेज चुके हैं, तो "
                       "तुरंत 1930 या अपने बैंक को फ़ोन करें।"},
-        "es": {"title": "Pide pagar a un UPI o a un número de teléfono personal",
+        "es": {"title": "Pide pagar a un ID de UPI o a un número de teléfono personal",
                "means": "Una oficina del gobierno o una compañía eléctrica cobra en su propia página o aplicación "
                         "oficial, no en la cuenta UPI ni en el móvil de una persona.",
-               "step": "No pague a un UPI ni a un número del mensaje",
+               "step": "No pague a un ID de UPI ni a un número del mensaje",
                "how": "Pague sus facturas solo en la aplicación o el sitio oficial que usted mismo abra. Si ya pagó, "
                       "llame de inmediato a su banco (en la India, también al 1930)."},
     },
@@ -681,8 +703,8 @@ ACTIONS = {
             ("आख़िरी तारीख़ कैलेंडर में जोड़ें", "आख़िरी तारीख़ के पास दिए “कैलेंडर में जोड़ें” बटन का इस्तेमाल "
                                                  "करें, ताकि तारीख़ छूटे नहीं।"),
             ("समय पर भुगतान न कर पाएँ तो मदद माँगें", "आख़िरी तारीख़ से पहले पूछने पर दफ़्तर अक्सर किस्तों में "
-                                                       "भुगतान या ज़्यादा समय दे देते हैं। नीचे दिया जवाब का मसौदा "
-                                                       "इसमें मदद करेगा।"),
+                                                       "भुगतान या ज़्यादा समय दे देते हैं। नीचे दिया गया जवाब का "
+                                                       "मसौदा इसमें मदद करेगा।"),
         ],
         "es": [
             ("Confírmelo primero con {agency_or_office}", "Contacte a {official} y pida que le confirmen el aviso. "
@@ -764,9 +786,12 @@ AMOUNT_QUESTION = {
     "es": ("¿Es correcta la cantidad de {amount} y cómo se calculó?", "¿Cuánto debo y cómo se calculó?"),
 }
 DEADLINE_QUESTION = {
-    "en": ("What happens if I miss the {date} deadline?", "Is there a deadline I need to meet?"),
-    "hi": ("अगर {date} की आख़िरी तारीख़ छूट जाए तो क्या होगा?", "क्या कोई आख़िरी तारीख़ है जिसका मुझे ध्यान रखना है?"),
-    "es": ("¿Qué pasa si no cumplo la fecha límite del {date}?", "¿Hay alguna fecha límite que deba cumplir?"),
+    "en": ("What happens if I miss the {date} deadline?", "Is there a deadline I need to meet?",
+           "The {date} deadline has passed. What should I do now?"),
+    "hi": ("अगर {date} की आख़िरी तारीख़ छूट जाए तो क्या होगा?", "क्या कोई आख़िरी तारीख़ है जिसका मुझे ध्यान रखना है?",
+           "{date} की आख़िरी तारीख़ निकल चुकी है। अब मुझे क्या करना चाहिए?"),
+    "es": ("¿Qué pasa si no cumplo la fecha límite del {date}?", "¿Hay alguna fecha límite que deba cumplir?",
+           "La fecha límite del {date} ya pasó. ¿Qué debo hacer ahora?"),
 }
 
 # ---------------------------------------------------------------- reply draft (never for a likely scam)
@@ -780,12 +805,17 @@ REPLY = {
         "received_dated": "I received your notice dated {date}{amounts}.",
         "received": "I received your recent notice{amounts}.",
         "amounts": ", which mentions {amounts}",
+        "amounts_one": ", which mentions {amounts}",
         "confirm": "Before I take any action, please confirm that this notice was sent by your office and that the "
                    "details in it are correct.",
         "deadline": "The notice asks me to act by {date}. If I need more time to gather documents or arrange "
                     "payment, could you please allow an extension?",
+        "deadline_past": "The notice asked me to act by {date}, and that date has passed. Please tell me what I need "
+                         "to do now and whether any extra charges apply.",
         "plan": "If I do owe this amount, please let me know whether I can pay it in instalments through a payment "
                 "plan.",
+        "plan_many": "If I do owe these amounts, please let me know whether I can pay them in instalments through a "
+                     "payment plan.",
         "reference": "Please reply through your official contact details. My reference or account number is: "
                      "[reference number from the letter]",
         "closing": "Thank you,\n[Your full name]\n[Your address or phone number]",
@@ -798,12 +828,17 @@ REPLY = {
         "greeting": "महोदय/महोदया,",
         "received_dated": "मुझे आपका {date} का नोटिस मिला है{amounts}।",
         "received": "मुझे आपका हाल का नोटिस मिला है{amounts}।",
-        "amounts": ", जिसमें {amounts} की रकम लिखी है",
+        "amounts": ", जिसमें {amounts} की रकमें लिखी हैं",
+        "amounts_one": ", जिसमें {amounts} की रकम लिखी है",
         "confirm": "कोई भी कदम उठाने से पहले, कृपया पुष्टि करें कि यह नोटिस आपके दफ़्तर ने ही भेजा है और इसमें दी "
                    "गई जानकारी सही है।",
         "deadline": "नोटिस में {date} तक कार्रवाई करने को कहा गया है। अगर मुझे काग़ज़ जुटाने या भुगतान का इंतज़ाम "
                     "करने के लिए और समय चाहिए, तो कृपया समय बढ़ाने पर विचार करें।",
+        "deadline_past": "नोटिस में {date} तक कार्रवाई करने को कहा गया था, और वह तारीख़ निकल चुकी है। कृपया बताएँ "
+                         "कि अब मुझे क्या करना है और क्या कोई अतिरिक्त शुल्क लगेगा।",
         "plan": "अगर यह रकम मुझे सच में देनी है, तो कृपया बताएँ कि क्या मैं इसे किस्तों में चुका सकता/सकती हूँ।",
+        "plan_many": "अगर ये रकमें मुझे सच में देनी हैं, तो कृपया बताएँ कि क्या मैं इन्हें किस्तों में चुका "
+                     "सकता/सकती हूँ।",
         "reference": "कृपया अपने आधिकारिक संपर्क से जवाब दें। मेरा रेफ़रेंस या खाता नंबर: "
                      "[पत्र में लिखा रेफ़रेंस नंबर]",
         "closing": "धन्यवाद,\n[आपका पूरा नाम]\n[आपका पता या फ़ोन नंबर]",
@@ -817,12 +852,17 @@ REPLY = {
         "received_dated": "He recibido su aviso con fecha {date}{amounts}.",
         "received": "He recibido su aviso reciente{amounts}.",
         "amounts": ", en el que se mencionan {amounts}",
+        "amounts_one": ", en el que se menciona {amounts}",
         "confirm": "Antes de hacer nada, les ruego que me confirmen que este aviso lo envió su oficina y que los "
                    "datos que contiene son correctos.",
         "deadline": "El aviso me pide actuar antes del {date}. Si necesito más tiempo para reunir documentos u "
                     "organizar el pago, ¿podrían concederme una prórroga?",
+        "deadline_past": "El aviso me pedía actuar antes del {date}, y esa fecha ya pasó. Les ruego que me indiquen "
+                         "qué debo hacer ahora y si se aplica algún recargo.",
         "plan": "Si de verdad debo esta cantidad, les agradecería saber si puedo pagarla a plazos mediante un plan "
                 "de pagos.",
+        "plan_many": "Si de verdad debo estas cantidades, les agradecería saber si puedo pagarlas a plazos mediante "
+                     "un plan de pagos.",
         "reference": "Les ruego que respondan a través de sus datos de contacto oficiales. Mi número de referencia "
                      "o de cuenta es: [número de referencia de la carta]",
         "closing": "Atentamente,\n[Su nombre completo]\n[Su dirección o teléfono]",
@@ -1115,12 +1155,47 @@ _COMPUTED_RECEIPT = re.compile(r"^date received \(taken as (\d{4}-\d{2}-\d{2})\)
 _GENERIC_WHAT = {"", "deadline in the letter", "respond to the letter"}
 
 
+MAX_DEADLINE_ACTIONS = 3  # the verdict's own steps always come first and are never cut for deadlines
+# For a likely scam these flag steps would contradict "don't call or click anything in it" (unknown_contact says
+# "before you call or write, compare it ...") or repeat ai_instruction, so they are left out of the actions.
+_SCAM_SKIP_ACTIONS = {"unknown_contact", "injection_detected_model"}
+
+
+def _today(brief):
+    """The reader's date sent with /api/explain, or None (then every deadline counts as still ahead)."""
+    value = brief.get("today")
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value)) if value else None
+    except ValueError:
+        return None
+
+
+def _dated(brief):
+    """(upcoming, past) deadline dicts with a date. Upcoming ones in date order, past ones latest first."""
+    today = _today(brief)
+    dated = [d for d in brief.get("deadlines") or [] if d.get("date")]
+
+    def when(d):
+        try:
+            return date.fromisoformat(str(d["date"]))
+        except ValueError:
+            return None
+
+    past = [d for d in dated if today and when(d) and when(d) < today]
+    upcoming = [d for d in dated if d not in past]
+    upcoming.sort(key=lambda d: str(d["date"]))
+    past.sort(key=lambda d: str(d["date"]), reverse=True)
+    return upcoming, past
+
+
 def _deadline_actions(brief, lang):
     p = PHRASES[lang]
+    upcoming, past = _dated(brief)
     actions = []
-    for d in brief.get("deadlines") or []:
-        if not d.get("date"):
-            continue
+    for d in upcoming + past:
+        is_past = d in past
         what = (d.get("what") or "").strip()
         if len(what) >= 118 and not what.endswith((".", "!", "?", "।")):
             what += "…"  # the reader keeps the first 120 characters of the line
@@ -1132,9 +1207,26 @@ def _deadline_actions(brief, lang):
             how += _fill(p["computed_letter"], days=m.group(1))
         elif r:
             how += _fill(p["computed_receipt"], days=r.group(2), received=format_date(r.group(1), lang))
-        actions.append({"step": _fill(p["deadline_step"], date=format_date(d["date"], lang)), "how": how,
-                        "by": d["date"]})
+        if is_past:
+            how += p["deadline_past_how"]
+        step = p["deadline_past_step"] if is_past else p["deadline_step"]
+        actions.append({"step": _fill(step, date=format_date(d["date"], lang)), "how": how, "by": d["date"]})
     return actions
+
+
+def _deadline_fact(brief, lang):
+    p = PHRASES[lang]
+    upcoming, past = _dated(brief)
+    n = len(upcoming) + len(past)
+    if not n:
+        return p["no_deadline"]
+    if not past:
+        first = format_date(upcoming[0]["date"], lang)
+        return _fill(p["one_deadline"], date=first) if n == 1 else _fill(p["many_deadlines"], n=n, date=first)
+    if upcoming:
+        return _fill(p["many_deadlines_next"], n=n, date=format_date(upcoming[0]["date"], lang))
+    last = format_date(past[0]["date"], lang)
+    return _fill(p["one_deadline_past"], date=last) if n == 1 else _fill(p["many_deadlines_past"], n=n, date=last)
 
 
 def _jargon(letter_text, lang):
@@ -1158,35 +1250,64 @@ def _jargon(letter_text, lang):
     return out
 
 
+# claimed_sender is the matched agency's name or, when none matched, the letter's first line cut to 80 characters
+# (reader.py). For an SMS or an OCR'd page that line is message text, which can hold an OTP or an account number,
+# so it is used as the reply's addressee only when it reads like a name.
+_NAME_MAX_CHARS = 60
+_NAME_MAX_WORDS = 8
+_NOT_A_NAME = re.compile(r"\d{3,}|[.!?:;।,@<>\"“”/\\|]|https?|www", re.IGNORECASE)
+# Greetings, and first words of a headline or a sentence rather than a name ("Claim your tax refund online").
+_GREETING = re.compile(r"^(dear|hello|hi|hey|alert|attention|greetings|important|urgent|final|reminder|re|fwd?|"
+                       r"subject|claim|pay|verify|click|update|your|you|we|this|our|प्रिय|नमस्ते|नमस्कार|"
+                       r"estimad[oa]s?|hola)\b", re.IGNORECASE)
+
+
+def addressee(sender):
+    """The sender as a reply addressee, or None when it doesn't look like the name of an office."""
+    sender = re.sub(r"\s+", " ", sender or "").strip()
+    if not sender or len(sender) > _NAME_MAX_CHARS or len(sender.split()) > _NAME_MAX_WORDS:
+        return None
+    if _NOT_A_NAME.search(sender) or _GREETING.match(sender):
+        return None
+    if not any(c.isalpha() for c in sender):
+        return None
+    return sender
+
+
 def _reply_draft(brief, letter_lang):
     r = REPLY[letter_lang]
     agency = brief.get("agency") or {}
-    sender = (brief.get("claimed_sender") or "").strip()
-    recipient = agency.get("name") or (sender if 0 < len(sender) <= 80 and not re.search(r"[.!?:]$", sender)
-                                       else r["recipient_none"])
+    recipient = agency.get("name") or addressee(brief.get("claimed_sender")) or r["recipient_none"]
     letter_date = format_date(brief["letter_date"], letter_lang) if brief.get("letter_date") else None
     amounts = [a for a in brief.get("amounts") or [] if a][:2]
-    amounts_clause = _fill(r["amounts"], amounts=" / ".join(amounts)) if amounts else ""
-    dates = [d["date"] for d in brief.get("deadlines") or [] if d.get("date")]
+    amounts_key = "amounts_one" if len(amounts) == 1 else "amounts"
+    amounts_clause = _fill(r[amounts_key], amounts=" / ".join(amounts)) if amounts else ""
+    upcoming, past = _dated(brief)
     lines = [_fill(r["to"], recipient=recipient),
              _fill(r["subject_dated"], date=letter_date) if letter_date else r["subject"],
              "", r["greeting"], "",
              (_fill(r["received_dated"], date=letter_date, amounts=amounts_clause) if letter_date
               else _fill(r["received"], amounts=amounts_clause)) + " " + r["confirm"], ""]
-    if dates:
-        lines += [_fill(r["deadline"], date=format_date(dates[0], letter_lang)), ""]
+    if upcoming:
+        lines += [_fill(r["deadline"], date=format_date(upcoming[0]["date"], letter_lang)), ""]
+    elif past:
+        lines += [_fill(r["deadline_past"], date=format_date(past[0]["date"], letter_lang)), ""]
     if amounts:
-        lines += [r["plan"], ""]
+        lines += [r["plan"] if len(amounts) == 1 else r["plan_many"], ""]
     lines += [r["reference"], "", r["closing"]]
     return "\n".join(lines)
 
 
 def _questions(brief, lang, verdict):
     amounts = [a for a in brief.get("amounts") or [] if a]
-    dates = [d["date"] for d in brief.get("deadlines") or [] if d.get("date")]
+    upcoming, past = _dated(brief)
     amount_q = _fill(AMOUNT_QUESTION[lang][0], amount=amounts[0]) if amounts else AMOUNT_QUESTION[lang][1]
-    deadline_q = (_fill(DEADLINE_QUESTION[lang][0], date=format_date(dates[0], lang)) if dates
-                  else DEADLINE_QUESTION[lang][1])
+    if upcoming:
+        deadline_q = _fill(DEADLINE_QUESTION[lang][0], date=format_date(upcoming[0]["date"], lang))
+    elif past:
+        deadline_q = _fill(DEADLINE_QUESTION[lang][2], date=format_date(past[0]["date"], lang))
+    else:
+        deadline_q = DEADLINE_QUESTION[lang][1]
     return [_fill(q, amount_question=amount_q, deadline_question=deadline_q)
             for q in QUESTIONS[verdict][lang]][:MAX_QUESTIONS]
 
@@ -1200,7 +1321,7 @@ def build(letter_text, brief, lang, level="normal"):
     v = VERDICT_TEXT[verdict][lang]
     p = PHRASES[lang]
     official, official_short = _official(brief, lang), _official(brief, lang, short=True)
-    deadlines = [d for d in brief.get("deadlines") or [] if d.get("date")]
+    upcoming, _past = _dated(brief)
 
     # tldr
     if verdict == "likely_scam":
@@ -1219,15 +1340,10 @@ def build(letter_text, brief, lang, level="normal"):
                    for r in dict.fromkeys(rules)]
     facts = []
     if verdict != "likely_scam":
-        if deadlines:
-            first = format_date(deadlines[0]["date"], lang)
-            facts.append(_fill(p["one_deadline"], date=first) if len(deadlines) == 1
-                         else _fill(p["many_deadlines"], n=len(deadlines), date=first))
-        else:
-            facts.append(p["no_deadline"])
+        facts.append(_deadline_fact(brief, lang))
         amounts = [a for a in brief.get("amounts") or [] if a][:3]
         if amounts:
-            facts.append(_fill(p["amounts"], amounts=", ".join(amounts)))
+            facts.append(_fill(p["amounts_one"] if len(amounts) == 1 else p["amounts"], amounts=", ".join(amounts)))
     intro = _fill(v["intro"], agency=name or _NO_AGENCY[lang])
     limit = MAX_EXPLANATION.get(level, 6)
     note = []
@@ -1235,19 +1351,26 @@ def build(letter_text, brief, lang, level="normal"):
         note = [_fill(p["reply_other_language"], letter_language=p["letter_languages"][letter_language(letter_text)])]
     explanation = ([intro] + flag_points[:3] + facts)[:limit - len(v["points"]) - len(note)] + v["points"] + note
 
-    # actions
+    # actions: the verdict's own steps are always kept. For "can't tell" they come before any deadline (the letter
+    # isn't verified, so its dates are not the first thing to act on); for a genuine-looking letter "confirm with
+    # the office first" leads, then the deadlines. At most MAX_DEADLINE_ACTIONS deadlines are listed.
     values = {"agency_or_office": name or _OFFICE[lang], "official": official, "report": _report(brief, lang),
               "site": agency.get("official_site") or p["site_none"]}
     standard = [{"step": _fill(step, **values), "how": _fill(how, **values), "by": None}
                 for step, how in ACTIONS[verdict][lang]]
-    if verdict == "consistent_with_genuine" and not deadlines:
-        standard = [a for i, a in enumerate(standard) if i != 2]  # nothing to add to a calendar
+    if verdict == "consistent_with_genuine" and not upcoming:
+        standard = [a for i, a in enumerate(standard) if i != 2]  # nothing still ahead to add to a calendar
+    flag_rules = [r for r in dict.fromkeys(rules) if not (verdict == "likely_scam" and r in _SCAM_SKIP_ACTIONS)]
     flag_actions = [{"step": RULE_TEXT[r][lang]["step"], "how": RULE_TEXT[r][lang]["how"], "by": None}
-                    for r in dict.fromkeys(rules)]
+                    for r in flag_rules]
     if verdict == "likely_scam":
         actions = standard + flag_actions  # a scam's deadline is part of the pressure, so it is not repeated
     else:
-        actions = _deadline_actions(brief, lang) + standard + flag_actions
+        deadline_actions = _deadline_actions(brief, lang)[:MAX_DEADLINE_ACTIONS]
+        if verdict == "cant_tell":
+            actions = standard + deadline_actions + flag_actions
+        else:
+            actions = standard[:1] + deadline_actions + standard[1:] + flag_actions
     seen, unique = set(), []
     for a in actions:
         if a["step"] not in seen:

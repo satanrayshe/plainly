@@ -1,8 +1,8 @@
 # Plainly evaluation
 
-- Generated: 2026-10-01T00:13:43+00:00
-- Mode: production rules reader: AI_MODE=off, extraction by the keyword and date patterns in backend/reader.py, then the rules; no AI model and no AWS call. This is exactly what the live site runs on the AWS Free plan (rules-v2f45d6bcab). Latency is local and tokens are 0
-- Rules under test (frozen, sha256 prefix): verifier.py 0b137bd0b450, lexicon.py 7caf215f977e, contacts.py 77b19f02ebf5, agencies.py 153bfcb691f2, pipeline.py 752e77608a78, registry.json c9aa3bcd3339, reader.py 5ecd9ba5285a
+- Generated: 2026-10-01T00:50:54+00:00
+- Mode: production rules reader: AI_MODE=off, extraction by the keyword and date patterns in backend/reader.py, then the rules; no AI model and no AWS call. This is exactly what the live site runs on the AWS Free plan (rules-v14001583c8). Latency is local and tokens are 0
+- Rules under test (frozen, sha256 prefix): verifier.py 0b137bd0b450, lexicon.py 7caf215f977e, contacts.py 77b19f02ebf5, agencies.py 153bfcb691f2, pipeline.py 77e2dd6921b9, registry.json c9aa3bcd3339, reader.py 5ecd9ba5285a
 - Positive class for precision/recall: `likely_scam`. "Can't tell" on a scam counts as a miss for recall, never as a pass.
 
 ## Dev: government-published examples used for tuning
@@ -19,7 +19,7 @@ Real scam messages and genuine notices published by the FTC, GOV.UK, PIB Fact Ch
 | Genuine letters marked consistent_with_genuine | 12/38 (32%) |
 | Deadline accuracy (letters with a labeled deadline) | 1/2 (50%) |
 | Quote grounding (grounded / checked quotes) | 120/120 (100%) |
-| Latency p50 / p95, /api/check wall clock | 4 ms / 22 ms |
+| Latency p50 / p95, /api/check wall clock | 4 ms / 20 ms |
 | Average tokens in / out | 0 / 0 |
 
 | True label | likely_scam | consistent_with_genuine | cant_tell |
@@ -78,7 +78,7 @@ Real scam messages quoted by the IRS, FTC and FBI IC3, and IRS sample notices as
 | Genuine letters marked consistent_with_genuine | 8/11 (73%) |
 | Deadline accuracy (letters with a labeled deadline) | 5/5 (100%) |
 | Quote grounding (grounded / checked quotes) | 88/88 (100%) |
-| Latency p50 / p95, /api/check wall clock | 7 ms / 21 ms |
+| Latency p50 / p95, /api/check wall clock | 4 ms / 19 ms |
 | Average tokens in / out | 0 / 0 |
 
 | True label | likely_scam | consistent_with_genuine | cant_tell |
@@ -120,7 +120,7 @@ Genuine letters left at cant_tell (safe direction, but not confirmed): 3
 | Genuine letters marked consistent_with_genuine | 12/12 (100%) |
 | Deadline accuracy (letters with a labeled deadline) | 9/9 (100%) |
 | Quote grounding (grounded / checked quotes) | 53/53 (100%) |
-| Latency p50 / p95, /api/check wall clock | 5 ms / 9 ms |
+| Latency p50 / p95, /api/check wall clock | 3 ms / 5 ms |
 | Average tokens in / out | 0 / 0 |
 
 | True label | likely_scam | consistent_with_genuine | cant_tell |

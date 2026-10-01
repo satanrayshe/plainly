@@ -107,7 +107,7 @@ Build path: Claude Code -> AWS CLI (aws login) / AWS MCP Server -> AWS APIs -> C
    - reader: `backend/reader.py` finds the claimed sender, letter date, deadlines, payment requests, threats, credential requests, links, call-back requests and similar items, each with the exact sentence it came from. Regular expressions pull phones, URLs and email addresses from the text.
    - verify: `backend/verifier.py` runs 21 rules, matches the sender's contacts against `backend/registry.json` (domains first, then phones), computes relative deadlines from the letter date in `backend/dates.py`, and scores the verdict. Every rule appends a `trace` entry, including the ones that passed.
 4. The browser shows the verdict, the quoted flags and the trace, then calls `POST /api/explain` with the chosen language.
-5. `/api/explain` fills human-written templates: a short summary for the verdict, a plain line and an action for each flag, glossary entries for official terms found in the letter, questions to ask, and a reply draft when the verdict is not "Likely scam". Deadlines come from the verified check.
+5. `/api/explain` fills fixed, pre-written templates (drafted with the coding agent): a short summary for the verdict, a plain line and an action for each flag, glossary entries for official terms found in the letter, questions to ask, and a reply draft when the verdict is not "Likely scam". Deadlines come from the verified check.
 6. The browser builds the `.ics` calendar file itself.
 
 A check makes no network call beyond DynamoDB, so its time is mostly Lambda start-up and Python. Measured latency: {{LATENCY}}.

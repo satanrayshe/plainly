@@ -106,6 +106,11 @@ The live product now runs with `AI_MODE=off` (AWS Free plan: no Bedrock, no Text
   keyword and date reader from `eval/mock_model.py` (the reader every offline number above was measured with), moved
   into the backend unchanged; `backend/tests/test_reader.py` checks it against `mock_model.extract` and against
   golden hashes of the old output.
+- **Review fixes, 1 Oct 2026 (later):** `backend/pipeline.py` changed again, now
+  `77e2dd6921b9998ee916239bb8f6ff0846efce53b925b4c3de3a2bb100ab8070` (LF). Request handling only: `/api/explain`
+  accepts a larger `check` and longer `letter_text` with AI off, takes the reader's date (`today`), and a
+  `sample_text` text source labels the showcase results. No rule, threshold, reader or verdict logic changed; the
+  five frozen files and `reader.py` still have the hashes above, and the eval below was re-run with the same result.
 - **Check:** `python eval/run_eval.py --set all --out eval/results-rules-reader.md` through the production path gives,
   for all 114 letters, the same verdict, flags, agency, deadlines, grounding and status as
   `results-offline-frozen.json`. So the frozen numbers are the production engine's numbers. `run_eval.py` now also

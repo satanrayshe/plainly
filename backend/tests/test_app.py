@@ -267,6 +267,41 @@ def test_bad_requests_do_not_use_up_the_limits(table, monkeypatch):
 
 
 def test_oversized_explain_check_is_rejected(table):
-    check = {"verdict": "cant_tell", "flags": [{"title": "x" * 50_000}]}
+    check = {"verdict": "cant_tell", "flags": [{"title": "x" * 150_000}]}
     status, body = call("POST", "/api/explain", {"letter_text": "hi", "check": check, "language": "English"})
     assert status == 400 and "too large" in body["error"]
+
+
+def test_explain_has_a_higher_hourly_limit_with_ai_off(table, monkeypatch):
+    monkeypatch.delenv("AI_MODE", raising=False)
+    monkeypatch.delenv("EXPLAIN_RATE_LIMIT_PER_HOUR", raising=False)
+    monkeypatch.setenv("RATE_LIMIT_PER_HOUR", "2")
+    status, check = call("POST", "/api/check", {"text": SCAM}, ip="198.51.100.30")
+    letter_text = check.pop("letter_text")
+    body = {"letter_text": letter_text, "check": check, "language": "English"}
+    # 7 letters in 3 languages is 21 explanations: more than the check limit, within the explain one.
+    for _ in range(2 * app.EXPLAIN_RATE_FACTOR_OFF):
+        assert call("POST", "/api/explain", body, ip="198.51.100.30")[0] == 200
+    assert call("POST", "/api/explain", body, ip="198.51.100.30")[0] == 429
+    assert app.per_hour_limit("check") == 2
+    monkeypatch.setenv("EXPLAIN_RATE_LIMIT_PER_HOUR", "7")
+    assert app.per_hour_limit("explain") == 7
+    monkeypatch.delenv("EXPLAIN_RATE_LIMIT_PER_HOUR")
+    monkeypatch.setenv("AI_MODE", "on")
+    assert app.per_hour_limit("explain") == 2  # each explanation is a model call then
+
+
+def test_a_check_that_was_accepted_can_be_explained(table):
+    head = "Pay by 2027-01-15 at irs-gov-pay.com urgent today gift card OTP\n"
+    text = "Internal Revenue Service\n" + "".join(
+        f"Pay by 2027-{1 + i % 12:02d}-{1 + i % 28:02d} at irs-gov{i}.com urgent today gift card OTP\n"
+        for i in range(500))
+    text = text[:29_900]
+    status, check = call("POST", "/api/check", {"text": text}, ip="198.51.100.31")
+    assert status == 200
+    letter_text = check.pop("letter_text")
+    assert len(json.dumps(check, ensure_ascii=False)) > pipeline.MAX_CHECK_CHARS  # the old limit refused this
+    status, explained = call("POST", "/api/explain", {"letter_text": letter_text, "check": check,
+                                                      "language": "Spanish", "today": "2026-10-01"},
+                             ip="198.51.100.31")
+    assert status == 200 and explained["tldr"]

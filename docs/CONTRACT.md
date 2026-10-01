@@ -296,7 +296,7 @@ CloudWatch, SNS, Budgets). The Textract + Nova path stays in the repo and comes 
 Request:
 ```json
 { "text": "the letter text (required)",
-  "text_source": "typed" | "device_ocr" | "pdf_text",
+  "text_source": "typed" | "device_ocr" | "pdf_text" | "sample_text",
   "today": "YYYY-MM-DD (optional)" }
 ```
 - `image` is rejected with 400 and a friendly message saying the page reads photos on the device.
@@ -311,8 +311,8 @@ Request:
 - Response shape is otherwise identical to the contract above.
 
 ### POST /api/explain (off)
-- Same request and response shape. No model: `backend/explain_templates.py` builds the answer from human-written
-  strings, per verdict (tldr, 3 to 5 points) and per flagged rule (what it means, what to do).
+- Same request and response shape. No model: `backend/explain_templates.py` builds the answer from fixed,
+  pre-written strings (drafted with the coding agent, no native-speaker review yet), per verdict (tldr, 3 to 5 points) and per flagged rule (what it means, what to do).
 - Standard actions: `likely_scam` = don't pay, don't call or click anything in the message, call the official number
   shown, report it through the country's channel. `consistent_with_genuine` = still confirm on the official number, pay
   only through the official site, add the deadline to the calendar. `cant_tell` = how to check it yourself.
@@ -330,3 +330,27 @@ Request:
 Tesseract runs a Web Worker and WebAssembly, so any Content-Security-Policy must allow `worker-src 'self' blob:` and
 `script-src 'self' 'wasm-unsafe-eval'`. `.wasm` files are served as `application/wasm`; the `.traineddata.gz` language
 files as `application/octet-stream` without a `Content-Encoding` header (Tesseract unzips them itself).
+
+### Review fixes (1 Oct 2026, Option B)
+- `text_source` `"sample_text"` -> `grounding.source` `"sample_text"` ("the sample letter's text"). Only
+  `scripts/run_samples.py` sends it: the showcase results are computed from `samples/letters/<id>.txt`, transcribed
+  from the HTML, not read from a photo, so they must not claim a device reading. On-device Tesseract does not read the
+  faint line in `ai-instruction.png`; the site says so.
+- `/api/explain` request gains optional `"today": "YYYY-MM-DD"` (validated like `/api/check`'s, else the server's
+  date). Deadlines before it get past-tense wording ("Date already passed"), no "Add to calendar" step, a "what
+  should I do now" question and a reply that says the date has passed.
+- With AI off, `/api/explain` accepts a `check` of up to 100,000 characters (`MAX_CHECK_CHARS_OFF`; 40,000 with AI
+  on) and keeps up to 30,000 characters of `letter_text`, so any check `/api/check` accepted can be explained.
+- Explain rate limit: `EXPLAIN_RATE_LIMIT_PER_HOUR`, default 5 x `RATE_LIMIT_PER_HOUR` with AI off (templates cost
+  nothing; each language switch asks for one), equal to it with AI on. `EXPLAIN_DAILY_CAP` default 10 x `DAILY_CAP`
+  off, 2 x on. The page also caches explanations per result, language and level.
+- Template actions: the verdict's standard steps are always kept. `cant_tell`: standard steps first, then at most 3
+  deadlines, then flag steps. `consistent_with_genuine`: "Confirm with <agency> first", then at most 3 deadlines,
+  then the other standard steps. `likely_scam`: standard steps, then flag steps, leaving out `unknown_contact` and
+  `injection_detected_model` (they would contradict "don't call or click anything in it").
+- Reply draft addressee: the matched agency's name, else `claimed_sender` only when it reads like a name (60
+  characters or fewer, 8 words or fewer, no run of 3+ digits, no sentence punctuation, no greeting or headline
+  opener); otherwise "The office that sent the notice". A one-line SMS (which can hold an OTP) is never the
+  addressee.
+- The explanation templates are fixed, pre-written text drafted with the coding agent. The site and docs say so, and
+  say that the Hindi and Spanish have not had a native-speaker review; never describe them as written by people.

@@ -3,9 +3,9 @@
 <head>
 <!-- @head -->
 <title>How Plainly decides | Plainly</title>
-<meta name="description" content="How Plainly checks a letter: your device reads it with Tesseract, so the photo never leaves it; a rules engine on AWS Lambda checks the words against over 20 scam rules and a list of official contacts; explanations written by people. The rules, the verdict, privacy and limits.">
+<meta name="description" content="How Plainly checks a letter: your device reads it with Tesseract, so the photo never leaves it; a rules engine on AWS Lambda checks the words against over 20 scam rules and a list of official contacts; explanations from fixed, pre-written templates. The rules, the verdict, privacy and limits.">
 <meta property="og:title" content="How Plainly decides whether a letter is real">
-<meta property="og:description" content="Your device reads the letter. Plain code applies the rules and decides the verdict, every check leaves a receipt, and people wrote the explanations.">
+<meta property="og:description" content="Your device reads the letter. Plain code applies the rules and decides the verdict, every check leaves a receipt, and the explanations come from fixed, pre-written templates.">
 <meta property="og:url" content="/how-it-works/">
 </head>
 <body>
@@ -14,7 +14,7 @@
 <main id="main">
   <div class="wrap page-head">
     <h1>How Plainly decides</h1>
-    <p class="lede">Your device reads the letter. Fixed rules written in plain code decide the verdict, and each rule leaves a receipt. People wrote the explanations; nothing is generated.</p>
+    <p class="lede">Your device reads the letter. Fixed rules written in plain code decide the verdict, and each rule leaves a receipt. The explanations are fixed, pre-written templates: nothing is generated when you check a letter, and the same facts always give the same words.</p>
     <ul class="toc" aria-label="On this page">
       <li><a href="#pipeline">The steps</a></li>
       <li><a href="#rules">The rules</a></li>
@@ -36,7 +36,7 @@
           <li><strong>The rules reader picks out the parts.</strong> On AWS Lambda, plain code finds who the letter says it is from, its date, deadlines, amounts, payment requests and threats, by keywords and patterns. Phone numbers, web addresses and emails are pulled out the same way.</li>
           <li><strong>The rules and the official list.</strong> Over 20 rules run on the text, each based on a public source that is linked in the result. Phone numbers and web addresses are compared with a list of official contacts. Deadlines like "within 21 days of this notice" are worked out by date arithmetic.</li>
           <li><strong>The verdict and the receipts.</strong> The rules give a score, the score gives the verdict, and every rule leaves a line in the receipts, whether it passed or not.</li>
-          <li><strong>The explanation.</strong> People wrote a plain-words explanation for each verdict and each warning sign, in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span>. Plainly fills in the checked facts: who the letter claims to be from, the official number, the deadline. Nothing is generated.</li>
+          <li><strong>The explanation.</strong> A fixed, pre-written template for each verdict and each warning sign, in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span>. Plainly fills in the checked facts: who the letter claims to be from, the official number, the deadline. Nothing is generated when you check a letter. The templates were drafted with the coding agent that built Plainly.</li>
         </ol>
       </div>
       <figure class="diagram" aria-labelledby="diagram-caption">
@@ -98,7 +98,7 @@
           <rect class="row" x="36" y="554" width="288" height="32" rx="4"/>
           <text class="n" x="48" y="575">4</text><text class="rt" x="68" y="575">Date arithmetic for deadlines</text>
           <rect class="row" x="36" y="596" width="288" height="32" rx="4"/>
-          <text class="n" x="48" y="617">5</text><text class="rt" x="68" y="617">Explanations people wrote</text>
+          <text class="n" x="48" y="617">5</text><text class="rt" x="68" y="617">Pre-written explanations</text>
 
           <path class="ln dash" d="M105 646V676" marker-end="url(#arrow)"/>
           <path class="ln" d="M270 646V676" marker-end="url(#arrow)"/>
@@ -134,7 +134,7 @@
             <tr><td><code>credential_request</code></td><td>Asks for an OTP, PIN, password, CVV, full Social Security number, full Aadhaar number or net-banking login</td><td>Strong (3)</td></tr>
             <tr><td><code>threat_arrest</code></td><td>Arrest, police, warrant, deportation, "digital arrest", FIR, CBI, or legal action "today"</td><td>Strong (3)</td></tr>
             <tr><td><code>video_call_demand</code></td><td>Demands a video call, Skype or WhatsApp video, or that you stay on the call</td><td>Strong (3)</td></tr>
-            <tr><td><code>ai_instruction</code></td><td>Hidden text aimed at AI tools, trying to change the verdict. The quote is never shown; the result says it is visible in the image.</td><td>Strong (3)</td></tr>
+            <tr><td><code>ai_instruction</code></td><td>Text aimed at AI tools, trying to change the verdict. The quote is never shown; the result says it is in the letter. The rule sees only text that reaches it: pasted messages, emails and PDFs with a text layer. Faint or hidden print in a photo may not be read by the reader on your device.</td><td>Strong (3)</td></tr>
             <tr><td><code>lookalike_domain</code></td><td>A web or email address that imitates an official one (a letter or two changed, look-alike characters, punycode, extra words like <code>irs-gov-refund.com</code>) without being it</td><td>Strong (3)</td></tr>
             <tr><td><code>unexpected_fee_to_release</code></td><td>A fee you must pay before a prize, refund or job is handed over ("registration charges", "processing fee before release")</td><td>Strong (3), or Warning (1) for a parcel, because real customs charges exist</td></tr>
             <tr><td><code>link_bait</code></td><td>Asks you to click, open or scan a link to claim money, pay, or "verify" or "update" details. Links to the official website don't count.</td><td>Strong (3) when the link is a short link, a free web host or a look-alike; when the letter claims to be an agency on our list but the link isn't its site or is hidden; when a hidden link comes with a threat to block your account; or when it tells you to reply "Y" or copy the link to make it work. Otherwise Warning (1)</td></tr>
@@ -204,9 +204,10 @@
       <div class="prose">
         <ul>
           <li><strong>Reading on your device isn't perfect.</strong> Tesseract does well with clear, flat, printed pages and worse with glare, creases, handwriting or dim light. A missed word can hide a warning sign, which is why you see the words and can fix them before the check. For letters with Hindi, choose "English and हिन्दी"; it reads more slowly.</li>
+          <li><strong>Reading on your device needs a recent browser.</strong> Safari 16 (iOS 16) or later, Chrome or Edge 97 or later, or Firefox 102 or later. On an older phone the reader can't start; type or paste the letter's words instead, and the check works the same.</li>
           <li><strong>Keywords, not understanding.</strong> The rules reader finds things by words and patterns. A scam worded in an unusual way can slip past it. On 12 real scam messages published by governments, which the rules were never tuned on, it marked 1 as "Likely scam" and the other 11 as "Can't tell". It called none of them genuine, and it called none of 11 genuine letters a scam.</li>
           <li><strong>A short official list.</strong> We cover a small set of organisations in India, the United States and the United Kingdom. For anyone else, the best answer may be "Can't tell".</li>
-          <li><strong>Three languages.</strong> Explanations exist in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span> only, because each one was written out by a person.</li>
+          <li><strong>Three languages.</strong> Explanations exist in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span> only, because each one is a fixed template written in advance. They were drafted with the coding agent, and the <span lang="hi">हिन्दी</span> and <span lang="es">Español</span> text has not yet been reviewed by a native speaker.</li>
           <li><strong>Scams change.</strong> The rules catch common patterns, not every new one. A clean result is not a guarantee.</li>
           <li><strong>Not legal, tax or financial advice.</strong> For anything with money or legal steps at stake, use the official number or a trusted adviser.</li>
         </ul>

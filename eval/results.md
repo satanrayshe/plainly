@@ -13,7 +13,9 @@ built but switched off. The run was repeated through the production path:
 - **Rules:** `verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py` and `registry.json` still have the frozen
   hashes. `pipeline.py` changed for Option B (new hash `752e77608a78…`): it adds the AI_MODE switch, the text-only
   request and wording changes to trace and flag text ("the model" became "the rules reader"); no rule, threshold
-  or verdict logic changed, as the identical per-letter results show.
+  or verdict logic changed, as the identical per-letter results show. After the Option B review fixes (same day)
+  it is `77e2dd6921b9…` (explain request limits, the reader's date for explanations, a `sample_text` source); the
+  re-run in `results-rules-reader.md` is again identical field by field.
 
 The original wording below ("mock mode", "a keyword stand-in did the reading that Amazon Nova does in production")
 describes the run as it was made on 30 Sep, when Nova was still planned for the live site. With `AI_MODE=off`, the

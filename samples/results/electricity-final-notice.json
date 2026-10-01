@@ -5,7 +5,7 @@
   "mock": false,
   "ai_mode": "off",
   "reader": "rules",
-  "text_source": "device_ocr-equivalent (sample text)",
+  "text_source": "sample_text (transcribed from the sample HTML; not an OCR run)",
   "check": {
     "verdict": "likely_scam",
     "verdict_label": "Likely scam",
@@ -75,8 +75,8 @@
       {
         "step": "extract",
         "status": "done",
-        "ms": 7,
-        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 23 line(s) of the text your device read from the photo"
+        "ms": 5,
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 23 line(s) of the sample letter's text (transcribed from its source, not read from a photo)"
       },
       {
         "step": "registry",
@@ -250,15 +250,15 @@
       "deadlines": []
     },
     "grounding": {
-      "source": "device_ocr",
+      "source": "sample_text",
       "grounded": 3,
       "total": 3
     },
     "meta": {
-      "model": "rules-v2f45d6bcab",
+      "model": "rules-v14001583c8",
       "reader": "rules",
       "ai_mode": "off",
-      "ms": 19,
+      "ms": 18,
       "input_tokens": 0,
       "output_tokens": 0
     }
@@ -287,7 +287,7 @@
         },
         {
           "step": "Contact the organisation yourself",
-          "how": "If you are worried it might be real, contact the organisation on a number you look up yourself, on its own website or an old bill or card and ask.",
+          "how": "If you are worried it might be real, contact the organisation, using a number you look up yourself (on its own website, or on an old bill or card) and ask.",
           "by": null
         },
         {
@@ -308,11 +308,6 @@
         {
           "step": "Take your time to check",
           "how": "A few hours spent checking will not make things worse with a real office.",
-          "by": null
-        },
-        {
-          "step": "Check the unknown contact",
-          "how": "Before you call or write, compare it with the organisation's official website.",
           "by": null
         }
       ],
@@ -342,7 +337,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -396,11 +391,6 @@
           "step": "जाँचने के लिए समय लें",
           "how": "कुछ घंटे जाँच में लगाने से किसी असली दफ़्तर के साथ आपका मामला नहीं बिगड़ेगा।",
           "by": null
-        },
-        {
-          "step": "अनजान संपर्क की जाँच करें",
-          "how": "कॉल करने या लिखने से पहले उसे संस्था की आधिकारिक वेबसाइट से मिलाएँ।",
-          "by": null
         }
       ],
       "jargon": [
@@ -429,7 +419,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -440,10 +430,10 @@
     },
     "Spanish": {
       "language": "Spanish",
-      "tldr": "Esto parece una estafa. No pague y no llame, no haga clic ni responda a nada de lo que contiene. La señal más clara: pide pagar a un UPI o a un número de teléfono personal.",
+      "tldr": "Esto parece una estafa. No pague y no llame, no haga clic ni responda a nada de lo que contiene. La señal más clara: pide pagar a un ID de UPI o a un número de teléfono personal.",
       "explanation": [
         "Plainly revisó la carta con reglas fijas escritas en código. Las señales de alerta que encontró, juntas, indican que probablemente es una estafa.",
-        "Pide pagar a un UPI o a un número de teléfono personal. Una oficina del gobierno o una compañía eléctrica cobra en su propia página o aplicación oficial, no en la cuenta UPI ni en el móvil de una persona.",
+        "Pide pagar a un ID de UPI o a un número de teléfono personal. Una oficina del gobierno o una compañía eléctrica cobra en su propia página o aplicación oficial, no en la cuenta UPI ni en el móvil de una persona.",
         "Le pide llamar o escribir por WhatsApp a un número que no es oficial. Las facturas falsas y los avisos de corte dan un número que va directo al estafador. Las oficinas y las compañías eléctricas no usan móviles personales.",
         "Los estafadores copian los nombres de oficinas reales. Un nombre conocido no hace que un mensaje sea real.",
         "Si ya pagó o compartió un código o una contraseña, llame a su banco de inmediato y denúncielo."
@@ -461,7 +451,7 @@
         },
         {
           "step": "Contacte usted mismo a la organización",
-          "how": "Si le preocupa que pueda ser real, contacte a la organización por un número que usted mismo busque, en su sitio web o en una factura o tarjeta anterior y pregunte.",
+          "how": "Si le preocupa que pueda ser real, contacte a la organización por un número que usted mismo busque (en su sitio web o en una factura o tarjeta anterior) y pregunte.",
           "by": null
         },
         {
@@ -470,7 +460,7 @@
           "by": null
         },
         {
-          "step": "No pague a un UPI ni a un número del mensaje",
+          "step": "No pague a un ID de UPI ni a un número del mensaje",
           "how": "Pague sus facturas solo en la aplicación o el sitio oficial que usted mismo abra. Si ya pagó, llame de inmediato a su banco (en la India, también al 1930).",
           "by": null
         },
@@ -482,11 +472,6 @@
         {
           "step": "Tómese su tiempo para comprobarlo",
           "how": "Dedicar unas horas a comprobarlo no empeorará nada con una oficina de verdad.",
-          "by": null
-        },
-        {
-          "step": "Compruebe el contacto desconocido",
-          "how": "Antes de llamar o escribir, compárelo con el sitio web oficial de la organización.",
           "by": null
         }
       ],
@@ -516,7 +501,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 1,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -526,5 +511,5 @@
       }
     }
   },
-  "generated_at": "2026-10-01T00:13:20+00:00"
+  "generated_at": "2026-10-01T00:48:23+00:00"
 }

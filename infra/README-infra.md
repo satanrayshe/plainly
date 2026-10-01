@@ -97,7 +97,7 @@ and shows the new password only on the run that creates the login.
    aws login --profile plainly-agent --region us-east-1
    aws sts get-caller-identity --profile plainly-agent
    ```
-8. **After the agent has created and started the CloudTrail trail** (RUNBOOK step 10): create a policy from
+8. **After the agent has created and started the CloudTrail trail** (RUNBOOK step 4): create a policy from
    `agent-lock-policy.json` named `plainly-agent-lock` and attach it to the `plainly-agent` user. From then on the
    agent can't change or stop the trail, touch its bucket, log group or delivery role, or silence the alarm and budget
    emails. It can't detach the lock either: it has no `iam:DetachUserPolicy` or policy-version permissions. Stack
@@ -207,6 +207,12 @@ frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 ```
 
 - `'wasm-unsafe-eval'` lets Tesseract.js compile its WebAssembly core. Plain `'unsafe-eval'` is not allowed.
+  **Minimum browsers for reading photos on the device:** Safari 16 (iOS 16), Chrome / Edge 97, Firefox 102. Older
+  browsers don't know `'wasm-unsafe-eval'`, so under this CSP they refuse to compile the WebAssembly and the reader
+  can't start. On those, `/try/` says it couldn't read the letter (naming older Safari as a likely cause) and the
+  person types or pastes the text instead; the check itself works in any browser. Don't add `'unsafe-eval'` to
+  support them: it would allow `eval()` for every script on the site.
+  The local headless-Edge test runs a current Chromium, so it can't show this.
 - `worker-src blob:` allows Tesseract.js's default `blob:` worker. The site itself loads its workers straight from
   `/vendor/` (`workerBlobURL: false`), which `'self'` covers.
 - `connect-src 'self'` means the language data, the wasm core and the API must all be served from this site
@@ -251,12 +257,12 @@ bash -n scripts/deploy.sh && bash scripts/deploy.sh --help
 
 After a deploy:
 ```
-curl -sI  https://<SiteUrl>/how-it-works          # 200, text/html (rewritten to /how-it-works/index.html)
-curl -sI  https://<SiteUrl>/try/ | grep -i content-security-policy     # the CSP above
-curl -sI  https://<SiteUrl>/vendor/tesseract/core/tesseract-core-simd-lstm.wasm.js | grep -i content-type   # text/javascript
-curl -sI -H "Accept-Encoding: gzip, br" https://<SiteUrl>/vendor/tesseract/lang/eng.traineddata.gz \
+curl -sI  <SiteUrl>/how-it-works          # 200, text/html (rewritten to /how-it-works/index.html)
+curl -sI  <SiteUrl>/try/ | grep -i content-security-policy     # the CSP above
+curl -sI  <SiteUrl>/vendor/tesseract/core/tesseract-core-simd-lstm.wasm.js | grep -i content-type   # text/javascript
+curl -sI -H "Accept-Encoding: gzip, br" <SiteUrl>/vendor/tesseract/lang/eng.traineddata.gz \
   | grep -i -e content-type -e content-encoding   # application/octet-stream, and no content-encoding line
-curl -s   https://<SiteUrl>/api/health            # {"ok": true, ...}
+curl -s   <SiteUrl>/api/health            # {"ok": true, ...}
 curl -s -o /dev/null -w "%{http_code}\n" <ApiEndpoint>/api/health   # 403: no x-origin-verify header
 ```
 Then check a photo on /try/ in a browser with the developer console open: no CSP violation messages.
@@ -267,6 +273,9 @@ Then check a photo on /try/ in a browser with the developer console open: no CSP
     `textract` client: the role has no permission for either, and the Free plan refuses both.
   - `TABLE_NAME`, `MODEL_IDS` (comma-separated, in order; used only with `AI_MODE=on`), `DAILY_CAP`,
     `RATE_LIMIT_PER_HOUR`, `LOG_LEVEL`
+  - Optional, not set by the template: `EXPLAIN_RATE_LIMIT_PER_HOUR` (default 5 x `RATE_LIMIT_PER_HOUR` with
+    `AI_MODE=off`, because an explanation is template code and each language switch asks for one; equal to it with
+    `AI_MODE=on`) and `EXPLAIN_DAILY_CAP` (default 10 x `DAILY_CAP` off, 2 x on)
   - `APP_VERSION`: the S3 key of the zip, which works well as the `version` in `/api/health`
   - `ORIGIN_VERIFY` and `IP_HASH_SALT`: random 64-hex values from the NoEcho parameters `OriginVerifySecret` and
     `IpHashSalt`. `deploy.sh` generates them on the first create and keeps them afterwards; set
@@ -297,7 +306,8 @@ Then check a photo on /try/ in a browser with the developer console open: no CSP
   `DeleteStack` is denied through MCP.
 - **New accounts and CloudFront:** a brand-new account can be refused CloudFront resources ("Your account must be
   verified before you can add new CloudFront resources") until AWS Support verifies it, which can take hours to days.
-  RUNBOOK step 2 checks this first.
+  RUNBOOK step 2 starts with a console pre-check (create and delete a test distribution) so that a refusal doesn't
+  leave the stack in `ROLLBACK_COMPLETE`. Skip it, and the first deploy is the test.
 - **Teardown (Shrey, CLI, not through MCP):**
   1. Empty the site bucket.
   2. Run `aws cloudformation delete-stack --stack-name plainly`.

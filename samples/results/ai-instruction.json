@@ -5,7 +5,7 @@
   "mock": false,
   "ai_mode": "off",
   "reader": "rules",
-  "text_source": "device_ocr-equivalent (sample text)",
+  "text_source": "sample_text (transcribed from the sample HTML; not an OCR run)",
   "check": {
     "verdict": "likely_scam",
     "verdict_label": "Likely scam",
@@ -101,13 +101,13 @@
         "step": "extract",
         "status": "done",
         "ms": 2,
-        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 18 line(s) of the text your device read from the photo"
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 18 line(s) of the sample letter's text (transcribed from its source, not read from a photo)"
       },
       {
         "step": "registry",
         "status": "unknown",
         "detail": "No match: no agency in our registry is named in the letter.",
-        "ms": 1
+        "ms": 2
       },
       {
         "step": "contacts",
@@ -274,15 +274,15 @@
       "deadlines": []
     },
     "grounding": {
-      "source": "device_ocr",
+      "source": "sample_text",
       "grounded": 3,
       "total": 3
     },
     "meta": {
-      "model": "rules-v2f45d6bcab",
+      "model": "rules-v14001583c8",
       "reader": "rules",
       "ai_mode": "off",
-      "ms": 31,
+      "ms": 28,
       "input_tokens": 0,
       "output_tokens": 0
     }
@@ -311,7 +311,7 @@
         },
         {
           "step": "Contact the organisation yourself",
-          "how": "If you are worried it might be real, contact the organisation on a number you look up yourself, on its own website or an old bill or card and ask.",
+          "how": "If you are worried it might be real, contact the organisation, using a number you look up yourself (on its own website, or on an old bill or card) and ask.",
           "by": null
         },
         {
@@ -366,7 +366,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 0,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -453,7 +453,7 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
+        "model": "rules-v14001583c8",
         "ms": 0,
         "input_tokens": 0,
         "output_tokens": 0,
@@ -485,7 +485,7 @@
         },
         {
           "step": "Contacte usted mismo a la organización",
-          "how": "Si le preocupa que pueda ser real, contacte a la organización por un número que usted mismo busque, en su sitio web o en una factura o tarjeta anterior y pregunte.",
+          "how": "Si le preocupa que pueda ser real, contacte a la organización por un número que usted mismo busque (en su sitio web o en una factura o tarjeta anterior) y pregunte.",
           "by": null
         },
         {
@@ -540,8 +540,8 @@
       ],
       "reply_draft": "",
       "meta": {
-        "model": "rules-v2f45d6bcab",
-        "ms": 1,
+        "model": "rules-v14001583c8",
+        "ms": 0,
         "input_tokens": 0,
         "output_tokens": 0,
         "fallback": false,
@@ -550,5 +550,5 @@
       }
     }
   },
-  "generated_at": "2026-10-01T00:13:20+00:00"
+  "generated_at": "2026-10-01T00:48:24+00:00"
 }

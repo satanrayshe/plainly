@@ -22,6 +22,7 @@ const ocrLangSelect = $("#ocr-lang");
 const formError = $("#form-error");
 const submitBtn = $("#submit-btn");
 const chosen = $("#chosen");
+const readLive = $("#read-live");
 const dropzone = $("#dropzone");
 
 const PREFS_KEY = "plainly.prefs";
@@ -31,9 +32,13 @@ const LOW_CONFIDENCE = 70; // Tesseract's mean word confidence, 0-100
 
 // The chosen file: { file, prepared, previewUrl, status: "preparing"|"reading"|"done"|"failed", langs, ms, seq }.
 let letter = null;
-// Where the text in the box came from: "typed", "device_ocr" or "pdf_text". Edits keep the source; emptying
-// the box makes it "typed" again.
+// Where the text in the box came from: "typed", "device_ocr" or "pdf_text". Small edits (fixing misread words)
+// keep the source; emptying the box, or replacing most of its words, makes it "typed" again.
 let textSource = "typed";
+// The text the device read, as it was put in the box (to tell a correction from a replacement).
+let filledText = "";
+// Length of the box at the last input event, to spot a big paste or deletion.
+let lastLength = 0;
 // The last check shown, used by "explain in another language".
 let current = null;
 // Bumped whenever the results area moves on (new check, sample, start over), so a slow /api/check answer
@@ -95,8 +100,7 @@ function setFile(file) {
     letter.previewUrl = prepared.preview;
     if (prepared.kind === "pdf_text") {
       letter.status = "done";
-      fillText(prepared.text, "pdf_text");
-      showChosen();
+      finishReading(letter, prepared.text, "pdf_text");
     } else {
       readLetter();
     }
@@ -115,7 +119,9 @@ async function readLetter() {
   entry.status = "reading";
   entry.langs = ocrLangSelect.value;
   entry.progress = { fraction: 0, phase: "load", page: 1, pages: entry.prepared.images.length };
+  entry.readText = null;
   showChosen();
+  announceRead("Reading the letter on your device. This can take up to a minute.");
   try {
     ocrModule ??= await import("./js/ocr.js");
   } catch {
@@ -135,18 +141,49 @@ async function readLetter() {
     entry.status = "done";
     entry.ms = out.ms;
     entry.confidence = out.confidence;
-    fillText(out.text, "device_ocr");
-    showChosen();
+    finishReading(entry, out.text, "device_ocr");
   } catch (err) {
     if (seq !== readSeq || err?.name === "OcrCancelled") return;
-    readFailed(entry, "We couldn't read this letter on your device. Type or paste its words below instead.");
+    readFailed(entry, "We couldn't read this letter on your device. Type or paste its words below instead. "
+      + "(Older browsers, such as Safari before iOS 16, can't run the reader.)");
   }
+}
+
+// Puts what the device read in the box, unless the person has already typed or pasted something there: then
+// their text stays, and a button offers to replace it.
+function finishReading(entry, text, source) {
+  const typed = textSource === "typed" && textInput.value.trim();
+  if (typed) {
+    entry.readText = text;
+    entry.readSource = source;
+  } else {
+    fillText(text, source);
+  }
+  const keepFocus = focusIsInChosen();
+  showChosen();
+  if (typed) {
+    announceRead("Reading finished. The box still has the text you typed; use the button to replace it with the words read from the letter.");
+    if (keepFocus) chosen.querySelector("[data-focus]")?.focus();
+  } else {
+    announceRead("Reading finished. Check the words in the box, then press Check this letter.");
+    if (keepFocus) textInput.focus({ preventScroll: true });
+  }
+}
+
+function useReadText() {
+  if (!letter?.readText) return;
+  fillText(letter.readText, letter.readSource || "device_ocr");
+  letter.readText = null;
+  showChosen();
+  announceRead("The box now has the words read from the letter. Check them, then press Check this letter.");
+  textInput.focus({ preventScroll: true });
 }
 
 function readFailed(entry, message) {
   entry.status = "failed";
   entry.error = message;
   showChosen();
+  announceRead(message);
   textInput.focus({ preventScroll: true });
 }
 
@@ -156,12 +193,26 @@ function cancelReading() {
   if (letter) {
     letter.status = "cancelled";
     showChosen();
+    announceRead("Reading stopped. Read it again, or type or paste the words in the box.");
+    chosen.querySelector("[data-focus]")?.focus();
   }
+}
+
+function announceRead(message) {
+  readLive.textContent = "";
+  setTimeout(() => { readLive.textContent = message; }, 50);
+}
+
+function focusIsInChosen() {
+  const active = document.activeElement;
+  return !active || active === document.body || chosen.contains(active);
 }
 
 function fillText(text, source) {
   textInput.value = text.slice(0, Number(textInput.maxLength) || 30000);
   textSource = source;
+  filledText = textInput.value;
+  lastLength = filledText.length;
   syncTextLabel();
 }
 
@@ -194,7 +245,7 @@ function showChosen() {
   let extra = null;
 
   if (entry.status === "preparing") {
-    lines.push(h("p", { class: "muted small", role: "status" }, "Opening the file…"));
+    lines.push(h("p", { class: "muted small" }, "Opening the file…"));
   } else if (entry.status === "reading") {
     const bar = h("progress", { max: 100, value: 0, "aria-labelledby": "read-status" });
     const pct = h("span", { class: "read-pct" }, "0%");
@@ -203,7 +254,7 @@ function showChosen() {
       h("p", { class: "read-status", id: "read-status" }, "Reading on your device… ", pct),
       bar,
       h("div", { class: "reading-foot" }, stage,
-        h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: cancelReading }, "Cancel")));
+        h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: cancelReading, "data-focus": "" }, "Cancel")));
     entry.ui = { bar, pct, stage };
     updateProgress(entry);
   } else if (entry.status === "done") {
@@ -214,21 +265,31 @@ function showChosen() {
     if (entry.confidence != null && entry.confidence < LOW_CONFIDENCE) {
       lines.push(h("p", { class: "small warn-line" }, "Some words were hard to read. Compare the text below with your letter carefully."));
     }
+    if (entry.readText) {
+      lines.push(h("p", { class: "small warn-line" }, "The box below still has the text you typed, so we didn't replace it."));
+    }
   } else if (entry.status === "cancelled") {
     lines.push(h("p", { class: "muted small" }, "Reading stopped. Read it again, or type or paste the words below."));
   } else if (entry.status === "failed") {
-    lines.push(h("p", { class: "small warn-line", role: "alert" }, entry.error));
+    lines.push(h("p", { class: "small warn-line" }, entry.error));
   }
 
   const canReread = entry.prepared?.images && (entry.status === "cancelled"
     || entry.status === "failed" || (entry.status === "done" && entry.langs !== ocrLangSelect.value));
   const actions = entry.status === "reading" ? null : h("div", { class: "btn-row" },
-    canReread ? h("button", { type: "button", class: "btn btn-small", onclick: readLetter },
-      entry.status === "done" ? "Read again in this language" : "Read it again") : null,
+    entry.status === "done" && entry.readText
+      ? h("button", { type: "button", class: "btn btn-small", onclick: useReadText, "data-focus": "" },
+        "Use the words read from the letter") : null,
+    canReread ? h("button", { type: "button", class: "btn btn-small", onclick: readLetter,
+      "data-focus": entry.readText ? null : "" },
+    entry.status === "done" ? "Read again in this language" : "Read it again") : null,
     removeBtn);
 
+  // Replacing the buttons would drop keyboard focus to the top of the page; move it to the new main button.
+  const hadFocus = chosen.contains(document.activeElement);
   chosen.replaceChildren(h("div", { class: "chosen" }, thumb, h("div", null, ...lines),
     extra || actions ? h("div", { class: "chosen-wide" }, extra, actions) : null));
+  if (hadFocus) (chosen.querySelector("[data-focus]") || removeBtn).focus({ preventScroll: true });
 }
 
 function updateProgress(entry) {
@@ -239,7 +300,7 @@ function updateProgress(entry) {
   ui.bar.value = percent;
   ui.pct.textContent = `${percent}%`;
   ui.stage.textContent = p.phase === "load"
-    ? "Getting the reader ready. The first time takes a few seconds."
+    ? "Getting the reader ready. The first time, your browser downloads it (about 7 MB, 8.5 MB with Hindi); after that it starts quickly."
     : p.pages > 1 ? `Page ${p.page} of ${p.pages}` : "Reading the words";
 }
 
@@ -289,9 +350,28 @@ dropzone.addEventListener("drop", (e) => {
 window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => e.preventDefault());
 
+// Words in a text, for telling a correction from a replacement.
+function wordsOf(text) {
+  return text.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+}
+
 textInput.addEventListener("input", () => {
-  if (!textInput.value.trim() && textSource !== "typed") {
+  const value = textInput.value;
+  const jump = Math.abs(value.length - lastLength);
+  lastLength = value.length;
+  if (textSource === "typed") return;
+  let replaced = !value.trim();
+  if (!replaced && jump > 20) {
+    // A big paste or deletion: if most of the words are no longer the ones the device read, the text is the
+    // person's own now, and the receipts must not say the device read it.
+    const read = new Set(wordsOf(filledText));
+    const words = wordsOf(value);
+    const kept = words.filter((w) => read.has(w)).length;
+    replaced = words.length >= 5 && kept < words.length * 0.5;
+  }
+  if (replaced) {
     textSource = "typed";
+    filledText = "";
     syncTextLabel();
   }
 });
@@ -401,6 +481,10 @@ async function explainLive(language, level) {
   const seq = ++explainSeq;
   const shown = current;
   const stale = () => seq !== explainSeq || shown !== current;
+  // Switching back to a language already shown costs no request (and no use of the hourly limit).
+  const key = `${language}|${level}`;
+  const cached = shown.explained?.get(key);
+  if (cached) return showExplanation(cached, null, language);
   const slot = explanationSlot();
   const progress = renderProgress(`Getting the explanation in ${LANGUAGE_NAMES[language] || language}`,
     [{ key: "narrate", label: "Putting it in plain words", who: "Using only the checked facts above" }]);
@@ -408,10 +492,12 @@ async function explainLive(language, level) {
   slot.append(progress.el);
   try {
     const explain = await postJson("/explain", {
-      letter_text: current.letterText, check: current.check, language, level,
+      letter_text: current.letterText, check: current.check, language, level, today: todayIso(),
     });
     if (stale()) return;
-    showExplanation(explain, fallbackNote(explain, language, level), language);
+    const note = fallbackNote(explain, language, level);
+    if (!note) (shown.explained ??= new Map()).set(key, explain);
+    showExplanation(explain, note, language);
   } catch (err) {
     if (stale()) return;
     progress.el.remove();

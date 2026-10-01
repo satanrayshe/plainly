@@ -155,8 +155,8 @@ def test_data_url_prefix_and_png_accepted():
 
 
 def test_client_today_must_be_plausible():
-    assert pipeline._client_today("1999-01-01") != pipeline.date(1999, 1, 1)
-    assert pipeline._client_today("garbage") == pipeline.date.today()
+    assert pipeline.client_today("1999-01-01") != pipeline.date(1999, 1, 1)
+    assert pipeline.client_today("garbage") == pipeline.date.today()
 
 
 def test_budget_respects_lambda_time():

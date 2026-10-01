@@ -264,6 +264,7 @@ function renderReceipts(check, deviceStep = null) {
     textract: "the independent reading (Amazon Textract)",
     device_ocr: "the text read on your device",
     pdf_text: "the PDF's own text",
+    sample_text: "the sample letter's text (transcribed from the sample, not read from a photo)",
     pasted_text: "the text that was sent for checking",
     typed: "the text that was sent for checking",
   }[g?.source];

@@ -77,6 +77,7 @@ def test_trace_and_flags_never_claim_a_model_read_it():
 
 @pytest.mark.parametrize("text_source, grounding_source", [
     (None, "pasted_text"), ("typed", "pasted_text"), ("device_ocr", "device_ocr"), ("pdf_text", "pdf_text"),
+    ("sample_text", "sample_text"),
     ("something-else", "pasted_text"), (42, "pasted_text"),
 ])
 def test_grounding_source_follows_the_client(text_source, grounding_source):

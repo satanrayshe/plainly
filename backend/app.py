@@ -2,7 +2,7 @@
 
 Routes
   POST /api/check     {text, text_source?, today?} (AI_MODE=off; image only with AI_MODE=on) -> verdict, ...
-  POST /api/explain   {letter_text, check, language, level}                -> plain-language explanation
+  POST /api/explain   {letter_text, check, language, level, today?}        -> plain-language explanation
   GET  /api/health                                                          -> {ok, version, ai_mode}
   GET  /api/stats                                                           -> anonymous counters
 
@@ -102,12 +102,27 @@ def from_cloudfront(event):
     return hmac.compare_digest(headers.get("x-origin-verify", ""), expected)
 
 
+# With AI_MODE=off an explanation is template code and costs no model call, and every language or level switch on
+# a result asks for one. So explain gets several times the check limit per hour (EXPLAIN_RATE_LIMIT_PER_HOUR
+# overrides it). With AI_MODE=on each explanation is a Bedrock call and shares the check limit.
+EXPLAIN_RATE_FACTOR_OFF = 5
+
+
+def per_hour_limit(route):
+    per_hour = int(os.environ.get("RATE_LIMIT_PER_HOUR", "20"))
+    if route != "explain":
+        return per_hour
+    default = per_hour * EXPLAIN_RATE_FACTOR_OFF if pipeline.ai_mode() == "off" else per_hour
+    return int(os.environ.get("EXPLAIN_RATE_LIMIT_PER_HOUR") or default)
+
+
 def enforce_limits(route, event):
     now = time.time()
-    per_hour = int(os.environ.get("RATE_LIMIT_PER_HOUR", "20"))
+    per_hour = per_hour_limit(route)
     daily_cap = int(os.environ.get("DAILY_CAP", "400"))
     if route == "explain":
-        daily_cap = int(os.environ.get("EXPLAIN_DAILY_CAP", str(daily_cap * 2)))
+        factor = 10 if pipeline.ai_mode() == "off" else 2  # off: three languages per check, no model cost
+        daily_cap = int(os.environ.get("EXPLAIN_DAILY_CAP", str(daily_cap * factor)))
     window = limits.hour_window(now)
     store = counters()
     if not store.take(f"rl#{route}#{limits.ip_hash(rate_key(client_ip(event)))}#{window}", per_hour,
@@ -159,7 +174,8 @@ def explain(event, context, fields):
     payload = read_json(event)
     letter_text, checked, language, level = pipeline.parse_explain_request(payload)
     enforce_limits("explain", event)
-    result = pipeline.narrate(letter_text, checked, language, level, pipeline.Budget(context))
+    result = pipeline.narrate(letter_text, checked, language, level, pipeline.Budget(context),
+                              today=pipeline.client_today(payload.get("today")))
     bucket = language_bucket(language)
     counters().bump(["explains_total", f"language_{bucket}"])
     fields.update(language=bucket, verdict=checked.get("verdict"), model=result["meta"]["model"],

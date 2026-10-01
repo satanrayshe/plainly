@@ -11,8 +11,10 @@
 Production (default): on the live site the browser reads a photo on the device (Tesseract.js) and sends only the
 text. Here each sample's text comes from samples/letters/<id>.txt, the letter's visible text taken from its HTML
 source (the watermark left out; in ai-instruction the faint line aimed at AI tools is kept, because it is part of the
-letter). That stands in for what on-device OCR would read; it is not an OCR run. Each letter goes through
-POST /api/check with text_source "device_ocr", then POST /api/explain in English, Hindi and Spanish.
+letter). It is not an OCR run, and on-device OCR may read a photo differently (Tesseract does not pick up the faint
+line in ai-instruction.png). So each letter goes through POST /api/check with text_source "sample_text", which the
+receipts call "the sample letter's text", never "read on your device"; then POST /api/explain in English, Hindi and
+Spanish, with the same date for today.
 
 AI_MODE=on (--ai-mock, --live): the PNG is re-encoded as a JPEG under 1.5 MB and uploaded like the old /try/ page did.
 
@@ -37,7 +39,7 @@ from harness import LocalApi  # noqa: E402
 LETTERS = ROOT / "samples" / "letters"
 RESULTS = ROOT / "samples" / "results"
 MAX_UPLOAD = 1_500_000
-TEXT_SOURCE_LABEL = "device_ocr-equivalent (sample text)"
+TEXT_SOURCE_LABEL = "sample_text (transcribed from the sample HTML; not an OCR run)"
 
 SAMPLES = {
     "electricity-final-notice": "Electricity “final notice”",
@@ -105,7 +107,7 @@ def assert_no_injection_text(sample_id, data):
 
 def check_payload(api, sample_id, args):
     if args.mode == "off":
-        return {"text": sample_text(sample_id, args.refresh_text), "text_source": "device_ocr", "today": args.today}
+        return {"text": sample_text(sample_id, args.refresh_text), "text_source": "sample_text", "today": args.today}
     png = LETTERS / f"{sample_id}.png"
     if not png.exists():
         raise SystemExit(f"Missing {png.relative_to(ROOT)}; run scripts/render_letters.py first.")
@@ -125,7 +127,8 @@ def run_one(api, sample_id, title, args):
     explanations, explain_ms = {}, 0
     for language in args.languages:
         status, explain, ms = api.post("/api/explain", {
-            "letter_text": letter_text, "check": check, "language": language, "level": args.level})
+            "letter_text": letter_text, "check": check, "language": language, "level": args.level,
+            "today": args.today})
         if status != 200:
             raise SystemExit(f"{sample_id}: /api/explain ({language}) returned {status}: {explain}")
         explanations[language] = explain
@@ -166,7 +169,7 @@ def main():
     parser.set_defaults(mode="off")
     parser.add_argument("--refresh-text", action="store_true",
                         help="rebuild samples/letters/<id>.txt from the HTML before running (production mode)")
-    parser.add_argument("--today", default="2026-09-30", help="client date sent with /api/check")
+    parser.add_argument("--today", default="2026-09-30", help="client date sent with /api/check and /api/explain")
     parser.add_argument("--languages", default="English,Hindi,Spanish",
                         type=lambda v: [x.strip() for x in v.split(",") if x.strip()],
                         help="comma-separated explanation languages (default: English,Hindi,Spanish)")

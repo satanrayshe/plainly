@@ -33,7 +33,10 @@ MIN_TRANSCRIPT_LETTERS = 20  # non-Latin letters a transcript must add before it
 MAX_TEXT_CHARS = 20000         # AI_MODE=on: pasted text beyond this is cut off (unchanged behaviour)
 MAX_DEVICE_TEXT_CHARS = 30000  # AI_MODE=off: longer text is refused with a friendly 400
 MAX_IMAGE_B64_CHARS = 2_200_000
-MAX_CHECK_CHARS = 40_000  # the sample /api/check results (minus letter_text) are 4-8 KB
+MAX_CHECK_CHARS = 40_000  # AI_MODE=on: the sample /api/check results (minus letter_text) are 4-8 KB
+# AI_MODE=off: /api/check takes up to MAX_DEVICE_TEXT_CHARS, and a long letter with many dated lines and links can
+# give a check of about 1.6 times its text (a 25,860-character text gave 40,510). _brief clips every field anyway.
+MAX_CHECK_CHARS_OFF = 100_000
 TOTAL_BUDGET_MS = 25000
 LAMBDA_SAFETY_MS = 1500
 EXTRACT_MAX_TOKENS = 1500
@@ -48,10 +51,14 @@ LEVELS = {
 }
 
 # What the browser says the text is -> grounding.source in the response.
-TEXT_SOURCES = {"typed": "pasted_text", "device_ocr": "device_ocr", "pdf_text": "pdf_text"}
+# "sample_text" is what scripts/run_samples.py sends for the showcase letters: their text transcribed from the
+# sample's HTML source, not read from a photo, so the receipts must not say a device read it.
+TEXT_SOURCES = {"typed": "pasted_text", "device_ocr": "device_ocr", "pdf_text": "pdf_text",
+                "sample_text": "sample_text"}
 _TEXT_SOURCE_WORDS = {"typed": "the text you typed or pasted",
                       "device_ocr": "the text your device read from the photo",
-                      "pdf_text": "the text inside the PDF"}
+                      "pdf_text": "the text inside the PDF",
+                      "sample_text": "the sample letter's text (transcribed from its source, not read from a photo)"}
 # Files whose content decides an AI_MODE=off result; their hash is the "model" name in meta (rules-v<hash>).
 RULES_FILES = ("reader.py", "verifier.py", "lexicon.py", "contacts.py", "agencies.py", "dates.py", "grounding.py",
                "registry.json", "explain_templates.py", "pipeline.py")
@@ -140,7 +147,7 @@ def parse_check_request(payload):
     text = text.strip()[:MAX_TEXT_CHARS]
     if not image_bytes and not text:
         raise BadRequest("Add a photo of the letter, or paste its text.")
-    return CheckRequest(image_bytes, image_format, text, _client_today(payload.get("today")),
+    return CheckRequest(image_bytes, image_format, text, client_today(payload.get("today")),
                         _text_source(payload))
 
 
@@ -162,10 +169,10 @@ def _parse_text_only(payload):
     if len(text) > MAX_DEVICE_TEXT_CHARS:
         raise BadRequest("That is more text than Plainly can check at once (about 30,000 characters). "
                          "Please check the first pages, or paste the part that asks you to do something.")
-    return CheckRequest(None, None, text, _client_today(payload.get("today")), _text_source(payload))
+    return CheckRequest(None, None, text, client_today(payload.get("today")), _text_source(payload))
 
 
-def _client_today(value):
+def client_today(value):
     """The reader's local date, if it is plausible; otherwise the server's (UTC) date."""
     server = date.today()
     try:
@@ -524,9 +531,10 @@ def parse_explain_request(payload):
     if not _LANGUAGE_NAME.fullmatch(language) or not any(c.isalpha() for c in language):
         raise BadRequest("Please pick a language from the list, or type its name (up to 40 letters).")
     level = payload.get("level") if payload.get("level") in LEVELS else "normal"
-    if len(json.dumps(payload["check"], ensure_ascii=False)) > MAX_CHECK_CHARS:
+    off = ai_mode() == "off"
+    if len(json.dumps(payload["check"], ensure_ascii=False)) > (MAX_CHECK_CHARS_OFF if off else MAX_CHECK_CHARS):
         raise BadRequest("That result is too large to explain. Please check the letter again.")
-    return letter_text[:MAX_TEXT_CHARS], payload["check"], language, level
+    return letter_text[:MAX_DEVICE_TEXT_CHARS if off else MAX_TEXT_CHARS], payload["check"], language, level
 
 
 def _clip(value, limit):
@@ -572,17 +580,20 @@ def _brief(check):
     }
 
 
-def _template_brief(check):
-    """_brief plus what the templates need: the rule ids of the flags (known ids only)."""
+def _template_brief(check, today=None):
+    """_brief plus what the templates need: the rule ids of the flags (known ids only) and the reader's date, so
+    deadlines that have already passed are not given forward-looking advice."""
     brief = _brief(check)
     brief["rules"] = [f.get("rule") for f in _items(check.get("flags"), 12) if f.get("rule") in verifier.RULES]
+    brief["today"] = (today or date.today()).isoformat()
     return brief
 
 
-def narrate(letter_text, check, language, level, budget=None):
+def narrate(letter_text, check, language, level, budget=None, today=None):
+    """today: the reader's date (client_today of the request's "today"); the server's date when not given."""
     budget = budget or Budget()
     if ai_mode() == "off":
-        return explain_templates.explain(letter_text, _template_brief(check), language, level,
+        return explain_templates.explain(letter_text, _template_brief(check, today), language, level,
                                          model=rules_version(), started=budget.started)
     brief = _brief(check)
     scam = brief["verdict"] == "likely_scam"

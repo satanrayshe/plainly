@@ -232,3 +232,148 @@ def test_every_dev_and_sample_letter_explains_in_three_languages():
             assert "ignore previous instructions" not in dumped.lower()
             allowed = {d["date"] for d in check["extracted"]["deadlines"]}
             assert all(a["by"] is None or a["by"] in allowed for a in out["actions"])
+
+
+# ---------------------------------------------------------------- review fixes (1 Oct 2026)
+
+def _check_and_explain(text, language="English", today=None):
+    registry = agencies.load_registry(BACKEND / "registry.json")
+    check = pipeline.check_request(pipeline.parse_check_request({"text": text}), registry=registry)
+    letter_text = check.pop("letter_text")
+    return check, pipeline.narrate(letter_text, check, language, "simple", today=today)
+
+
+def test_reply_never_addresses_message_text_such_as_an_otp_sms():
+    otp = json.loads((BACKEND.parent / "eval" / "dev" / "genuine_fp_hdfc_card_otp.json").read_text(
+        encoding="utf-8"))["text"]
+    code = re.search(r"\b\d{6}\b", otp).group(0)
+    check, out = _check_and_explain(otp)
+    assert check["verdict"] != "likely_scam" and check["agency"] is None
+    assert code not in out["reply_draft"]
+    assert out["reply_draft"].startswith("To: The office that sent the notice")
+
+
+@pytest.mark.parametrize("sender", [
+    "482913 is OTP for txn of INR 2,499.00 at AMAZON PAY INDIA on HDFC Bank card endi",
+    "Dear Customer, your KYC for SBI A/c XX4821 is due for periodic updation as per R",
+    "Hello. I am an artificial intelligent notification bot",
+    "प्रिय नागरिक, डिजिटल अरेस्ट जैसी कोई चीज़ नहीं होती। पुलिस",
+    "डिजिटल अरेस्ट जैसी कोई चीज़ नहीं होती।",
+    "Claim your tax refund online",
+    "Your parcel is waiting at the depot for delivery",
+    "From: alerts@bank.example",
+    "Visit https://example.com",
+    "",
+])
+def test_message_text_is_not_an_addressee(sender):
+    assert et.addressee(sender) is None
+    draft = et.explain("some text", brief("cant_tell", agency=None, sender=sender), "English", model="m")["reply_draft"]
+    assert draft.startswith("To: The office that sent the notice")
+
+
+@pytest.mark.parametrize("sender", ["बिजली विभाग", "HM Revenue & Customs", "Acme Water Services", "STATE OF MARYLAND"])
+def test_short_names_are_addressees(sender):
+    assert et.addressee(sender) == sender
+
+
+def test_hindi_official_number_takes_the_oblique_before_par():
+    out = et.explain("x", brief("consistent_with_genuine"), "Hindi", model="m")
+    text = json.dumps(out, ensure_ascii=False)
+    assert "Internal Revenue Service के आधिकारिक नंबर 800-829-1040" in out["tldr"]
+    assert "का आधिकारिक नंबर" not in text
+    assert "चेतावनी का कोई संकेत नहीं मिला" in out["tldr"]
+
+
+def _ten_deadlines():
+    return [{"date": f"2026-{m:02d}-15", "what": f"Pay instalment {m} by 15/{m:02d}/2026", "computed_from": None}
+            for m in range(3, 13)]
+
+
+@pytest.mark.parametrize("language", LANGS)
+@pytest.mark.parametrize("verdict", ["consistent_with_genuine", "cant_tell"])
+def test_many_deadlines_never_push_out_the_verdicts_own_steps(verdict, language):
+    lang = LANGS[language]
+    b = brief(verdict, deadlines=_ten_deadlines(), rules=("unknown_contact",) if verdict == "cant_tell" else ())
+    out = et.explain("x", b, language, model="m")
+    steps = [a["step"] for a in out["actions"]]
+    values = {"agency_or_office": IRS["name"], "official": "", "report": "", "site": ""}
+    standard = [et._fill(step, **values) for step, _ in et.ACTIONS[verdict][lang]]
+    for step in standard:
+        assert step in steps, (verdict, language, step)
+    assert sum(1 for a in out["actions"] if a["by"]) <= et.MAX_DEADLINE_ACTIONS
+    assert steps[0] == standard[0]  # "Don't act on the letter yet" / "Confirm with ... first" leads
+    if verdict == "cant_tell":
+        assert all(a["by"] is None for a in out["actions"][:len(standard)])
+
+
+@pytest.mark.parametrize("language", LANGS)
+def test_scam_actions_do_not_say_call_the_unknown_contact(language):
+    lang = LANGS[language]
+    out = et.explain("x", brief("likely_scam", rules=("payment_gift_card", "unknown_contact",
+                                                      "injection_detected_model", "ai_instruction")),
+                     language, model="m")
+    steps = [a["step"] for a in out["actions"]]
+    assert et.RULE_TEXT["unknown_contact"][lang]["step"] not in steps
+    assert et.RULE_TEXT["injection_detected_model"][lang]["step"] not in steps
+    assert et.RULE_TEXT["ai_instruction"][lang]["step"] in steps
+
+
+@pytest.mark.parametrize("language", LANGS)
+def test_past_deadlines_get_past_tense_and_no_calendar_step(language):
+    lang = LANGS[language]
+    past = [{"date": "2026-08-20", "what": "pay by August 20, 2026", "computed_from": None}]
+    b = {**brief("consistent_with_genuine", deadlines=past), "today": "2026-10-01"}
+    out = et.explain("Internal Revenue Service notice", b, language, model="m")
+    calendar = et.ACTIONS["consistent_with_genuine"][lang][2][0]
+    steps = [a["step"] for a in out["actions"]]
+    assert calendar not in steps
+    assert et._fill(et.PHRASES[lang]["deadline_past_step"], date=et.format_date("2026-08-20", lang)) in steps
+    assert any(et._fill(et.PHRASES[lang]["one_deadline_past"], date=et.format_date("2026-08-20", lang)) == point
+               for point in out["explanation"])
+    assert et._fill(et.DEADLINE_QUESTION[lang][2], date=et.format_date("2026-08-20", lang)) in out["questions_to_ask"]
+    assert "that date has passed" in out["reply_draft"] and "allow an extension" not in out["reply_draft"]
+    # Without a date for today (old clients), nothing is treated as past.
+    out = et.explain("Internal Revenue Service notice", brief("consistent_with_genuine", deadlines=past), language,
+                     model="m")
+    assert calendar in [a["step"] for a in out["actions"]]
+
+
+def test_mixed_past_and_upcoming_deadlines_lead_with_the_next_one():
+    deadlines = [{"date": "2026-08-20", "what": "first", "computed_from": None},
+                 {"date": "2026-11-20", "what": "second", "computed_from": None}]
+    b = {**brief("consistent_with_genuine", deadlines=deadlines), "today": "2026-10-01"}
+    out = et.explain("Internal Revenue Service notice", b, "English", model="m")
+    dated = [a for a in out["actions"] if a["by"]]
+    assert [a["by"] for a in dated] == ["2026-11-20", "2026-08-20"]
+    assert "The next one still ahead is 20 November 2026." in " ".join(out["explanation"])
+    assert "act by 20 November 2026" in out["reply_draft"]
+
+
+def test_narrate_uses_the_readers_date():
+    check = {"verdict": "consistent_with_genuine", "agency": IRS, "flags": [],
+             "extracted": {"deadlines": [{"date": "2026-08-24", "what": "Pay by August 24, 2026",
+                                          "computed_from": None}], "amounts": ["$1,284.60"]}}
+    out = pipeline.narrate("", check, "English", "simple", today=pipeline.date(2026, 10, 1))
+    assert [a["step"] for a in out["actions"] if a["by"]] == ["Date already passed: 24 August 2026"]
+    out = pipeline.narrate("", check, "English", "simple", today=pipeline.date(2026, 8, 1))
+    assert [a["step"] for a in out["actions"] if a["by"]] == ["Deadline: 24 August 2026"]
+
+
+def test_spanish_and_english_agree_with_one_amount():
+    out = et.explain("Aviso de pago de la cuenta con fecha y el pago es para usted por la oficina de la ciudad",
+                     brief("cant_tell", amounts=("$5",)), "Spanish", model="m")
+    assert "Menciona esta cantidad: $5." in out["explanation"]
+    assert ", en el que se menciona $5." in out["reply_draft"] and "pagarla a plazos" in out["reply_draft"]
+    two = et.explain("x", brief("cant_tell", amounts=("$5", "$7")), "English", model="m")["reply_draft"]
+    assert "If I do owe these amounts" in two
+
+
+def test_wording_fixes():
+    genuine = et.explain("x", brief("consistent_with_genuine"), "English", model="m")["tldr"]
+    assert genuine.endswith("confirm it on the official number for Internal Revenue Service (800-829-1040).")
+    upi = et.RULE_TEXT["payment_personal_upi"]["es"]
+    assert "un ID de UPI" in upi["title"] and "un ID de UPI" in upi["step"]
+    cant = et.explain("x", brief("cant_tell", agency=None), "English", model="m")
+    how = [a["how"] for a in cant["actions"]]
+    assert ("Contact the organisation, using a number you look up yourself (on its own website, or on an old bill "
+            "or card) and ask whether they sent it.") in how

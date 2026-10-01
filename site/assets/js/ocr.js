@@ -4,7 +4,8 @@
 //
 // The library (about 0.2 MB), the engine (about 3.9 MB, one of two builds) and the language data (3.0 MB for
 // English, 1.4 MB more for Hindi) load only when a photo or a scanned PDF is chosen. The browser caches the
-// engine; Tesseract keeps the language data in IndexedDB, so a second letter starts at once.
+// engine; Tesseract keeps the language data in IndexedDB. The worker is kept between letters, so a second letter
+// in the same visit starts at once; it is thrown away only when a reading is cancelled.
 
 const BASE = "/vendor/tesseract";
 const OEM_LSTM_ONLY = 1;
@@ -17,10 +18,9 @@ export class OcrCancelled extends Error {
 }
 
 let libPromise = null;
-let worker = null; // { api, langs } once created
-let workerPromise = null;
-let onLog = null; // progress callback of the job in flight
-let cancelJob = null; // rejects the job in flight
+let worker = null; // { api, langs }: a ready worker, kept for the next letter
+let pending = null; // { promise, langs, doomed }: a worker being created
+let job = null; // the job in flight: { cancelled, reject, onLog }
 
 function loadLibrary() {
   libPromise ??= new Promise((resolve, reject) => {
@@ -38,14 +38,11 @@ function loadLibrary() {
   return libPromise;
 }
 
-async function getWorker(langs) {
-  if (worker && worker.langs === langs) return worker.api;
-  if (worker) {
-    await worker.api.reinitialize(langs, OEM_LSTM_ONLY);
-    worker.langs = langs;
-    return worker.api;
-  }
-  workerPromise ??= (async () => {
+// Starts creating a worker. If the job that asked for it is cancelled first, the entry is marked doomed: the
+// worker is terminated as soon as it exists, is never reused, and its progress events go nowhere.
+function createWorker(langs) {
+  const entry = { langs, doomed: false, promise: null };
+  entry.promise = (async () => {
     const Tesseract = await loadLibrary();
     const api = await Tesseract.createWorker(langs, OEM_LSTM_ONLY, {
       workerPath: `${BASE}/worker.min.js`,
@@ -53,75 +50,119 @@ async function getWorker(langs) {
       langPath: `${BASE}/lang`,
       workerBlobURL: false,
       gzip: true,
-      logger: (m) => onLog?.(m),
+      logger: (m) => {
+        if (!entry.doomed) job?.onLog?.(m);
+      },
       errorHandler: () => {},
     });
+    if (entry.doomed) {
+      api.terminate().catch(() => {});
+      throw new OcrCancelled();
+    }
     worker = { api, langs };
     return api;
   })().finally(() => {
-    workerPromise = null;
+    if (pending === entry) pending = null;
   });
-  const api = await workerPromise;
-  if (worker.langs !== langs) return getWorker(langs);
-  return api;
+  return entry;
 }
 
-// Stops the job in flight. Tesseract can't abort a recognition, so the worker is thrown away and the next
-// job starts a new one (from the browser cache, so quickly).
+async function getWorker(langs) {
+  if (worker && worker.langs === langs) return worker.api;
+  if (worker) {
+    await worker.api.reinitialize(langs, OEM_LSTM_ONLY);
+    worker.langs = langs;
+    return worker.api;
+  }
+  if (pending && pending.langs !== langs) {
+    pending.doomed = true;
+    pending = null;
+  }
+  pending ??= createWorker(langs);
+  return pending.promise;
+}
+
+// Stops the job in flight, if there is one. Tesseract can't abort a recognition, so that job's worker is thrown
+// away (or, while it is still being created, terminated as soon as it exists) and the next job starts a new one
+// from the browser cache. With no job in flight the ready worker is kept.
 export function cancelOcr() {
-  const reject = cancelJob;
-  cancelJob = null;
-  onLog = null;
+  const current = job;
+  if (!current) return;
+  job = null;
+  current.cancelled = true;
+  current.onLog = null;
+  if (pending) {
+    pending.doomed = true;
+    pending = null;
+  }
   const old = worker;
   worker = null;
   old?.api.terminate().catch(() => {});
-  reject?.(new OcrCancelled());
+  current.reject(new OcrCancelled());
 }
+
+// Tesseract reports each loading stage with its own 0..1 progress. Each stage gets its own slice of the first
+// 15% of the bar, and the bar never moves backwards.
+const LOAD_STAGES = [
+  [/core/, 0, 0.06],
+  [/language|traineddata/, 0.07, 0.13],
+  [/api/, 0.13, 0.15],
+  [/tesseract/, 0.06, 0.07],
+];
 
 /**
  * Recognise text in one or more images (canvases or blobs), in order.
  * langs: "eng" or "eng+hin".
- * onProgress({ phase: "load" | "read", page, pages, fraction }) with fraction 0..1 over the whole job.
- * Resolves { text, confidence (0-100, mean over pages), ms }.
+ * onProgress({ phase: "load" | "read", page, pages, fraction }) with fraction 0..1 over the whole job, never
+ * decreasing.
+ * Resolves { text, confidence (0-100, mean over pages), ms }; rejects with OcrCancelled after cancelOcr().
  */
 export function recognize(images, langs, onProgress) {
-  cancelOcr();
+  cancelOcr(); // only one job at a time; a no-op when nothing is in flight, so the ready worker is reused
   const started = performance.now();
   const pages = images.length;
   let page = 0;
-  // Loading takes the first 15% of the bar, reading the rest, split evenly across pages.
-  const report = (phase, part) => {
-    const fraction = phase === "load" ? 0.15 * part : 0.15 + 0.85 * ((page + part) / pages);
-    onProgress?.({ phase, page: page + 1, pages, fraction: Math.min(1, fraction) });
+  let last = 0;
+  const report = (phase, fraction) => {
+    last = Math.max(last, Math.min(1, fraction));
+    onProgress?.({ phase, page: page + 1, pages, fraction: last });
   };
-  let mine = null;
-  const job = new Promise((resolve, reject) => {
-    mine = reject;
-    cancelJob = reject;
-    onLog = (m) => {
+  const me = { cancelled: false, reject: null, onLog: null };
+  job = me;
+  const stop = () => {
+    if (me.cancelled) throw new OcrCancelled();
+  };
+  const promise = new Promise((resolve, reject) => {
+    me.reject = reject;
+    me.onLog = (m) => {
       const p = typeof m.progress === "number" ? m.progress : 0;
-      if (m.status === "recognizing text") report("read", p);
-      else if (/loading|initializ/.test(m.status || "")) report("load", p);
+      const status = m.status || "";
+      if (status === "recognizing text") {
+        report("read", 0.15 + 0.85 * ((page + p) / pages));
+      } else if (/loading|initializ/.test(status)) {
+        const stage = LOAD_STAGES.find(([re]) => re.test(status));
+        if (stage) report("load", stage[1] + (stage[2] - stage[1]) * p);
+      }
     };
     (async () => {
       report("load", 0);
       const api = await getWorker(langs);
+      stop();
       const texts = [];
       let confidence = 0;
       for (page = 0; page < pages; page++) {
-        report("read", 0);
+        stop();
+        report("read", 0.15 + 0.85 * (page / pages));
         const { data } = await api.recognize(images[page]);
+        stop();
         texts.push(tidy(data.text || ""));
         confidence += data.confidence || 0;
       }
       return { text: texts.filter(Boolean).join("\n\n"), confidence: confidence / pages, ms: Math.round(performance.now() - started) };
     })().then(resolve, reject);
   });
-  return job.finally(() => {
-    if (cancelJob === mine) {
-      cancelJob = null;
-      onLog = null;
-    }
+  return promise.finally(() => {
+    if (job === me) job = null;
   });
 }
 

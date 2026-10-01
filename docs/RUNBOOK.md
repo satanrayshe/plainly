@@ -51,6 +51,19 @@ Save the masked output for `/evidence/`.
 
 ## 2. Deploy with AI_MODE=off
 
+Before the first deploy, two things, in this order:
+
+1. **CloudFront pre-check (Shrey, console, 2 minutes).** Brand-new accounts are often refused CloudFront resources
+   ("Your account must be verified before you can add new CloudFront resources") until AWS Support verifies them,
+   which can take hours to days. Without a check, the first deploy finds out, and the stack is left in
+   `ROLLBACK_COMPLETE` and has to be deleted from your own shell. To check without a stack: in the CloudFront console,
+   create a distribution with any origin (for example `example.com`). If AWS refuses, open a Support case at once
+   and do steps 3 and 4's non-CloudFront parts meanwhile. If it is created, disable it and delete it once it shows
+   as disabled; a disabled distribution costs nothing in the meantime.
+2. **Decide how the stack is created.** For CloudTrail to attribute the stack creation to the AWS MCP Server, connect
+   the MCP server first (the first bullet of step 4 says how) and use the change-set route at the end of this step.
+   A stack created by the plain command below is a CLI call, and its creation can't be re-attributed later.
+
 ```bash
 AI_MODE=off ALERT_EMAIL=<shrey's email> scripts/deploy.sh
 ```
@@ -65,7 +78,7 @@ which isn't called, and it needs AWS Organizations. See the Free plan section in
 Things that can go wrong on a new account:
 
 - CloudFront refuses to create the distribution ("Your account must be verified before you can add new CloudFront
-  resources"). Open an AWS Support case at once. The stack rolls back.
+  resources"), if the pre-check above was skipped. Open an AWS Support case at once. The stack rolls back.
 - The first create fails for any reason. The stack is left in `ROLLBACK_COMPLETE`, which can only be deleted. Find
   the cause, delete it from your own shell, fix and rerun:
   ```bash
@@ -78,8 +91,8 @@ Things that can go wrong on a new account:
 
 Confirm the SNS subscription email afterwards, or no alarm email ever arrives.
 
-To have the stack change attributed to the AWS MCP Server in CloudTrail, use `scripts/deploy.sh --changeset-only`,
-execute the printed change set through MCP (`aws cloudformation execute-change-set`, then `wait
+To have the stack change attributed to the AWS MCP Server in CloudTrail (MCP connected first, see above), use
+`scripts/deploy.sh --changeset-only`, execute the printed change set through MCP (`aws cloudformation execute-change-set`, then `wait
 stack-create-complete`), and publish the site with `scripts/deploy.sh --site-only`.
 
 ## 3. Verify
@@ -114,8 +127,14 @@ time and `/api/check` p50/p95 (CloudWatch `Duration`, or timed curl calls).
   `https://aws-mcp.us-east-1.api.aws/mcp`) is the most literal reading of it (`docs/research/rules.md`). Capture the
   Claude Code MCP config, `/mcp` showing it connected, and one read call on the deployed stack through MCP with its
   request id.
-- CloudTrail: create the `plainly-trail` trail (bucket `plainly-trail-<account id>`, versioning on). Once it logs,
-  Shrey attaches `plainly-agent-lock` (`infra/README-infra.md`). Then look up the stack events:
+- CloudTrail: create the bucket `plainly-trail-<account id>` with versioning on, and attach CloudTrail's bucket
+  policy **before** `CreateTrail` (without it CreateTrail fails with `InsufficientS3BucketPolicyException`): allow
+  the service principal `cloudtrail.amazonaws.com` `s3:GetBucketAcl` on the bucket and `s3:PutObject` on
+  `arn:aws:s3:::plainly-trail-<account id>/AWSLogs/<account id>/*` with the condition
+  `"s3:x-amz-acl": "bucket-owner-full-control"` (both statements also with `aws:SourceArn` =
+  `arn:aws:cloudtrail:us-east-1:<account id>:trail/plainly-trail`). Then create and start the `plainly-trail`
+  trail. Once it logs, Shrey attaches `plainly-agent-lock` (`infra/README-infra.md`, setup step 8). Then look up the
+  stack events:
   ```bash
   aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=ExecuteChangeSet --max-results 5
   ```
