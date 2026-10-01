@@ -2,9 +2,9 @@
 
     python scripts/package_lambda.py            # prints build/lambda-<sha256[:12]>.zip
 
-Contents: backend/*.py (minus tests and conftest) and backend/registry.json, flat at
-the zip root so the handler is app.handler. dev_mock.py ships only if another module
-imports it. Entries are sorted and carry a fixed timestamp and mode, so the same
+Contents: backend/*.py (minus tests and conftest), backend/registry.json and any other
+backend/*.json data file (for example explanation templates), flat at the zip root so
+the handler is app.handler. dev_mock.py ships only if another module imports it. Entries are sorted and carry a fixed timestamp and mode, so the same
 sources always give the same hash, and the S3 key doubles as the version.
 
 The build fails if a module imports something the Lambda runtime does not have
@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 BUILD = ROOT / "build"
 
-DATA_FILES = ["registry.json"]
+REQUIRED_DATA = ["registry.json"]
+DATA_SUFFIXES = (".json",)
 DEV_ONLY = "dev_mock"
 RUNTIME_PROVIDED = {"boto3", "botocore"}
 # PEP 594 modules: present in a local 3.12 install, gone from the python3.13 runtime.
@@ -63,11 +64,10 @@ def select_sources() -> list[Path]:
             modules.remove(dev_mock)
 
     files = sorted(modules)
-    for name in DATA_FILES:
-        path = BACKEND / name
-        if not path.is_file():
+    for name in REQUIRED_DATA:
+        if not (BACKEND / name).is_file():
             sys.exit(f"backend/{name} is missing")
-        files.append(path)
+    files += sorted(p for p in BACKEND.iterdir() if p.is_file() and p.suffix in DATA_SUFFIXES)
     return files
 
 

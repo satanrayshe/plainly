@@ -1,8 +1,23 @@
 # Plainly evaluation: offline run on the frozen rules
 
-**Live numbers are pending.** This run used mock mode: AWS was faked and a keyword stand-in did the reading that
-Amazon Nova does in production. The results below check the rules and wiring. They don't measure the product.
-The live run (real Bedrock) comes after AWS is connected, and those will be the numbers we publish.
+**Option B update (1 Oct 2026): these are now the production engine's numbers.** The AWS account is on the Free
+plan, which has no Bedrock or Textract, so the live product runs with `AI_MODE=off`: the keyword and date reader
+measured below was moved, unchanged, into `backend/reader.py` and is the production reader. Nova and Textract are
+built but switched off. The run was repeated through the production path:
+
+- **Command:** `python eval/run_eval.py --set all --out eval/results-rules-reader.md` (AI_MODE=off, rules reader,
+  no AWS), 2026-10-01 00:13 UTC.
+- **Result:** for all 114 letters, the verdict, flags, agency, deadlines, quote grounding and status are identical
+  to `results-offline-frozen.json` (checked field by field). Only latency, token counts (now 0) and the model label
+  differ. Every number below therefore holds for the live engine.
+- **Rules:** `verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py` and `registry.json` still have the frozen
+  hashes. `pipeline.py` changed for Option B (new hash `752e77608a78…`): it adds the AI_MODE switch, the text-only
+  request and wording changes to trace and flag text ("the model" became "the rules reader"); no rule, threshold
+  or verdict logic changed, as the identical per-letter results show.
+
+The original wording below ("mock mode", "a keyword stand-in did the reading that Amazon Nova does in production")
+describes the run as it was made on 30 Sep, when Nova was still planned for the live site. With `AI_MODE=off`, the
+"stand-in" is the reader. Live Bedrock numbers would only exist if the account is upgraded and `AI_MODE=on`.
 
 ## What was run
 

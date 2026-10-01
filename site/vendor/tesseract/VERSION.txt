@@ -1,0 +1,30 @@
+Tesseract.js, self-hosted so a letter's photo is read on the visitor's device and never uploaded.
+Downloaded with `npm pack` on 2026-10-01. Files are unmodified copies from the tarballs.
+
+tesseract.min.js, worker.min.js
+  tesseract.js 5.1.1 (dist/), Apache-2.0: LICENSE-tesseract.js.md.
+  Bundled third-party notices (MIT / BSD-3-Clause): tesseract.min.js.LICENSE.txt, worker.min.js.LICENSE.txt.
+  The .map files named in their last line are not shipped (only browser dev tools ask for them).
+
+core/tesseract-core-simd-lstm.wasm.js, core/tesseract-core-lstm.wasm.js
+  tesseract.js-core 5.1.1, Apache-2.0: core/LICENSE-tesseract.js-core.
+  LSTM-only builds with the WebAssembly embedded. The worker picks the SIMD one when the browser supports
+  WebAssembly SIMD and the plain one otherwise, so each visitor downloads one of the two.
+
+lang/eng.traineddata.gz, lang/hin.traineddata.gz
+  @tesseract.js-data/eng 1.0.0 and @tesseract.js-data/hin 1.0.0, folder 4.0.0_best_int: the integer
+  versions of Google's tessdata_best models (https://github.com/tesseract-ocr/tessdata_best), Apache-2.0.
+  4.0.0_best_int is the variant tesseract.js uses by default. For English it is 3.0 MB against 10.9 MB for the
+  float model; for Hindi the two are the same size.
+
+sha256
+  a8e29918d098b2b06e1012bdaeffb4aec0445c5d5654709023e0bd1f442a80e8  tesseract.min.js
+  aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc  worker.min.js
+  ce20eda9533cbed1e6c2b4276fbae1e0adc61b6754b5513084be601787b457cf  core/tesseract-core-simd-lstm.wasm.js
+  8f04aa0cc81e7bde33f80e92fa01a7a665f0b4884d098acf5de9c7104a11dfaa  core/tesseract-core-lstm.wasm.js
+  45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91  lang/eng.traineddata.gz
+  f3b6a0d320df38d886178cdd727b90dbf9df3db053adb32bd9cf73f0463cda07  lang/hin.traineddata.gz
+
+Loaded lazily by site/assets/js/ocr.js, only when a photo or a scanned PDF is chosen:
+  createWorker(langs, 1 /* LSTM */, { workerPath: "/vendor/tesseract/worker.min.js",
+    corePath: "/vendor/tesseract/core", langPath: "/vendor/tesseract/lang", workerBlobURL: false, gzip: true })

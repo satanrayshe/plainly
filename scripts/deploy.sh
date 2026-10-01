@@ -7,15 +7,22 @@
 #   scripts/deploy.sh --site-only                   rebuild dist/ and publish it to the existing stack
 #
 # Environment (all optional unless noted):
-#   AWS_PROFILE               default plainly-agent
+#   AWS_PROFILE               CLI profile; default plainly-agent. An administrator profile such as
+#                             plainly-admin works too: AWS_PROFILE=plainly-admin scripts/deploy.sh
+#   AI_MODE                   off (default) or on. off: the Lambda runs the deterministic reader, rules and
+#                             templates only, and its role gets no Bedrock or Textract permissions (the AWS
+#                             Free account plan includes neither). Sent on every deploy, so a deploy without
+#                             AI_MODE=on switches AI off again.
 #   STACK_NAME, APP_NAME      default plainly (the agent IAM policy only covers plainly* names)
 #   ALERT_EMAIL               alarm + budget emails; required when the stack does not exist yet
-#   PERMISSIONS_BOUNDARY_ARN  default arn:aws:iam::<account>:policy/plainly-boundary; set to "" for none
+#   PERMISSIONS_BOUNDARY_ARN  default arn:aws:iam::<account>:policy/plainly-boundary (checked to exist);
+#                             set to "" for none, e.g. as an administrator without that policy
 #   CFN_ROLE_ARN              CloudFormation service role to run stack operations as
 #   MODEL_IDS, DAILY_CAP, RATE_LIMIT_PER_HOUR, LOG_LEVEL, MONTHLY_BUDGET_USD   template parameter overrides
 #   ORIGIN_VERIFY_SECRET, IP_HASH_SALT   set only to rotate them; generated on first create, then kept
 #   PYTHON                    interpreter for the helper scripts
 #   IMMUTABLE_DIRS            dist/ subdirectories cached for a year, default "assets/fonts vendor"
+#                             (vendor/ holds pdf.js and Tesseract.js: ship a new version under a new name)
 #   ALLOW_MOCK_SAMPLES        set to 1 to publish even if landing samples are missing or mock
 set -euo pipefail
 
@@ -40,12 +47,18 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*"
 
 REGION=us-east-1
 PROFILE="${AWS_PROFILE:-plainly-agent}"
+AI_MODE="${AI_MODE:-off}"
 APP_NAME="${APP_NAME:-plainly}"
 STACK_NAME="${STACK_NAME:-$APP_NAME}"
 TEMPLATE=infra/template.yaml
 
 log() { printf '\n==> %s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
+
+case "$AI_MODE" in
+  off | on) ;;
+  *) die "AI_MODE must be off or on (got '$AI_MODE')" ;;
+esac
 
 if command -v aws >/dev/null 2>&1; then
   AWS_BIN=aws
@@ -107,7 +120,27 @@ lint_template() {
 resolve_account() {
   ACCOUNT_ID="$(aws_text sts get-caller-identity --query Account)" ||
     die "no credentials for profile $PROFILE; run: aws login --profile $PROFILE --region $REGION"
-  log "Account $ACCOUNT_ID, profile $PROFILE, region $REGION, stack $STACK_NAME"
+  log "Account $ACCOUNT_ID, profile $PROFILE, region $REGION, stack $STACK_NAME, AI_MODE=$AI_MODE"
+  if [[ "$AI_MODE" == on ]]; then
+    log "AI_MODE=on gives the Lambda Bedrock (Nova) and Textract. The AWS Free account plan includes
+    neither, so every AI call fails there; deploy with AI_MODE=off (the default) on that plan."
+  fi
+}
+
+# The default boundary must exist, or CloudFormation fails late on the role. An explicit
+# PERMISSIONS_BOUNDARY_ARN (including "") is used as given.
+check_permissions_boundary() {
+  [[ -z "${PERMISSIONS_BOUNDARY_ARN+set}" ]] || return 0
+  local arn="arn:aws:iam::${ACCOUNT_ID}:policy/plainly-boundary" err
+  if err="$(aws_ iam get-policy --policy-arn "$arn" 2>&1 >/dev/null)"; then
+    return 0
+  fi
+  if [[ "$err" == *NoSuchEntity* ]]; then
+    die "the permissions boundary policy $arn does not exist.
+  Create it (and the agent user) with: ADMIN_PROFILE=plainly-admin bash infra/setup-agent-user.sh
+  or, deploying as an administrator, go without a boundary: PERMISSIONS_BOUNDARY_ARN= scripts/deploy.sh"
+  fi
+  log "Could not check that $arn exists; continuing. ($(tr -d '\r' <<<"$err"))"
 }
 
 require_alert_email_for_create() {
@@ -169,7 +202,7 @@ upload_lambda() {
 
 # Template parameters as KEY=VALUE words, only for values we actually know.
 collect_parameters() {
-  PARAMS=(AppName="$APP_NAME" CodeBucket="$ARTIFACTS" CodeKey="$CODE_KEY")
+  PARAMS=(AppName="$APP_NAME" CodeBucket="$ARTIFACTS" CodeKey="$CODE_KEY" AiMode="$AI_MODE")
   PARAMS+=(PermissionsBoundaryArn="${PERMISSIONS_BOUNDARY_ARN-arn:aws:iam::${ACCOUNT_ID}:policy/plainly-boundary}")
   local pair
   for pair in AlertEmail:ALERT_EMAIL ModelIds:MODEL_IDS DailyCap:DAILY_CAP \
@@ -297,6 +330,14 @@ read_outputs() {
 
 # Content types are set explicitly: on Windows the CLI guesses them from the registry and can
 # label .js as text/plain, which browsers then refuse to run under X-Content-Type-Options: nosniff.
+# In-browser OCR (Tesseract.js under /vendor/tesseract/) depends on three of them:
+#   .wasm            application/wasm, or WebAssembly.instantiateStreaming rejects the module.
+#   .traineddata.gz  application/octet-stream and NO Content-Encoding header. Tesseract.js fetches the
+#                    gzip bytes and gunzips them itself (gzip: true); with Content-Encoding: gzip the
+#                    browser would unpack them first and Tesseract's own gunzip would then fail.
+#                    CloudFront doesn't compress application/octet-stream, so the bytes arrive as stored.
+#   .js / .mjs       text/javascript, for workers and importScripts under nosniff.
+# Matching is on the last extension, so "gz" covers *.traineddata.gz.
 CONTENT_TYPES=(
   "html|text/html; charset=utf-8"      "css|text/css; charset=utf-8"
   "js|text/javascript; charset=utf-8"  "mjs|text/javascript; charset=utf-8"
@@ -308,6 +349,7 @@ CONTENT_TYPES=(
   "woff2|font/woff2"   "woff|font/woff" "ttf|font/ttf"    "otf|font/otf"
   "mp4|video/mp4"      "webm|video/webm" "vtt|text/vtt; charset=utf-8"
   "pdf|application/pdf" "wasm|application/wasm"
+  "gz|application/octet-stream"        "traineddata|application/octet-stream"
 )
 IMMUTABLE="public, max-age=31536000, immutable"
 SHORT="public, max-age=3600"
@@ -381,6 +423,7 @@ case "$MODE" in
   changeset)
     lint_template
     resolve_account
+    check_permissions_boundary
     STATUS="$(stack_status)"
     refuse_rolled_back_stack "$STATUS"
     require_alert_email_for_create "$STATUS"
@@ -399,6 +442,7 @@ then wait for the stack, and publish the site with: scripts/deploy.sh --site-onl
   deploy)
     lint_template
     resolve_account
+    check_permissions_boundary
     STATUS="$(stack_status)"
     refuse_rolled_back_stack "$STATUS"
     require_alert_email_for_create "$STATUS"

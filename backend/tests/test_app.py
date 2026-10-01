@@ -76,8 +76,11 @@ def call(*args, **kwargs):
     return response["statusCode"], json.loads(response["body"])
 
 
-def test_health(table):
-    assert call("GET", "/api/health") == (200, {"ok": True, "version": app.VERSION})
+def test_health(table, monkeypatch):
+    monkeypatch.delenv("AI_MODE", raising=False)
+    assert call("GET", "/api/health") == (200, {"ok": True, "version": app.VERSION, "ai_mode": "off"})
+    monkeypatch.setenv("AI_MODE", "on")
+    assert call("GET", "/api/health")[1]["ai_mode"] == "on"
 
 
 def test_check_then_explain_and_stats(table):
@@ -166,8 +169,13 @@ def test_client_ip(header, expected):
     assert app.client_ip(ev) == expected
 
 
-def test_payload_size_limit(table):
+def test_payload_size_limit(table, monkeypatch):
     big = {"image": {"type": "image/jpeg", "data": "A" * 2_200_004}}
+    status, body = call("POST", "/api/check", big)
+    assert status == 400 and "on your device" in body["error"]  # AI_MODE=off takes no images at all
+    status, body = call("POST", "/api/check", {"text": "x" * 30_001})
+    assert status == 400 and "30,000" in body["error"]
+    monkeypatch.setenv("AI_MODE", "on")
     status, body = call("POST", "/api/check", big)
     assert status == 400 and "too large" in body["error"]
     huge = event("POST", "/api/check")
@@ -191,6 +199,7 @@ def test_explain_requires_check(table):
 
 
 def test_unreadable_letter_is_502(table, monkeypatch):
+    monkeypatch.setenv("AI_MODE", "on")
     monkeypatch.setenv("PLAINLY_MOCK_FAIL", "both")
     payload = {"image": {"type": "image/jpeg", "data": base64.b64encode(b"\xff\xd8\xff" + b"x").decode()}}
     status, body = call("POST", "/api/check", payload)

@@ -3,10 +3,10 @@
 <head>
 <!-- @head -->
 <title>Check a letter | Plainly</title>
-<meta name="description" content="Upload a photo or PDF of an official-looking letter, or paste a text message or email. Plainly checks it for scam signs and explains it in your language. Plainly doesn't store your letter.">
+<meta name="description" content="Add a photo or PDF of an official-looking letter, or paste a text message or email. Your phone reads the letter, so the photo never leaves it. Plainly checks the text against 20+ scam rules and a list of official contacts, then explains it in English, Hindi or Spanish.">
 <meta name="plainly-api" content="/api">
 <meta property="og:title" content="Check a letter with Plainly">
-<meta property="og:description" content="Photo, PDF or pasted text. Get a verdict, the quoted warning signs, the official number to call and a plain-language explanation.">
+<meta property="og:description" content="Photo, PDF or pasted text. Read on your device, checked in plain code: a verdict, the quoted warning signs, the official number to call and a plain-language explanation.">
 <meta property="og:url" content="/try/">
 <script type="module" src="/assets/app.js"></script>
 </head>
@@ -16,7 +16,7 @@
 <main id="main">
   <div class="wrap page-head narrow">
     <h1>Check a letter</h1>
-    <p class="lede">Add a photo of the letter, or paste the words from a text message or email. You will get a verdict first, then an explanation in your language.</p>
+    <p class="lede">Add a photo of the letter, or paste the words from a text message or email. You check the words we read, then get a verdict and an explanation in your language.</p>
   </div>
 
   <div class="wrap narrow try-layout">
@@ -38,15 +38,22 @@
             <label class="btn btn-quiet" for="file-input">Choose a photo or PDF</label>
           </div>
           <p class="drop-hint">Or drag the file here.</p>
-          <p class="muted small">Photos and PDFs work. For a PDF we read the first 3 pages.</p>
+          <p class="muted small">Your device reads the letter. The photo is never uploaded. For a PDF we read the first 3 pages.</p>
+        </div>
+        <div class="read-lang">
+          <label for="ocr-lang">The letter is in</label>
+          <select id="ocr-lang">
+            <option value="eng">English</option>
+            <option value="eng+hin">English and हिन्दी (Hindi)</option>
+          </select>
         </div>
         <div id="chosen" hidden></div>
       </div>
 
       <div class="form-block">
-        <label class="field-label" for="text-input">Or paste the text</label>
+        <label class="field-label" for="text-input" id="text-label">Or paste the text</label>
         <p class="hint" id="text-hint">Useful for text messages (SMS, WhatsApp) and emails. Include the sender's number or address if you can.</p>
-        <textarea id="text-input" name="text" maxlength="20000" aria-describedby="text-hint" placeholder="Paste the message here"></textarea>
+        <textarea id="text-input" name="text" maxlength="30000" aria-describedby="text-hint" placeholder="Paste the message here"></textarea>
       </div>
 
       <div class="form-block options">
@@ -56,12 +63,7 @@
             <option value="English">English</option>
             <option value="Hindi" lang="hi">हिन्दी (Hindi)</option>
             <option value="Spanish" lang="es">Español (Spanish)</option>
-            <option value="other">Another language…</option>
           </select>
-          <div class="other-lang" id="other-lang-wrap" hidden>
-            <label class="visually-hidden" for="other-lang">Which language?</label>
-            <input type="text" id="other-lang" maxlength="40" placeholder="For example: Tamil, Bengali, Tagalog" autocomplete="off">
-          </div>
         </div>
         <fieldset>
           <legend class="field-label">Words to use</legend>
@@ -77,7 +79,7 @@
       <div class="submit-row">
         <p class="form-error" id="form-error" role="alert" hidden></p>
         <button class="btn" type="submit" id="submit-btn">Check this letter</button>
-        <p class="privacy-inline">Plainly doesn't store your letter. It is read by Amazon Textract and Amazon Bedrock; <a href="/how-it-works/#privacy">what AWS keeps</a>.</p>
+        <p class="privacy-inline">Only the text above is sent to be checked, and Plainly doesn't store it. <a href="/how-it-works/#privacy">Privacy</a></p>
       </div>
     </form>
 

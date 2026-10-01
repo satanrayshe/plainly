@@ -1,250 +1,502 @@
 {
   "id": "irs-balance-due",
-  "mock": true,
-  "verdict": "consistent_with_genuine",
-  "verdict_label": "Consistent with a genuine IRS letter. Confirm on the official number.",
-  "headline": "The contacts on this notice match the IRS, and it asks for payment only through irs.gov or a check to the U.S. Treasury. Call the IRS to confirm before you pay.",
-  "agency": {
-    "key": "irs",
-    "name": "Internal Revenue Service",
-    "country": "US",
-    "official_phone": "800-829-1040",
-    "official_site": "https://www.irs.gov",
+  "title": "IRS balance-due notice",
+  "image": "/samples/letters/irs-balance-due.png",
+  "mock": false,
+  "ai_mode": "off",
+  "reader": "rules",
+  "text_source": "device_ocr-equivalent (sample text)",
+  "check": {
+    "verdict": "consistent_with_genuine",
+    "verdict_label": "Consistent with a genuine Internal Revenue Service letter — confirm on the official number",
+    "headline": "Nothing in this letter contradicts a genuine Internal Revenue Service letter, and its contact details match the official ones. Still, confirm by calling 800-829-1040 yourself.",
+    "agency": {
+      "key": "irs",
+      "name": "Internal Revenue Service",
+      "country": "US",
+      "official_phone": "800-829-1040",
+      "official_site": "https://www.irs.gov",
+      "report_channel": {
+        "name": "FTC",
+        "url": "https://reportfraud.ftc.gov",
+        "source_url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam"
+      },
+      "source_url": "https://www.irs.gov/newsroom/holiday-scam-reminder-gift-cards-are-never-used-to-make-tax-payments",
+      "checked_on": "2026-09-30"
+    },
     "report_channel": {
       "name": "FTC",
-      "url": "https://reportfraud.ftc.gov"
+      "url": "https://reportfraud.ftc.gov",
+      "source_url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam"
     },
-    "source_url": "https://www.irs.gov/help/telephone-assistance",
-    "checked_on": "2026-09-30"
-  },
-  "flags": [],
-  "trace": [
-    {
-      "step": "ocr",
-      "status": "done",
-      "detail": "Textract read 38 lines",
-      "ms": 1910
-    },
-    {
-      "step": "extract",
-      "status": "done",
-      "detail": "Nova 2 Lite recorded sender, date, 1 deadline, 1 amount, 6 quotes",
-      "ms": 3480
-    },
-    {
-      "step": "rule:payment_method",
-      "status": "pass",
-      "detail": "Payment only via irs.gov/payments or check to the U.S. Treasury",
-      "ms": 0
-    },
-    {
-      "step": "rule:credential_request",
-      "status": "pass",
-      "detail": "No request for PIN, password or full SSN",
-      "ms": 0
-    },
-    {
-      "step": "rule:threat_arrest",
-      "status": "pass",
-      "detail": "No threat of arrest or police action",
-      "ms": 0
-    },
-    {
-      "step": "rule:video_call",
-      "status": "pass",
-      "detail": "No demand for a video call",
-      "ms": 0
-    },
-    {
-      "step": "rule:ai_instruction",
-      "status": "pass",
-      "detail": "No instructions aimed at AI tools",
-      "ms": 0
-    },
-    {
-      "step": "rule:lookalike_domain",
-      "status": "pass",
-      "detail": "www.irs.gov is the registry domain",
-      "ms": 1
-    },
-    {
-      "step": "rule:urgency",
-      "status": "pass",
-      "detail": "Deadline is 21 days after the notice date",
-      "ms": 0
-    },
-    {
-      "step": "rule:freemail",
-      "status": "pass",
-      "detail": "No free email address given",
-      "ms": 0
-    },
-    {
-      "step": "rule:secrecy",
-      "status": "pass",
-      "detail": "No request to keep this secret",
-      "ms": 0
-    },
-    {
-      "step": "registry",
-      "status": "pass",
-      "detail": "irs.gov and 800-829-1040 match the IRS entry",
-      "ms": 0
-    },
-    {
-      "step": "dates",
-      "status": "done",
-      "detail": "2026-09-14 + 21 days = 2026-10-05, matches the printed date",
-      "ms": 0
-    },
-    {
-      "step": "grounding",
-      "status": "done",
-      "detail": "6 of 6 quotes found in the Textract reading",
-      "ms": 4
-    },
-    {
-      "step": "verdict",
-      "status": "done",
-      "detail": "Score 0, agency contact matched: consistent_with_genuine",
-      "ms": 0
-    }
-  ],
-  "extracted": {
-    "claimed_sender": "Internal Revenue Service",
-    "letter_date": "2026-09-14",
-    "phones": [
-      "800-829-1040"
-    ],
-    "urls": [
-      "www.irs.gov/payments",
-      "www.irs.gov/paymentplan",
-      "www.irs.gov/cp14"
-    ],
-    "emails": [],
-    "amounts": [
-      "$1,284.60"
-    ],
-    "deadlines": [
+    "flags": [],
+    "trace": [
       {
-        "date": "2026-10-05",
-        "what": "Pay the amount due, or call the IRS if you disagree",
-        "quote": "To make sure we receive your payment within 21 calendar days from the date of this notice, pay by October 5, 2026",
-        "computed_from": "letter_date + 21 days"
+        "step": "extract",
+        "status": "done",
+        "ms": 4,
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 39 line(s) of the text your device read from the photo"
+      },
+      {
+        "step": "registry",
+        "status": "done",
+        "detail": "Matched Internal Revenue Service because the letter names Internal Revenue Service. Official contacts from https://www.irs.gov/newsroom/holiday-scam-reminder-gift-cards-are-never-used-to-make-tax-payments (checked 2026-09-30).",
+        "ms": 0
+      },
+      {
+        "step": "contacts",
+        "status": "done",
+        "detail": "Found 1 phone number(s), 3 link(s) and 0 email address(es) in the text.",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_gift_card",
+        "status": "pass",
+        "detail": "No gift-card payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_crypto_wire",
+        "status": "pass",
+        "detail": "No crypto, wire or \"safe account\" payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_personal_upi",
+        "status": "pass",
+        "detail": "No payment to a personal UPI ID or mobile number",
+        "ms": 0
+      },
+      {
+        "step": "rule:credential_request",
+        "status": "pass",
+        "detail": "No request for an OTP, PIN, password or full ID number",
+        "ms": 0
+      },
+      {
+        "step": "rule:threat_arrest",
+        "status": "pass",
+        "detail": "No threat of arrest, police or deportation",
+        "ms": 0
+      },
+      {
+        "step": "rule:video_call_demand",
+        "status": "pass",
+        "detail": "No video-call demand",
+        "ms": 0
+      },
+      {
+        "step": "rule:ai_instruction",
+        "status": "pass",
+        "detail": "No text addressed to AI tools",
+        "ms": 0
+      },
+      {
+        "step": "rule:lookalike_domain",
+        "status": "pass",
+        "detail": "1 address(es) checked against 22 official domains",
+        "ms": 0
+      },
+      {
+        "step": "rule:urgency_short",
+        "status": "pass",
+        "detail": "No demand to act within 72 hours in the wording",
+        "ms": 0
+      },
+      {
+        "step": "rule:freemail_official",
+        "status": "pass",
+        "detail": "No free email address given",
+        "ms": 0
+      },
+      {
+        "step": "rule:secrecy",
+        "status": "pass",
+        "detail": "No request for secrecy",
+        "ms": 0
+      },
+      {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "pass",
+        "detail": "Every link it asks you to use is an official one",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "pass",
+        "detail": "No pressure to call a number that isn't official",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "pass",
+        "detail": "No \"press 1\" instruction",
+        "ms": 0
+      },
+      {
+        "step": "rule:unknown_contact",
+        "status": "pass",
+        "detail": "Every contact matches Internal Revenue Service's official list: irs.gov, 800-829-1040",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "pass",
+        "detail": "No official name paired with someone else's contact details",
+        "ms": 0
+      },
+      {
+        "step": "rule:injection_detected_model",
+        "status": "pass",
+        "detail": "The rules reader found no instructions aimed at AI",
+        "ms": 0
+      },
+      {
+        "step": "dates",
+        "status": "done",
+        "detail": "Letter date 2026-09-14 (quoted from the letter). 1 deadline(s) worked out in code.",
+        "ms": 0
+      },
+      {
+        "step": "grounding",
+        "status": "done",
+        "detail": "11 of 11 quote(s) from the rules reader found word for word in the text (it quotes the same text the rules read, so this confirms the quotes, not the reading).",
+        "ms": 0
+      },
+      {
+        "step": "verdict",
+        "status": "done",
+        "detail": "Score 0 (0 strong x3, 0 medium x1): Consistent with a genuine Internal Revenue Service letter — confirm on the official number. Reason: agency matched, official contact found, no warning signs, quotes grounded.",
+        "ms": 0
       }
-    ]
-  },
-  "grounding": {
-    "source": "textract",
-    "grounded": 6,
-    "total": 6
-  },
-  "meta": {
-    "model": "us.amazon.nova-2-lite-v1:0",
-    "ms": 5890,
-    "input_tokens": 0,
-    "output_tokens": 0
+    ],
+    "extracted": {
+      "claimed_sender": "Internal Revenue Service",
+      "letter_date": "2026-09-14",
+      "phones": [
+        "800-829-1040"
+      ],
+      "urls": [
+        "www.irs.gov/payments",
+        "www.irs.gov/paymentplan",
+        "www.irs.gov/cp14"
+      ],
+      "emails": [],
+      "amounts": [
+        "$1,284.60",
+        "$6,412.00"
+      ],
+      "deadlines": [
+        {
+          "date": "2026-10-05",
+          "what": "Amount due by October 5, 2026 $1,284.60",
+          "quote": "Amount due by October 5, 2026 $1,284.60",
+          "computed_from": null
+        }
+      ]
+    },
+    "grounding": {
+      "source": "device_ocr",
+      "grounded": 11,
+      "total": 11
+    },
+    "meta": {
+      "model": "rules-v2f45d6bcab",
+      "reader": "rules",
+      "ai_mode": "off",
+      "ms": 11,
+      "input_tokens": 0,
+      "output_tokens": 0
+    }
   },
   "explanations": {
     "English": {
       "language": "English",
-      "tldr": "The IRS says you owe $1,284.60 in unpaid tax. Pay it or contact the IRS by 5 October 2026 to avoid more interest and penalties.",
+      "tldr": "This looks like a genuine Internal Revenue Service letter: its contact details match the official ones and we found no warning signs. Still, confirm it on the official number for Internal Revenue Service, 800-829-1040 before you pay or share anything.",
       "explanation": [
-        "This notice says your tax return showed a balance you have not paid yet.",
-        "The amount includes the tax, a late-payment penalty and interest.",
-        "Interest keeps growing until the balance is paid.",
-        "You can pay online at irs.gov/payments, or mail a check made out to the U.S. Treasury.",
-        "If you can't pay it all, the IRS offers payment plans."
+        "The contact details in the letter match the official list we keep for Internal Revenue Service, and the wording has none of the warning signs we check for.",
+        "The deadline in the letter is 5 October 2026.",
+        "It mentions $1,284.60, $6,412.00.",
+        "That is a good sign, but not proof: a scammer can copy a real letter. Always use the official number, not only one printed on the letter."
       ],
       "actions": [
         {
-          "step": "Confirm the notice is real",
-          "how": "Call the IRS on 800-829-1040, the number listed on irs.gov. Have the notice in front of you.",
+          "step": "Deadline: 5 October 2026",
+          "how": "The letter says: “Amount due by October 5, 2026 $1,284.60”.",
+          "by": "2026-10-05"
+        },
+        {
+          "step": "Confirm with Internal Revenue Service first",
+          "how": "Contact the official number for Internal Revenue Service, 800-829-1040 (or https://www.irs.gov) and ask them to confirm the notice. Don't rely only on a number printed in the letter.",
           "by": null
         },
         {
-          "step": "Pay the balance or set up a payment plan",
-          "how": "Use irs.gov/payments, or send a check to the U.S. Treasury with the payment slip from the notice.",
-          "by": "2026-10-05"
+          "step": "Pay only through the official website",
+          "how": "If you need to pay, do it on https://www.irs.gov, never through a link in a message.",
+          "by": null
         },
         {
-          "step": "If you think the amount is wrong, reply before the deadline",
-          "how": "Call the IRS or send a letter with copies of your records.",
-          "by": "2026-10-05"
+          "step": "Add the deadline to your calendar",
+          "how": "Use the “Add to calendar” button next to the deadline so you don't miss it.",
+          "by": null
+        },
+        {
+          "step": "Ask for help if you can't pay on time",
+          "how": "Offices often allow a payment plan or more time if you ask before the deadline. The reply draft below can help.",
+          "by": null
         }
       ],
       "jargon": [
         {
-          "term": "Balance due",
-          "meaning": "Money you still owe after the IRS checked your tax return."
+          "term": "IRS",
+          "meaning": "Internal Revenue Service: the US federal tax office."
         },
         {
-          "term": "Failure-to-pay penalty",
-          "meaning": "An extra charge added because the tax was not paid on time."
+          "term": "Notice",
+          "meaning": "An official letter telling you about something you may need to do."
+        },
+        {
+          "term": "Tax year",
+          "meaning": "The 12-month period the tax is for."
+        },
+        {
+          "term": "Social Security number (SSN)",
+          "meaning": "Your 9-digit US ID number. Keep it private."
+        },
+        {
+          "term": "Balance due",
+          "meaning": "The amount still left to pay."
+        },
+        {
+          "term": "Penalty",
+          "meaning": "An extra charge for breaking a rule, such as paying or filing late."
+        },
+        {
+          "term": "Interest",
+          "meaning": "Extra money added over time to an amount that is still unpaid."
+        },
+        {
+          "term": "Payment plan",
+          "meaning": "Paying a debt in smaller parts over time, by agreement with the office."
         }
       ],
       "questions_to_ask": [
-        "Can you confirm this notice and the amount on my account?",
-        "Can I set up a monthly payment plan?",
-        "Can the penalty be removed if this is my first time?"
+        "Can you confirm this notice was sent to me?",
+        "Is the amount of $1,284.60 correct, and how was it worked out?",
+        "Can I pay in instalments, or get more time?",
+        "What happens if I miss the 5 October 2026 deadline?"
       ],
-      "reply_draft": "Dear Internal Revenue Service,\n\nI received your notice dated 14 September 2026 about a balance due of $1,284.60. I would like to [pay the balance in full / set up a payment plan / ask you to review the amount].\n\nMy name and address are as shown on the notice. Please contact me if you need more information.\n\nThank you,\n[Your name]\n[Your phone number]",
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
       "meta": {
-        "model": "us.amazon.nova-2-lite-v1:0",
-        "ms": 4210,
+        "model": "rules-v2f45d6bcab",
+        "ms": 1,
         "input_tokens": 0,
-        "output_tokens": 0
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
       }
     },
     "Hindi": {
       "language": "Hindi",
-      "tldr": "IRS कहता है कि आप पर $1,284.60 का टैक्स बाकी है। ज़्यादा ब्याज और जुर्माने से बचने के लिए 5 अक्टूबर 2026 तक भुगतान करें या IRS से संपर्क करें।",
+      "tldr": "यह Internal Revenue Service के असली पत्र जैसा लगता है: इसके संपर्क विवरण आधिकारिक विवरण से मिलते हैं और हमें कोई चेतावनी का संकेत नहीं मिला। फिर भी, पैसे देने या कोई जानकारी देने से पहले Internal Revenue Service का आधिकारिक नंबर 800-829-1040 पर इसकी पुष्टि करें।",
       "explanation": [
-        "इस नोटिस के अनुसार आपके टैक्स रिटर्न में जो रकम बाकी थी, वह अभी तक नहीं चुकाई गई है।",
-        "इस रकम में टैक्स, देर से भुगतान का जुर्माना और ब्याज शामिल है।",
-        "जब तक पूरी रकम नहीं चुकाई जाती, ब्याज बढ़ता रहता है।",
-        "आप irs.gov/payments पर ऑनलाइन भुगतान कर सकते हैं, या U.S. Treasury के नाम चेक भेज सकते हैं।",
-        "अगर आप एक साथ पूरा नहीं चुका सकते, तो IRS किस्तों में भुगतान की सुविधा देता है।"
+        "पत्र में दिए संपर्क विवरण Internal Revenue Service की उस आधिकारिक सूची से मिलते हैं जो हमारे पास है, और इसकी भाषा में वे चेतावनी के संकेत नहीं हैं जिन्हें हम जाँचते हैं।",
+        "पत्र में आख़िरी तारीख़ 5 अक्टूबर 2026 है।",
+        "इसमें यह रकम लिखी है: $1,284.60, $6,412.00।",
+        "यह अच्छा संकेत है, पर पक्का सबूत नहीं: ठग असली पत्र की नक़ल भी कर सकते हैं। हमेशा आधिकारिक नंबर इस्तेमाल करें, सिर्फ़ पत्र पर छपा नंबर नहीं।",
+        "नीचे दिया जवाब का मसौदा अंग्रेज़ी में है, क्योंकि पत्र उसी भाषा में है और दफ़्तर उसे पढ़ सकेगा।"
       ],
       "actions": [
         {
-          "step": "पक्का करें कि नोटिस असली है",
-          "how": "IRS को 800-829-1040 पर फ़ोन करें। यह नंबर irs.gov पर दिया गया है। नोटिस अपने पास रखें।",
+          "step": "आख़िरी तारीख़: 5 अक्टूबर 2026",
+          "how": "पत्र में लिखा है: “Amount due by October 5, 2026 $1,284.60”।",
+          "by": "2026-10-05"
+        },
+        {
+          "step": "पहले Internal Revenue Service से पुष्टि करें",
+          "how": "Internal Revenue Service का आधिकारिक नंबर 800-829-1040 (या वेबसाइट https://www.irs.gov) पर संपर्क करें और नोटिस की पुष्टि करने को कहें। सिर्फ़ पत्र में छपे नंबर पर भरोसा न करें।",
           "by": null
         },
         {
-          "step": "बकाया चुकाएं या किस्तों की योजना बनाएं",
-          "how": "irs.gov/payments का इस्तेमाल करें, या नोटिस की भुगतान पर्ची के साथ U.S. Treasury के नाम चेक भेजें।",
-          "by": "2026-10-05"
+          "step": "भुगतान सिर्फ़ आधिकारिक वेबसाइट से करें",
+          "how": "अगर भुगतान करना है, तो https://www.irs.gov पर करें, किसी संदेश के लिंक से कभी नहीं।",
+          "by": null
         },
         {
-          "step": "अगर रकम गलत लगे, तो आख़िरी तारीख से पहले जवाब दें",
-          "how": "IRS को फ़ोन करें या अपने कागज़ों की कॉपी के साथ पत्र भेजें।",
-          "by": "2026-10-05"
+          "step": "आख़िरी तारीख़ कैलेंडर में जोड़ें",
+          "how": "आख़िरी तारीख़ के पास दिए “कैलेंडर में जोड़ें” बटन का इस्तेमाल करें, ताकि तारीख़ छूटे नहीं।",
+          "by": null
+        },
+        {
+          "step": "समय पर भुगतान न कर पाएँ तो मदद माँगें",
+          "how": "आख़िरी तारीख़ से पहले पूछने पर दफ़्तर अक्सर किस्तों में भुगतान या ज़्यादा समय दे देते हैं। नीचे दिया जवाब का मसौदा इसमें मदद करेगा।",
+          "by": null
         }
       ],
       "jargon": [
         {
-          "term": "Balance due",
-          "meaning": "IRS द्वारा आपका टैक्स रिटर्न जांचने के बाद जो रकम अभी भी बाकी है।"
+          "term": "IRS",
+          "meaning": "इंटरनल रेवेन्यू सर्विस: अमेरिका का संघीय टैक्स विभाग।"
         },
         {
-          "term": "Failure-to-pay penalty",
-          "meaning": "समय पर टैक्स न चुकाने पर लगने वाला अतिरिक्त शुल्क।"
+          "term": "नोटिस (Notice)",
+          "meaning": "आधिकारिक पत्र, जो बताता है कि आपको शायद कुछ करना है।"
+        },
+        {
+          "term": "वित्त वर्ष (Tax year)",
+          "meaning": "वह 12 महीने की अवधि जिसके लिए टैक्स लगता है।"
+        },
+        {
+          "term": "सोशल सिक्योरिटी नंबर (SSN)",
+          "meaning": "अमेरिका का 9 अंकों का पहचान नंबर। इसे निजी रखें।"
+        },
+        {
+          "term": "देय रकम (Balance due)",
+          "meaning": "वह रकम जो अभी चुकानी बाक़ी है।"
+        },
+        {
+          "term": "जुर्माना (Penalty)",
+          "meaning": "किसी नियम को तोड़ने पर लगने वाला अतिरिक्त शुल्क, जैसे देर से भुगतान करने पर।"
+        },
+        {
+          "term": "ब्याज (Interest)",
+          "meaning": "बिना चुकाई रकम पर समय के साथ जुड़ने वाला अतिरिक्त पैसा।"
+        },
+        {
+          "term": "किस्तों में भुगतान (Payment plan)",
+          "meaning": "दफ़्तर की सहमति से बकाया रकम को छोटे-छोटे हिस्सों में चुकाना।"
         }
       ],
       "questions_to_ask": [
-        "क्या आप मेरे खाते में यह नोटिस और रकम पक्की कर सकते हैं?",
-        "क्या मैं हर महीने किस्तों में भुगतान कर सकता/सकती हूँ?",
-        "अगर यह पहली बार है, तो क्या जुर्माना हटाया जा सकता है?"
+        "क्या आप पुष्टि कर सकते हैं कि यह नोटिस मुझे ही भेजा गया है?",
+        "क्या $1,284.60 की रकम सही है, और यह कैसे निकाली गई?",
+        "क्या मैं किस्तों में भुगतान कर सकता/सकती हूँ, या मुझे और समय मिल सकता है?",
+        "अगर 5 अक्टूबर 2026 की आख़िरी तारीख़ छूट जाए तो क्या होगा?"
       ],
-      "reply_draft": "Dear Internal Revenue Service,\n\nI received your notice dated 14 September 2026 about a balance due of $1,284.60. I would like to [pay the balance in full / set up a payment plan / ask you to review the amount].\n\nMy name and address are as shown on the notice. Please contact me if you need more information.\n\nThank you,\n[Your name]\n[Your phone number]",
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
       "meta": {
-        "model": "us.amazon.nova-2-lite-v1:0",
-        "ms": 5120,
+        "model": "rules-v2f45d6bcab",
+        "ms": 1,
         "input_tokens": 0,
-        "output_tokens": 0
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
+      }
+    },
+    "Spanish": {
+      "language": "Spanish",
+      "tldr": "Parece una carta auténtica de Internal Revenue Service: sus datos de contacto coinciden con los oficiales y no encontramos señales de alerta. Aun así, antes de pagar o dar datos, confírmela con Internal Revenue Service en su número oficial, 800-829-1040.",
+      "explanation": [
+        "Los datos de contacto de la carta coinciden con la lista oficial que tenemos de Internal Revenue Service, y el texto no tiene ninguna de las señales de alerta que revisamos.",
+        "La fecha límite de la carta es el 5 de octubre de 2026.",
+        "Menciona estas cantidades: $1,284.60, $6,412.00.",
+        "Es una buena señal, pero no una prueba: un estafador puede copiar una carta real. Use siempre el número oficial, no solo el que aparece en la carta.",
+        "El borrador de respuesta de abajo está en inglés, el idioma de la carta, para que la oficina pueda leerlo."
+      ],
+      "actions": [
+        {
+          "step": "Fecha límite: 5 de octubre de 2026",
+          "how": "La carta dice: “Amount due by October 5, 2026 $1,284.60”.",
+          "by": "2026-10-05"
+        },
+        {
+          "step": "Confírmelo primero con Internal Revenue Service",
+          "how": "Contacte a Internal Revenue Service en su número oficial, 800-829-1040 (o en https://www.irs.gov) y pida que le confirmen el aviso. No se fíe solo de un número impreso en la carta.",
+          "by": null
+        },
+        {
+          "step": "Pague solo en el sitio web oficial",
+          "how": "Si tiene que pagar, hágalo en https://www.irs.gov, nunca desde un enlace de un mensaje.",
+          "by": null
+        },
+        {
+          "step": "Anote la fecha límite en su calendario",
+          "how": "Use el botón “Añadir al calendario” junto a la fecha límite para no olvidarla.",
+          "by": null
+        },
+        {
+          "step": "Pida ayuda si no puede pagar a tiempo",
+          "how": "Las oficinas suelen aceptar un plan de pagos o darle más tiempo si lo pide antes de la fecha límite. El borrador de respuesta de abajo puede ayudarle.",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "IRS",
+          "meaning": "Servicio de Impuestos Internos: la oficina federal de impuestos de EE. UU."
+        },
+        {
+          "term": "Aviso (Notice)",
+          "meaning": "Carta oficial que le informa de algo que quizá tenga que hacer."
+        },
+        {
+          "term": "Año fiscal (Tax year)",
+          "meaning": "El periodo de 12 meses al que corresponde el impuesto."
+        },
+        {
+          "term": "Número de Seguro Social (SSN)",
+          "meaning": "Su número de identidad de EE. UU. de 9 cifras. Manténgalo en privado."
+        },
+        {
+          "term": "Saldo pendiente (Balance due)",
+          "meaning": "La cantidad que todavía falta por pagar."
+        },
+        {
+          "term": "Multa o sanción (Penalty)",
+          "meaning": "Un cargo extra por no cumplir una norma, como pagar o presentar algo tarde."
+        },
+        {
+          "term": "Intereses (Interest)",
+          "meaning": "Dinero extra que se suma con el tiempo a una cantidad que sigue sin pagarse."
+        },
+        {
+          "term": "Plan de pagos (Payment plan)",
+          "meaning": "Pagar una deuda en partes más pequeñas a lo largo del tiempo, de acuerdo con la oficina."
+        }
+      ],
+      "questions_to_ask": [
+        "¿Pueden confirmarme que este aviso es para mí?",
+        "¿Es correcta la cantidad de $1,284.60 y cómo se calculó?",
+        "¿Puedo pagar a plazos o tener más tiempo?",
+        "¿Qué pasa si no cumplo la fecha límite del 5 de octubre de 2026?"
+      ],
+      "reply_draft": "To: Internal Revenue Service\nSubject: Your notice dated 14 September 2026\n\nDear Sir or Madam,\n\nI received your notice dated 14 September 2026, which mentions $1,284.60 / $6,412.00. Before I take any action, please confirm that this notice was sent by your office and that the details in it are correct.\n\nThe notice asks me to act by 5 October 2026. If I need more time to gather documents or arrange payment, could you please allow an extension?\n\nIf I do owe this amount, please let me know whether I can pay it in instalments through a payment plan.\n\nPlease reply through your official contact details. My reference or account number is: [reference number from the letter]\n\nThank you,\n[Your full name]\n[Your address or phone number]",
+      "meta": {
+        "model": "rules-v2f45d6bcab",
+        "ms": 2,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
       }
     }
-  }
+  },
+  "generated_at": "2026-10-01T00:13:20+00:00"
 }

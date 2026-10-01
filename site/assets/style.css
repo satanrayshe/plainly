@@ -473,8 +473,41 @@ legend, .field-label {
   border-radius: var(--radius);
   background: var(--sheet);
 }
-.chosen img { width: 88px; height: 110px; object-fit: cover; object-position: top; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper-2); }
+.chosen img, .chosen-blank { display: block; width: 88px; height: 110px; object-fit: cover; object-position: top; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper-2); }
 .chosen p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.chosen { align-items: start; }
+.chosen-wide { grid-column: 1 / -1; display: grid; gap: 12px; }
+.chosen-wide:empty { display: none; }
+@media (max-width: 599px) {
+  .chosen { grid-template-columns: 64px 1fr; gap: 12px 14px; }
+  .chosen img, .chosen-blank { width: 64px; height: 80px; }
+}
+.warn-line { color: var(--amber-ink); font-weight: 600; }
+
+/* Reading on the device: one bar, the percentage in words beside it, and a way out. */
+.reading { display: grid; gap: 8px; margin-top: 4px; }
+.read-status { margin: 0; font-weight: 700; }
+.read-pct { font-variant-numeric: tabular-nums; font-weight: 400; color: var(--ink-2); }
+.reading progress {
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border: 1px solid var(--ink);
+  border-radius: 5px;
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.reading progress::-webkit-progress-bar { background: var(--paper-2); }
+.reading progress::-webkit-progress-value { background: var(--ink); transition: width 0.2s linear; }
+.reading progress::-moz-progress-bar { background: var(--ink); }
+.reading-foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.reading-foot .muted { line-height: 1.35; }
+@media (prefers-reduced-motion: reduce) { .reading progress::-webkit-progress-value { transition: none; } }
+
+.read-lang { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 14px; }
+.read-lang label { font-weight: 700; font-size: 1rem; }
+.read-lang select { width: auto; min-height: 48px; font-size: 1rem; }
+textarea.from-letter { min-height: 320px; font-size: 1rem; }
 
 textarea, input[type="text"], select {
   width: 100%;

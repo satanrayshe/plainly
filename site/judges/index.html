@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <!-- @head -->
-<title>A 60-second tour for judges | Plainly</title>
-<meta name="description" content="Five steps through Plainly with direct links: a scam notice, a genuine-format IRS notice, a letter with hidden instructions for AI tools, the receipts, and the build agent's AWS evidence.">
-<meta property="og:title" content="Plainly in 60 seconds">
-<meta property="og:description" content="Five direct links through the product and the evidence, plus where each judging criterion shows up.">
+<title>A 90-second tour for judges | Plainly</title>
+<meta name="description" content="Six steps through Plainly with direct links: a scam notice, a genuine-format IRS notice, a letter with hidden instructions for AI tools, a photo read on your own device, the receipts, and the build agent's AWS evidence.">
+<meta property="og:title" content="Plainly in 90 seconds">
+<meta property="og:description" content="Six direct links through the product and the evidence, plus where each judging criterion shows up.">
 <meta property="og:url" content="/judges/">
 </head>
 <body>
@@ -13,8 +13,8 @@
 
 <main id="main">
   <div class="wrap page-head narrow">
-    <h1>Plainly in 60 seconds</h1>
-    <p class="lede">Five links, in order. The samples open instantly because their results were prepared in advance. To see a live check, use <a href="/try/">Check a letter</a> with any photo or pasted text message.</p>
+    <h1>Plainly in 90 seconds</h1>
+    <p class="lede">Six links, in order. The samples open instantly because their results were prepared in advance. Step 4 is a live check: your browser reads a photo and only the words are checked.</p>
   </div>
 
   <div class="wrap narrow">
@@ -37,8 +37,13 @@
           <p><a href="/try/?sample=ai-instruction">Open the hidden-instruction letter</a></p>
         </li>
         <li>
+          <h3>A photo, read on your device <span class="time">20 s</span></h3>
+          <p>Save the <a href="/samples/letters/irs-balance-due.png" download>IRS sample image</a> (or use any photo of a letter), then choose it on Check a letter. A progress bar shows Tesseract reading it inside the browser; the photo is never uploaded. The words appear in a box to correct, and only that text goes to the rules engine on AWS Lambda.</p>
+          <p><a href="/try/">Open Check a letter</a></p>
+        </li>
+        <li>
           <h3>The receipts <span class="time">10 s</span></h3>
-          <p>On any result, open "Receipts: every check we ran" to see each step marked FLAG, PASS or UNKNOWN with its timing, and how many quotes were confirmed by the independent reading. The rules and verdict logic are listed in full on How it works.</p>
+          <p>On any result, open "Receipts: every check we ran" to see each step marked FLAG, PASS or UNKNOWN with its timing. On a live check the first line is the reading done on your device. The rules and the verdict logic are listed in full on How it works.</p>
           <p><a href="/how-it-works/#rules">See the rules and the verdict logic</a></p>
         </li>
         <li>
@@ -59,17 +64,17 @@
           <tbody>
             <tr>
               <th scope="row">Technical Innovation &amp; Originality</th>
-              <td>Code decides the verdict and the model only reads and explains. Model quotes are checked against an independent Amazon Textract reading. Hidden instructions aimed at AI tools are detected and never echoed. No "safe" verdict exists.</td>
+              <td>The letter is read on the device, so the photo never leaves it. Plain code decides the verdict with 21 rules, each tied to a public source, and every check leaves a receipt. Hidden instructions aimed at AI tools are detected and never echoed. No "safe" verdict exists.</td>
               <td><a href="/how-it-works/#verdict">Verdict logic</a>, receipts on any result</td>
             </tr>
             <tr>
               <th scope="row">Implementation Quality</th>
-              <td>Serverless on AWS: CloudFront, API Gateway, Lambda, Amazon Textract, Amazon Bedrock (Nova) and DynamoDB. Least-privilege access, per-address and daily limits, and Plainly stores nothing about a letter.</td>
-              <td><a href="/evidence/">Evidence</a>, <a href="/how-it-works/#privacy">Privacy</a></td>
+              <td>Serverless on AWS Free plan services: CloudFront, S3, API Gateway, Lambda and DynamoDB, with Tesseract.js self-hosted and loaded only when a photo is chosen. Amazon Textract and Amazon Nova are built and tested but switched off, because the Free plan doesn't include them; one setting turns Nova back on after an upgrade. Least-privilege access, per-address and daily limits, and Plainly stores nothing about a letter.</td>
+              <td><a href="/evidence/">Evidence</a>, <a href="/how-it-works/#privacy">Privacy</a>, <a href="/how-it-works/#ai-off">Textract and Nova</a></td>
             </tr>
             <tr>
               <th scope="row">Community / Market Impact</th>
-              <td>Built for families handling official mail in a second language, in India and the United States. Explanations in English, हिन्दी, Español or any language typed in, with a simple-words option.</td>
+              <td>Built for families handling official mail in a second language, in India and the United States. Explanations written by people in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span>, with a simple-words option. Hindi letters can be read on the device too.</td>
               <td><a href="/try/">Check a letter</a></td>
             </tr>
             <tr>

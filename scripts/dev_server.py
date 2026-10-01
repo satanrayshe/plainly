@@ -1,8 +1,12 @@
 """Local dev server: static site plus the real Lambda handler for /api/*.
 
-    python scripts/dev_server.py            # offline: Textract and Bedrock are mocked (PLAINLY_MOCK=1)
-    python scripts/dev_server.py --live     # real AWS calls with your local credentials
+    python scripts/dev_server.py            # production path (AI_MODE=off): text only, rules reader, templates;
+                                            #   makes no AWS calls at all
+    python scripts/dev_server.py --ai-mock  # AI_MODE=on with Textract and Bedrock mocked (PLAINLY_MOCK=1)
+    python scripts/dev_server.py --live     # AI_MODE=on with real AWS calls (needs Bedrock/Textract access)
     python scripts/dev_server.py --port 9000 --root site
+    python scripts/dev_server.py --csp      # also send the CloudFront response headers from infra/template.yaml
+                                            #   (Content-Security-Policy, nosniff, ...) to test the site under them
 
 Serves dist/ if it exists, otherwise site/. "/path" resolves to "/path/index.html", like the CloudFront Function.
 Each /api request is turned into a Lambda Function URL (payload v2) event.
@@ -10,6 +14,7 @@ Each /api request is turned into a Lambda Function URL (payload v2) event.
 import argparse
 import mimetypes
 import os
+import re
 import sys
 import time
 import uuid
@@ -23,6 +28,24 @@ LAMBDA_TIMEOUT_MS = 29000
 mimetypes.add_type("text/javascript", ".js")
 mimetypes.add_type("text/javascript", ".mjs")
 mimetypes.add_type("application/manifest+json", ".webmanifest")
+# Same as deploy.sh: Tesseract language data is gzip bytes served as-is, never with Content-Encoding.
+SimpleHTTPRequestHandler.extensions_map = {**SimpleHTTPRequestHandler.extensions_map,
+                                           ".gz": "application/octet-stream", ".wasm": "application/wasm"}
+
+
+def template_headers(path=ROOT / "infra" / "template.yaml"):
+    """The response headers the CloudFront ResponseHeadersPolicy in template.yaml sends, read from the template so
+    a local test can't drift from what is deployed."""
+    text = path.read_text(encoding="utf-8")
+    csp = re.search(r"ContentSecurityPolicy: >-\r?\n((?:[ ]{14,}.*\r?\n)+)", text)
+    if not csp:
+        raise SystemExit("Could not find the Content-Security-Policy in infra/template.yaml")
+    headers = {"Content-Security-Policy": " ".join(line.strip() for line in csp.group(1).splitlines()),
+               "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY",
+               "Referrer-Policy": "strict-origin-when-cross-origin", "X-XSS-Protection": "0"}
+    for name, value in re.findall(r"- Header: ([\w-]+)\r?\n\s+Value: (.+)", text):
+        headers[name] = value.strip()
+    return headers
 
 
 class DevHTTPServer(ThreadingHTTPServer):
@@ -40,7 +63,7 @@ class FakeContext:
         return max(0, int((self.deadline - time.monotonic()) * 1000))
 
 
-def make_handler(app, site_root):
+def make_handler(app, site_root, extra_headers=None):
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(site_root), **kwargs)
@@ -48,6 +71,8 @@ def make_handler(app, site_root):
         def end_headers(self):
             if not self.path.startswith("/api/"):
                 self.send_header("cache-control", "no-cache")
+            for name, value in (extra_headers or {}).items():
+                self.send_header(name, value)
             super().end_headers()
 
         def translate_path(self, path):
@@ -104,13 +129,18 @@ def make_handler(app, site_root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--live", action="store_true", help="call real Textract/Bedrock instead of the mocks")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--ai-mock", action="store_true", help="AI_MODE=on with mocked Textract/Bedrock")
+    mode.add_argument("--live", action="store_true", help="AI_MODE=on with real Textract/Bedrock")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--root", help="directory to serve (default: dist/, else site/)")
+    parser.add_argument("--csp", action="store_true",
+                        help="send the CloudFront response headers (CSP etc.) from infra/template.yaml")
     args = parser.parse_args()
 
-    if not args.live:
+    os.environ["AI_MODE"] = "on" if args.live or args.ai_mock else "off"
+    if args.ai_mock:
         os.environ["PLAINLY_MOCK"] = "1"
     os.environ.setdefault("APP_VERSION", "dev-local")
     sys.path.insert(0, str(BACKEND))
@@ -118,9 +148,13 @@ def main():
 
     site_root = Path(args.root) if args.root else next(
         (p for p in (ROOT / "dist", ROOT / "site") if p.is_dir()), ROOT)
-    server = DevHTTPServer((args.host, args.port), make_handler(app, site_root))
-    mode = "LIVE AWS" if args.live else "mocked Textract/Bedrock"
+    extra = template_headers() if args.csp else None
+    server = DevHTTPServer((args.host, args.port), make_handler(app, site_root, extra))
+    mode = ("AI_MODE=on, LIVE AWS" if args.live else "AI_MODE=on, mocked Textract/Bedrock" if args.ai_mock
+            else "AI_MODE=off: rules reader + templates, no AWS")
     print(f"Plainly dev server on http://{args.host}:{args.port}  serving {site_root}  ({mode})", flush=True)
+    if extra:
+        print(f"Sending template.yaml response headers; CSP: {extra['Content-Security-Policy']}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

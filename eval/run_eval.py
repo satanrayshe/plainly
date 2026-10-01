@@ -1,7 +1,8 @@
 """Score the verifier on labeled letters and write a report.
 
-    python eval/run_eval.py                 # offline: fake AWS + keyword reader -> eval/results-offline.md
-    python eval/run_eval.py --live          # real Bedrock (text input, so no Textract) -> eval/results.md
+    python eval/run_eval.py                 # production rules reader (AI_MODE=off, no AWS) -> eval/results-offline.md
+    python eval/run_eval.py --reader mock-model   # AI_MODE=on with faked Bedrock answering from eval/mock_model.py
+    python eval/run_eval.py --live          # AI_MODE=on, real Bedrock (text input, so no Textract) -> eval/results.md
     python eval/run_eval.py --set holdout   # only one set: dev | synthetic | holdout | all
     python eval/run_eval.py --set dev --set synthetic
 
@@ -18,6 +19,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import statistics
 import sys
 from datetime import datetime, timezone
@@ -53,7 +55,8 @@ def load_synthetic():
 
 def rules_fingerprint():
     parts = []
-    for name in ("verifier.py", "lexicon.py", "contacts.py", "agencies.py", "pipeline.py", "registry.json"):
+    for name in ("verifier.py", "lexicon.py", "contacts.py", "agencies.py", "pipeline.py", "registry.json",
+                 "reader.py"):
         path = BACKEND / name
         digest = hashlib.sha256(path.read_bytes()).hexdigest()[:12] if path.exists() else "missing"
         parts.append(f"{name} {digest}")
@@ -178,13 +181,19 @@ def render_set(name, rows, blurb):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--live", action="store_true", help="call real Bedrock instead of the offline reader")
+    parser.add_argument("--live", action="store_true",
+                        help="AI_MODE=on with real Bedrock instead of the production rules reader")
+    parser.add_argument("--reader", choices=["rules", "mock-model"], default="rules",
+                        help="offline reader: rules = the production rules reader, backend/reader.py with AI_MODE=off "
+                             "(default); mock-model = AI_MODE=on with faked Bedrock answering from eval/mock_model.py "
+                             "(the path the frozen offline runs used; same reader code)")
     parser.add_argument("--set", choices=["all", *SETS], action="append",
                         help="which set(s) to run; repeat to run several (default: all)")
     parser.add_argument("--out", help="report path (default eval/results.md live, eval/results-offline.md offline)")
     args = parser.parse_args()
 
     wanted = set(SETS) if not args.set or "all" in args.set else set(args.set)
+    os.environ["AI_MODE"] = "on" if args.live or args.reader == "mock-model" else "off"
     api = LocalApi(live=args.live)
     loaders = {"dev": lambda: load_folder("dev"), "synthetic": load_synthetic,
                "holdout": lambda: load_folder("holdout")}
@@ -197,10 +206,17 @@ def main():
 
     when = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     models = sorted({r.get("model") for r in rows if r.get("model")})
-    mode = ("live: Amazon Bedrock via the Converse API, text input (no Textract), models " + (", ".join(models) or "?")
-            if args.live else
-            "offline: AWS faked, extraction by the keyword reader in eval/mock_model.py. These numbers measure the "
-            "deterministic rules plus a crude reader, not the model; latency and tokens are not meaningful")
+    if args.live:
+        mode = ("live: AI_MODE=on, Amazon Bedrock via the Converse API, text input (no Textract), models "
+                + (", ".join(models) or "?"))
+    elif args.reader == "rules":
+        mode = ("production rules reader: AI_MODE=off, extraction by the keyword and date patterns in "
+                "backend/reader.py, then the rules; no AI model and no AWS call. This is exactly what the live site "
+                "runs on the AWS Free plan (" + (", ".join(models) or "rules") + "). Latency is local and tokens are 0")
+    else:
+        mode = ("offline AI_MODE=on: AWS faked, the fake Bedrock answers with the keyword reader in "
+                "eval/mock_model.py (the same code as backend/reader.py). These numbers measure the deterministic "
+                "rules plus that reader, not a model; latency and tokens are not meaningful")
     report = [
         "# Plainly evaluation", "",
         f"- Generated: {when}",
@@ -230,7 +246,9 @@ def main():
     out = Path(args.out) if args.out else HERE / ("results.md" if args.live else "results-offline.md")
     out.write_text("\n".join(report), encoding="utf-8")
     raw = out.with_suffix(".json")
-    raw.write_text(json.dumps({"generated_at": when, "live": args.live, "rows": rows}, indent=1) + "\n",
+    raw.write_text(json.dumps({"generated_at": when, "live": args.live,
+                               "reader": "bedrock" if args.live else args.reader,
+                               "ai_mode": os.environ["AI_MODE"], "rows": rows}, indent=1) + "\n",
                    encoding="utf-8")
     print(f"wrote {out} and {raw}")
 

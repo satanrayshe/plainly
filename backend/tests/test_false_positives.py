@@ -1,34 +1,31 @@
 """False-positive hunt (2026-09-30): genuine official messages that the frozen rules read as likely_scam.
 
 Each case here was a likely_scam before the fix named next to it. The messages are in eval/dev/genuine_fp_*.json
-(written from public templates; source URL in each file). They run through verify() with the offline keyword reader
-(eval/mock_model.py) as the model, because most of these false positives came through model quotes that skipped the
-negation checks the code applies to its own matches. Scam counterparts check that each fix did not open a hole.
+(written from public templates; source URL in each file). They run through verify() with the keyword reader as the
+model (backend/reader.py, the production reader with AI_MODE=off; the same code as eval/mock_model.py, see
+test_reader.py), because most of these false positives came through model quotes that skipped the negation checks
+the code applies to its own matches. Scam counterparts check that each fix did not open a hole.
 """
 import json
-import sys
-from pathlib import Path
 
 import pytest
 
 from conftest import BACKEND, TODAY, flag, rules_of
 
 import agencies  # noqa: E402
+import reader  # noqa: E402
 import verifier  # noqa: E402
 
 EVAL = BACKEND.parent / "eval"
-sys.path.insert(0, str(EVAL))
-import mock_model  # noqa: E402
-
 REAL_REGISTRY = agencies.load_registry(BACKEND / "registry.json")
-MOCK_REGISTRY = mock_model.load_registry(BACKEND / "registry.json")
+MOCK_REGISTRY = reader.entries_from_registry(REAL_REGISTRY)
 GENUINE_FP_FILES = sorted((EVAL / "dev").glob("genuine_fp_*.json"))
 
 
 def run(text, extraction="mock"):
     """verify() on pasted text with the real registry; extraction from the keyword reader unless given."""
     if extraction == "mock":
-        extraction = mock_model.extract(text, MOCK_REGISTRY)
+        extraction = reader.extract(text, MOCK_REGISTRY)
     return verifier.verify(text, extraction or {}, grounding_source="pasted_text", today=TODAY,
                            registry=REAL_REGISTRY)
 

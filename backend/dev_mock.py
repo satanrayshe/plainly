@@ -1,7 +1,8 @@
-"""Deterministic stand-ins for Textract and Bedrock, active when PLAINLY_MOCK=1.
+"""Deterministic stand-ins for Textract and Bedrock, active when PLAINLY_MOCK=1 (only matters with AI_MODE=on).
 
-They let the whole API run offline for UI work and tests. The fake extractor is deliberately crude
-(keyword per line) and independent of verifier.py, so it does not just echo the rules back.
+They let the AI_MODE=on path run offline for tests and UI work. The fake Bedrock "reads" a letter with the same
+rules reader production uses with AI_MODE=off (reader.py), so the two modes can be compared; its explanation is a
+short tagged stand-in. Nothing here is used when AI_MODE=off.
 
 Knobs (environment):
   PLAINLY_MOCK_FAIL=textract|bedrock|both   make the fake service raise, to exercise degraded paths
@@ -19,6 +20,9 @@ import os
 import re
 import time
 from pathlib import Path
+
+import agencies
+import reader
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples" / "letters"
@@ -138,55 +142,10 @@ def _between(text, start, end):
     return text[i + len(start):j if j != -1 else None]
 
 
-_KEYWORDS = {
-    "payment_requests": r"gift card|itunes|google play|bitcoin|crypto|western union|wire transfer|phonepe|gpay|"
-                        r"google pay|paytm|upi|pay online|pay by",
-    "threats": r"arrest|police|warrant|jail|deport|\bFIR\b|legal action|गिरफ्तार",
-    "credential_requests": r"\botp\b|\bpin\b|password|cvv|ओटीपी",
-    "secrecy": r"do not tell|don't tell|confidential|secret",
-    "video_call": r"video call|skype|stay on the call",
-    "ai_instructions": r"ignore (all )?previous|as an ai|classify this|system prompt",
-    "link_requests": r"click|tap here|open the link|link below|scan the qr",
-    "callback_requests": r"call|whatsapp",
-    "account_verification_requests": r"(?:verify|confirm|update).{0,30}(?:identity|details|account|kyc|pan)",
-    "prize_or_refund_bait": r"you have won|lottery|winner|claim (?:your )?refund|refund.{0,40}(?:click|link|verify)",
-}
-_PROTECTIVE = re.compile(r"\bnever\b|\bdo not share\b|\bdon't share\b", re.I)
-_AMOUNT = re.compile(r"(?:\$|₹|£|Rs\.?\s?)\s?\d[\d,]*(?:\.\d\d)?", re.I)
-_DATE = re.compile(r"\b(?:\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{4}|(?:January|February|March|April|May|June|July|"
-                   r"August|September|October|November|December) \d{1,2}, \d{4})\b")
-
-
 def mock_extract(text):
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    data = {key: [] for key in _KEYWORDS}
-    data.update(claimed_sender=lines[0] if lines else "", claimed_agency_key="other", amounts=[], deadlines=[],
-                letter_date={"value": "", "quote": ""}, transcript="")
-    for line in lines:
-        for key, pattern in _KEYWORDS.items():
-            m = re.search(pattern, line, re.I)
-            if not m or (key == "credential_requests" and _PROTECTIVE.search(line)):
-                continue
-            item = {"quote": line[:200]}
-            if key == "payment_requests":
-                item["method"] = m.group()
-            data[key].append(item)
-        for amount in _AMOUNT.findall(line):
-            data["amounts"].append({"amount": amount, "what": "amount mentioned", "quote": line[:200]})
-        date_match = _DATE.search(line)
-        if date_match and not data["letter_date"]["quote"] and re.search(r"date", line, re.I):
-            data["letter_date"] = {"value": "", "quote": line[:200]}
-        elif date_match and re.search(r"\b(by|before|due)\b", line, re.I):
-            data["deadlines"].append({"quote": line[:200], "what": "Deadline in the letter"})
-        relative = re.search(r"within (\d+) days", line, re.I)
-        if relative:
-            data["deadlines"].append({"quote": line[:200], "relative_days": int(relative.group(1)),
-                                      "relative_to": "receipt" if "receipt" in line.lower() else "letter_date",
-                                      "what": "Respond to the letter"})
-    devanagari = sum("ऀ" <= c <= "ॿ" for c in text)
-    data["language_of_letter"] = "Hindi" if devanagari > len(text) * 0.2 else "English"
-    data["country"] = "IN" if re.search(r"₹|\bRs\b|india|upi|aadhaar|[ऀ-ॿ]", text, re.I) else \
-        "UK" if re.search(r"£|hmrc|gov\.uk", text, re.I) else "US"
+    """The fake model's record_letter answer: the production rules reader on the same text."""
+    data = reader.extract(text, reader.entries_from_registry(agencies.load_registry()))
+    data.setdefault("transcript", "")
     return data
 
 

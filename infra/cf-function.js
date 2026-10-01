@@ -4,7 +4,9 @@
 //   /            -> /index.html
 //   /try/        -> /try/index.html
 //   /how-it-works -> /how-it-works/index.html
-// Anything with a file extension in its last segment (/assets/app.css) is left alone.
+// Anything with a file extension in its last segment (/assets/app.css) is left alone,
+// including the in-browser OCR files: /vendor/tesseract/*.wasm, *.wasm.js and
+// lang/*.traineddata.gz pass through unchanged (checked in infra/README-infra.md, Verify).
 // template.yaml inlines this code in UriRewriteFunction. scripts/deploy.sh compares the
 // two (ignoring comment lines and blank lines) and refuses to deploy when they drift.
 function handler(event) {

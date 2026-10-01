@@ -1,0 +1,554 @@
+{
+  "id": "ai-instruction",
+  "title": "Letter with hidden AI instructions",
+  "image": "/samples/letters/ai-instruction.png",
+  "mock": false,
+  "ai_mode": "off",
+  "reader": "rules",
+  "text_source": "device_ocr-equivalent (sample text)",
+  "check": {
+    "verdict": "likely_scam",
+    "verdict_label": "Likely scam",
+    "headline": "This looks like a scam: it asks for an OTP, PIN, password or full ID number.",
+    "agency": null,
+    "report_channel": {
+      "name": "FTC",
+      "url": "https://reportfraud.ftc.gov",
+      "source_url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonation-scam"
+    },
+    "flags": [
+      {
+        "rule": "credential_request",
+        "severity": "strong",
+        "title": "Asks for an OTP, PIN, password or full ID number",
+        "quote": "Enter your full Social Security number and date of birth.",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "No real agency or bank asks you to share an OTP, PIN, password or your full SSN or Aadhaar. Anyone who has them can empty your accounts.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
+        "rule": "ai_instruction",
+        "severity": "strong",
+        "title": "Contains hidden instructions aimed at AI tools",
+        "quote": null,
+        "quote_redacted": true,
+        "grounded": true,
+        "why": "A genuine letter has no reason to talk to AI tools. Text like this tries to trick scam checkers, so we treat it as a strong warning sign and do not repeat it.",
+        "source": {
+          "name": "OWASP GenAI Security Project",
+          "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+        }
+      },
+      {
+        "rule": "lookalike_domain",
+        "severity": "strong",
+        "title": "Uses a web or email address that imitates an official one",
+        "quote": "Visit www.irs-refund-verify.com",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "The address irs-refund-verify.com puts 'irs' inside an address that is not irs.gov. Scammers register addresses like this to look official.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
+        "rule": "link_bait",
+        "severity": "strong",
+        "title": "Asks you to click a link to claim money, pay, or \"verify\" details",
+        "quote": "Visit www.irs-refund-verify.com",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "It asks you to use a link, and irs-refund-verify.com imitates an official web address.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams"
+        }
+      },
+      {
+        "rule": "urgency_short",
+        "severity": "medium",
+        "title": "Gives you less than 3 days to act",
+        "quote": "To release the payment, complete the confirmation within 48 hours:",
+        "quote_redacted": false,
+        "grounded": true,
+        "why": "Very short deadlines are meant to rush you. Genuine notices usually give you weeks.",
+        "source": {
+          "name": "FTC",
+          "url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonator-scam"
+        }
+      },
+      {
+        "rule": "injection_detected_model",
+        "severity": "info",
+        "title": "The rules reader found instructions aimed at AI tools",
+        "quote": null,
+        "quote_redacted": true,
+        "grounded": true,
+        "why": "The rules reader reported text addressed to AI tools. We do not repeat it.",
+        "source": {
+          "name": "OWASP GenAI Security Project",
+          "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+        }
+      }
+    ],
+    "trace": [
+      {
+        "step": "extract",
+        "status": "done",
+        "ms": 2,
+        "detail": "Rules reader (keyword and date patterns in code, no AI model) read 18 line(s) of the text your device read from the photo"
+      },
+      {
+        "step": "registry",
+        "status": "unknown",
+        "detail": "No match: no agency in our registry is named in the letter.",
+        "ms": 1
+      },
+      {
+        "step": "contacts",
+        "status": "done",
+        "detail": "Found 0 phone number(s), 1 link(s) and 0 email address(es) in the text.",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_gift_card",
+        "status": "pass",
+        "detail": "No gift-card payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_crypto_wire",
+        "status": "pass",
+        "detail": "No crypto, wire or \"safe account\" payment requested",
+        "ms": 0
+      },
+      {
+        "step": "rule:payment_personal_upi",
+        "status": "pass",
+        "detail": "No payment to a personal UPI ID or mobile number",
+        "ms": 0
+      },
+      {
+        "step": "rule:credential_request",
+        "status": "flag",
+        "detail": "The letter asks you to share a secret code or ID number",
+        "ms": 0
+      },
+      {
+        "step": "rule:threat_arrest",
+        "status": "pass",
+        "detail": "No threat of arrest, police or deportation",
+        "ms": 0
+      },
+      {
+        "step": "rule:video_call_demand",
+        "status": "pass",
+        "detail": "No video-call demand",
+        "ms": 0
+      },
+      {
+        "step": "rule:ai_instruction",
+        "status": "flag",
+        "detail": "Text addressed to AI tools found (redacted, never shown)",
+        "ms": 0
+      },
+      {
+        "step": "rule:lookalike_domain",
+        "status": "flag",
+        "detail": "irs-refund-verify.com puts 'irs' inside an address that is not irs.gov",
+        "ms": 0
+      },
+      {
+        "step": "rule:urgency_short",
+        "status": "flag",
+        "detail": "The letter demands action within hours or today",
+        "ms": 0
+      },
+      {
+        "step": "rule:freemail_official",
+        "status": "pass",
+        "detail": "No free email address given",
+        "ms": 0
+      },
+      {
+        "step": "rule:secrecy",
+        "status": "pass",
+        "detail": "No request for secrecy",
+        "ms": 0
+      },
+      {
+        "step": "rule:shortened_or_raw_link",
+        "status": "pass",
+        "detail": "No short links, bare IP addresses or free web hosts",
+        "ms": 0
+      },
+      {
+        "step": "rule:link_bait",
+        "status": "flag",
+        "detail": "Asks you to use a link (strong)",
+        "ms": 0
+      },
+      {
+        "step": "rule:callback_unofficial",
+        "status": "pass",
+        "detail": "No pressure to call a number that isn't official",
+        "ms": 0
+      },
+      {
+        "step": "rule:kyc_update_threat",
+        "status": "pass",
+        "detail": "No KYC or PAN update demanded under threat of a block",
+        "ms": 0
+      },
+      {
+        "step": "rule:prize_or_refund_bait",
+        "status": "pass",
+        "detail": "No unexpected prize, refund, loan or job offer",
+        "ms": 0
+      },
+      {
+        "step": "rule:unexpected_fee_to_release",
+        "status": "pass",
+        "detail": "No fee to release a prize, refund, job or parcel",
+        "ms": 0
+      },
+      {
+        "step": "rule:press_to_connect",
+        "status": "pass",
+        "detail": "No \"press 1\" instruction",
+        "ms": 0
+      },
+      {
+        "step": "rule:unknown_contact",
+        "status": "unknown",
+        "detail": "No agency to compare contacts against",
+        "ms": 0
+      },
+      {
+        "step": "rule:impersonation_mismatch",
+        "status": "pass",
+        "detail": "No official name paired with someone else's contact details",
+        "ms": 0
+      },
+      {
+        "step": "rule:injection_detected_model",
+        "status": "flag",
+        "detail": "The rules reader found text addressed to AI tools (redacted)",
+        "ms": 0
+      },
+      {
+        "step": "dates",
+        "status": "done",
+        "detail": "Letter date 2026-09-26 (quoted from the letter). No deadlines found.",
+        "ms": 0
+      },
+      {
+        "step": "grounding",
+        "status": "done",
+        "detail": "3 of 3 quote(s) from the rules reader found word for word in the text (it quotes the same text the rules read, so this confirms the quotes, not the reading).",
+        "ms": 0
+      },
+      {
+        "step": "verdict",
+        "status": "done",
+        "detail": "Score 13 (4 strong x3, 1 medium x1): Likely scam. Reason: score of 3 or more.",
+        "ms": 0
+      }
+    ],
+    "extracted": {
+      "claimed_sender": "Irs",
+      "letter_date": "2026-09-26",
+      "phones": [],
+      "urls": [
+        "www.irs-refund-verify.com"
+      ],
+      "emails": [],
+      "amounts": [
+        "$1,284.00"
+      ],
+      "deadlines": []
+    },
+    "grounding": {
+      "source": "device_ocr",
+      "grounded": 3,
+      "total": 3
+    },
+    "meta": {
+      "model": "rules-v2f45d6bcab",
+      "reader": "rules",
+      "ai_mode": "off",
+      "ms": 31,
+      "input_tokens": 0,
+      "output_tokens": 0
+    }
+  },
+  "explanations": {
+    "English": {
+      "language": "English",
+      "tldr": "This looks like a scam. Do not pay, and do not call, click or reply to anything in it. The clearest warning sign: it asks for an OTP, PIN, password or full ID number.",
+      "explanation": [
+        "Plainly checked the letter against fixed rules written in code. Together, the warning signs it found add up to a likely scam.",
+        "It asks for an OTP, PIN, password or full ID number. No real office or bank asks you to share an OTP, PIN, password or your full SSN or Aadhaar number. With these, someone can empty your account.",
+        "It contains hidden text aimed at AI tools. A genuine letter has no reason to talk to AI tools. This text tries to fool scam checkers, so we treat it as a strong warning sign and do not repeat it.",
+        "Scammers copy the names of real offices. A familiar name does not make a message real.",
+        "If you already paid, or shared a code or password, contact your bank straight away and report it."
+      ],
+      "actions": [
+        {
+          "step": "Do not pay anything",
+          "how": "Don't send money, gift cards, crypto or codes, even if the letter says it's urgent.",
+          "by": null
+        },
+        {
+          "step": "Don't call the number in the message",
+          "how": "Don't call, click, scan or reply to anything printed in it. Those contacts go to the sender.",
+          "by": null
+        },
+        {
+          "step": "Contact the organisation yourself",
+          "how": "If you are worried it might be real, contact the organisation on a number you look up yourself, on its own website or an old bill or card and ask.",
+          "by": null
+        },
+        {
+          "step": "Report it",
+          "how": "FTC: https://reportfraud.ftc.gov",
+          "by": null
+        },
+        {
+          "step": "Never share codes, PINs or passwords",
+          "how": "If you already shared one, call your bank on the number on your card, block the card or account, and change your passwords.",
+          "by": null
+        },
+        {
+          "step": "Treat the whole letter as suspicious",
+          "how": "Don't act on anything in it. Contact the organisation it names through a number or website you find yourself.",
+          "by": null
+        },
+        {
+          "step": "Don't open the address in the letter",
+          "how": "Type the organisation's real address yourself, or search for it, instead of using the one printed here.",
+          "by": null
+        },
+        {
+          "step": "Don't click the link",
+          "how": "Go to the organisation's website or app yourself, by typing the address you already know.",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "Refund",
+          "meaning": "Money paid back to you, for example tax you paid too much of."
+        },
+        {
+          "term": "IRS",
+          "meaning": "Internal Revenue Service: the US federal tax office."
+        },
+        {
+          "term": "Verification",
+          "meaning": "Checking that something is true, such as your identity. Do it only on official channels you open yourself."
+        },
+        {
+          "term": "Social Security number (SSN)",
+          "meaning": "Your 9-digit US ID number. Keep it private."
+        }
+      ],
+      "questions_to_ask": [
+        "Did you send me this message or letter?",
+        "Is anything pending on my account?",
+        "If I owe anything, what is the right way to pay you?",
+        "I may have shared details or paid already. What should I do now?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "rules-v2f45d6bcab",
+        "ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
+      }
+    },
+    "Hindi": {
+      "language": "Hindi",
+      "tldr": "यह धोखाधड़ी (स्कैम) लगता है। कोई पैसा न दें, और इसमें दिए किसी नंबर, लिंक या पते पर कॉल, क्लिक या जवाब न करें। सबसे साफ़ चेतावनी: यह OTP, PIN, पासवर्ड या पूरा पहचान नंबर माँगता है।",
+      "explanation": [
+        "Plainly ने इस पत्र को कोड में लिखे तय नियमों से जाँचा। इसमें मिले चेतावनी के संकेत मिलकर बताते हैं कि यह शायद धोखाधड़ी है।",
+        "यह OTP, PIN, पासवर्ड या पूरा पहचान नंबर माँगता है। कोई असली दफ़्तर या बैंक आपसे OTP, PIN, पासवर्ड, या पूरा आधार या SSN नंबर नहीं माँगता। इनसे कोई भी आपका खाता ख़ाली कर सकता है।",
+        "इसमें AI टूल के लिए छिपा हुआ संदेश है। असली पत्र को AI टूल से बात करने की कोई ज़रूरत नहीं होती। यह हिस्सा स्कैम पकड़ने वाले टूल को धोखा देने की कोशिश है, इसलिए हम इसे बड़ी चेतावनी मानते हैं और इसे दोहराते नहीं।",
+        "ठग असली दफ़्तरों के नाम की नक़ल करते हैं। जाना-पहचाना नाम होने से संदेश असली नहीं हो जाता।",
+        "अगर आप पैसे दे चुके हैं, या कोई कोड या पासवर्ड बता चुके हैं, तो तुरंत अपने बैंक से संपर्क करें और शिकायत दर्ज करें।"
+      ],
+      "actions": [
+        {
+          "step": "कोई भुगतान न करें",
+          "how": "पैसे, गिफ़्ट कार्ड, क्रिप्टो या कोई कोड न भेजें, चाहे पत्र में कितनी भी जल्दी बताई गई हो।",
+          "by": null
+        },
+        {
+          "step": "संदेश में दिए नंबर पर कॉल न करें",
+          "how": "इसमें छपे किसी नंबर, लिंक या QR कोड पर कॉल, क्लिक, स्कैन या जवाब न करें। वे सीधे भेजने वाले तक जाते हैं।",
+          "by": null
+        },
+        {
+          "step": "संस्था से ख़ुद संपर्क करें",
+          "how": "अगर आपको लगता है कि यह असली हो सकता है, तो संस्था के ऐसे नंबर (जो आप ख़ुद ढूँढें, जैसे उसकी अपनी वेबसाइट या किसी पुराने बिल या कार्ड से) पर संपर्क करके पूछें।",
+          "by": null
+        },
+        {
+          "step": "शिकायत करें",
+          "how": "FTC: https://reportfraud.ftc.gov",
+          "by": null
+        },
+        {
+          "step": "कोई कोड, PIN या पासवर्ड किसी को न बताएँ",
+          "how": "अगर बता चुके हैं, तो कार्ड पर लिखे नंबर से अपने बैंक को फ़ोन करें, कार्ड या खाता बंद करवाएँ और पासवर्ड बदलें।",
+          "by": null
+        },
+        {
+          "step": "पूरे पत्र पर शक करें",
+          "how": "इसकी किसी बात पर अमल न करें। जिस संस्था का नाम लिखा है, उससे ख़ुद ढूँढे गए नंबर या वेबसाइट से संपर्क करें।",
+          "by": null
+        },
+        {
+          "step": "पत्र में दिया पता न खोलें",
+          "how": "संस्था का असली पता ख़ुद टाइप करें या खोजें, यहाँ छपा पता इस्तेमाल न करें।",
+          "by": null
+        },
+        {
+          "step": "लिंक पर क्लिक न करें",
+          "how": "संस्था की वेबसाइट या ऐप ख़ुद खोलें, वह पता टाइप करके जो आप पहले से जानते हैं।",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "रिफ़ंड (Refund)",
+          "meaning": "आपको वापस किया जाने वाला पैसा, जैसे ज़्यादा भरा गया टैक्स।"
+        },
+        {
+          "term": "IRS",
+          "meaning": "इंटरनल रेवेन्यू सर्विस: अमेरिका का संघीय टैक्स विभाग।"
+        },
+        {
+          "term": "सत्यापन (Verification)",
+          "meaning": "किसी बात की सच्चाई जाँचना, जैसे आपकी पहचान। यह सिर्फ़ उन्हीं आधिकारिक माध्यमों से करें जिन्हें आप ख़ुद खोलें।"
+        },
+        {
+          "term": "सोशल सिक्योरिटी नंबर (SSN)",
+          "meaning": "अमेरिका का 9 अंकों का पहचान नंबर। इसे निजी रखें।"
+        }
+      ],
+      "questions_to_ask": [
+        "क्या आपने मुझे यह संदेश या पत्र भेजा है?",
+        "क्या मेरे खाते में कुछ बकाया है?",
+        "अगर मुझे कुछ देना है, तो भुगतान का सही तरीक़ा क्या है?",
+        "हो सकता है मैंने जानकारी दे दी हो या भुगतान कर दिया हो। अब मुझे क्या करना चाहिए?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "rules-v2f45d6bcab",
+        "ms": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
+      }
+    },
+    "Spanish": {
+      "language": "Spanish",
+      "tldr": "Esto parece una estafa. No pague y no llame, no haga clic ni responda a nada de lo que contiene. La señal más clara: pide un código OTP, un PIN, una contraseña o su número de identidad completo.",
+      "explanation": [
+        "Plainly revisó la carta con reglas fijas escritas en código. Las señales de alerta que encontró, juntas, indican que probablemente es una estafa.",
+        "Pide un código OTP, un PIN, una contraseña o su número de identidad completo. Ninguna oficina ni banco de verdad le pide un código de un solo uso, un PIN, una contraseña o su número de Seguro Social o Aadhaar completo. Con eso pueden vaciar su cuenta.",
+        "Contiene texto oculto dirigido a herramientas de IA. Una carta auténtica no tiene por qué hablarles a herramientas de IA. Ese texto intenta engañar a los verificadores de estafas, así que lo tratamos como una señal fuerte y no lo repetimos.",
+        "Los estafadores copian los nombres de oficinas reales. Un nombre conocido no hace que un mensaje sea real.",
+        "Si ya pagó o compartió un código o una contraseña, llame a su banco de inmediato y denúncielo."
+      ],
+      "actions": [
+        {
+          "step": "No pague nada",
+          "how": "No envíe dinero, tarjetas de regalo, criptomonedas ni códigos, aunque la carta diga que es urgente.",
+          "by": null
+        },
+        {
+          "step": "No llame al número del mensaje",
+          "how": "No llame, no haga clic, no escanee ni responda a nada de lo que trae. Esos contactos van directos a quien lo envió.",
+          "by": null
+        },
+        {
+          "step": "Contacte usted mismo a la organización",
+          "how": "Si le preocupa que pueda ser real, contacte a la organización por un número que usted mismo busque, en su sitio web o en una factura o tarjeta anterior y pregunte.",
+          "by": null
+        },
+        {
+          "step": "Denúncielo",
+          "how": "FTC: https://reportfraud.ftc.gov",
+          "by": null
+        },
+        {
+          "step": "Nunca comparta códigos, PIN ni contraseñas",
+          "how": "Si ya compartió alguno, llame a su banco al número que figura en su tarjeta, bloquee la tarjeta o la cuenta y cambie sus contraseñas.",
+          "by": null
+        },
+        {
+          "step": "Desconfíe de toda la carta",
+          "how": "No haga nada de lo que pide. Contacte a la organización que nombra por un número o sitio web que usted mismo busque.",
+          "by": null
+        },
+        {
+          "step": "No abra la dirección de la carta",
+          "how": "Escriba usted mismo la dirección real de la organización, o búsquela, en lugar de usar la que aparece aquí.",
+          "by": null
+        },
+        {
+          "step": "No haga clic en el enlace",
+          "how": "Entre usted mismo en el sitio web o la aplicación de la organización, escribiendo la dirección que ya conoce.",
+          "by": null
+        }
+      ],
+      "jargon": [
+        {
+          "term": "Reembolso (Refund)",
+          "meaning": "Dinero que se le devuelve, por ejemplo impuestos que pagó de más."
+        },
+        {
+          "term": "IRS",
+          "meaning": "Servicio de Impuestos Internos: la oficina federal de impuestos de EE. UU."
+        },
+        {
+          "term": "Verificación (Verification)",
+          "meaning": "Comprobar que algo es cierto, como su identidad. Hágalo solo por canales oficiales que usted mismo abra."
+        },
+        {
+          "term": "Número de Seguro Social (SSN)",
+          "meaning": "Su número de identidad de EE. UU. de 9 cifras. Manténgalo en privado."
+        }
+      ],
+      "questions_to_ask": [
+        "¿Me enviaron ustedes este mensaje o esta carta?",
+        "¿Tengo algo pendiente en mi cuenta?",
+        "Si debo algo, ¿cuál es la forma correcta de pagarles?",
+        "Puede que ya haya dado datos o pagado. ¿Qué debo hacer ahora?"
+      ],
+      "reply_draft": "",
+      "meta": {
+        "model": "rules-v2f45d6bcab",
+        "ms": 1,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "fallback": false,
+        "fallback_language": false,
+        "writer": "templates"
+      }
+    }
+  },
+  "generated_at": "2026-10-01T00:13:20+00:00"
+}

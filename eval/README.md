@@ -1,43 +1,63 @@
 # Evaluation
 
 `run_eval.py` sends every labeled letter through `POST /api/check` (the same Lambda handler the site uses, called
-in-process) and writes a report. Holdout and synthetic letters are always reported separately, and every miss is
+in-process) and writes a report. Dev, holdout and synthetic letters are always reported separately, and every miss is
 listed with the flags that fired.
 
 ```
 python eval/synthetic/generate.py     # only if you change the generator; letters.json is committed
-python eval/run_eval.py               # offline: AWS faked      -> eval/results-offline.md (+ .json)
-python eval/run_eval.py --live        # real Bedrock, us-east-1 -> eval/results.md (+ .json)
+python eval/run_eval.py --set all --out eval/results-rules-reader.md   # the production engine (AI_MODE=off)
 python eval/run_eval.py --set holdout
 python eval/run_eval.py --set dev --set synthetic --out eval/results-offline-dev.md   # tuning sets only
+python eval/run_eval.py --live --out eval/results-live.md             # Nova on Bedrock; needs a Paid-plan account
 ```
 
 `--set` takes dev, synthetic, holdout or all and can be repeated; every set gets its own section in the report.
 
-`--live` uses whatever AWS credentials the shell has. Letters are sent as text, so Textract is not called and
-quotes are grounded against the pasted text.
+## What the numbers measure
+
+The live product runs with `AI_MODE=off` (see `docs/CONTRACT.md`, "Option B"). The browser turns the letter into
+text, and the Lambda reads that text with a keyword and date reader and applies the rules. The default eval runs
+exactly that engine:
+
+- Reader: the logic in `mock_model.py`'s `extract()`, which is what `backend/reader.py` runs in production. It copies
+  the sentences that match its patterns into the `record_letter` fields, so every quote is text from the letter.
+- Rules, registry and date math: `verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py`, `dates.py` and
+  `registry.json`, unchanged.
+- `harness.py` still swaps boto3 for fakes before importing the backend, so no AWS call is made. DynamoDB counters
+  are faked; they don't affect a verdict.
+
+So the numbers in `results.md` are the production engine's numbers on these letters. Two things they don't cover:
+
+- The device's reading step. Letters are fed as text. A real photo goes through Tesseract.js first, and misread words
+  can change a verdict. The user sees and can fix the text before the check.
+- Latency. Timings in the reports are in-process, without Lambda start-up or the network.
+
+`--live` is the `AI_MODE=on` design (Nova on Bedrock reads the text instead). It can't run on this account, which is
+on the AWS Free account plan; see `docs/agent-log.md` for the errors. If it ever runs, publish it next to the
+rules-reader report as a different reader, and don't replace one with the other.
 
 ## The rules are frozen
 
 The eval only counts. It never changes a rule, threshold or registry entry, and each report records a sha256
 prefix of the rules files (`verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py`, `pipeline.py`) and
 `registry.json`, so a number can be traced to one rules version. Rules are tuned on `dev/` and `synthetic/` only;
-`RULES_FROZEN.md` records the version frozen before the holdout is run. If
-the rules change after a run, re-run and publish the new report next to the old one; don't edit the old one.
+`RULES_FROZEN.md` records the version frozen before the holdout was run. If the rules change after a run, re-run and
+publish the new report next to the old one; don't edit the old one.
 
-`results.md` is the write-up of the one holdout run on the frozen rules. It was run offline on 2026-09-30,
-and the raw report is `results-offline-frozen.md` (+ `.json`). `results-offline.md` is an older offline run under the
-pre-tuning rules. Live numbers are pending. Run them with `--live --out eval/results-live.md` so the offline
-write-up is kept.
+`results.md` is the write-up of the one holdout run on the frozen rules (2026-09-30, 23:03 IST); the raw report is
+`results-offline-frozen.md` (+ `.json`). `results-offline.md` is an older run under the pre-tuning rules.
+`pipeline.py` changed for Option B (the `AI_MODE` switch and the reader call), so its hash no longer matches
+`RULES_FROZEN.md`. The check that matters is that the Option B run gives the same verdict for every letter as
+`results-offline-frozen.json`.
 
-## Offline mode
+Headline, frozen rules, production reader:
 
-Offline, `harness.py` swaps boto3 clients for fakes before importing the backend. Bedrock is answered by
-`mock_model.py`, a keyword reader that fills the `record_letter` fields with sentences copied from the letter.
-Offline numbers therefore measure the deterministic rules plus a crude reader. They are useful for catching
-regressions in the rules and wiring, not as a claim about accuracy. Latency and tokens are meaningless offline.
-Until `backend/registry.json` exists, offline runs use `backend/tests/fixtures/registry_test.json`.
-Set `PLAINLY_BACKEND_DIR` to test a different checkout of the backend.
+| Set | Scams → likely_scam | Precision | Scams → consistent_with_genuine | Genuine → likely_scam | Genuine → consistent_with_genuine |
+|---|---|---|---|---|---|
+| Holdout (23), never used for tuning | 1/12 | 1/1 | 0 | 0/11 | 8/11 |
+| Dev (67), used for tuning | 25/29 | 25/25 | 0 | 0/38 | 12/38 |
+| Synthetic (24), written by us | 11/12 | 11/11 | 0 | 0/12 | 12/12 |
 
 ## Metrics
 
@@ -45,8 +65,10 @@ Set `PLAINLY_BACKEND_DIR` to test a different checkout of the backend.
 - Scam letters marked `consistent_with_genuine`. This is the costly error, and the target is 0.
 - "Can't tell" rate, and how many genuine letters reach `consistent_with_genuine`.
 - Deadline accuracy on letters with a labeled deadline: an extracted deadline must equal the label exactly.
-- Grounding: grounded quotes out of all checked quotes, from each response's `grounding` field.
-- p50/p95 wall-clock latency of `/api/check` and average input/output tokens from `meta`.
+- Grounding: grounded quotes out of all checked quotes, from each response's `grounding` field. With the rules
+  reader it is 100% by construction, because the reader only quotes text it copied.
+- p50/p95 wall-clock latency of `/api/check` (in-process here, so not the live figure). Tokens are 0 with
+  `AI_MODE=off`.
 
 ## dev/ (67 files): the tuning set
 

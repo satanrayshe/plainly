@@ -1,0 +1,19 @@
+GOVERNMENT OF INDIA · MINISTRY OF FINANCE
+INCOME TAX DEPARTMENT
+Centralized Processing Centre, Bengaluru
+Name RAVI KUMAR EXAMPLE PAN ABCPX1234X
+Assessment Year 2026-27 Date of issue 25-09-2026
+Acknowledgement No. 000000000000000 DIN CPC/2627/G22/0000000000
+Communication of proposed adjustment under section 143(1)(a) of the Income-tax Act, 1961
+Dear Taxpayer,
+While processing your return of income for Assessment Year 2026-27, the Centralized Processing Centre found the following variance between the return and the information available with the Department. An adjustment to the total income is proposed as shown below.
+Sl. Description of variance As per return As computed
+1 Interest from savings bank deposit not fully reported (as per Form 26AS / AIS) ₹ 4,200 ₹ 11,850
+You are requested to submit your response to this proposed adjustment within 30 days from the date of issue of this communication. If no response is received within this period, the return will be processed after making the adjustment, without further notice.
+How to respond
+Log in to the e-Filing portal at https://www.incometax.gov.in.
+Go to Pending Actions → e-Proceedings and select the proceeding for Assessment Year 2026-27.
+Choose "Agree" or "Disagree" for the adjustment and give reasons if you disagree.
+No payment is required to respond to this communication. The Department does not ask for bank or card details through e-mail or SMS.
+For help, call the e-Filing and Centralized Processing Centre helpdesk: 1800 103 0025 or +91-80-46122000 (08:00 to 20:00 hrs, Monday to Friday). This is a system-generated communication and does not require a signature.
+Synthetic sample made for Plainly in the format of an Income Tax Department communication. The taxpayer, PAN and all numbers are fictional.

@@ -1,23 +1,37 @@
-"""The two request flows.
+"""The two request flows, in one of two modes chosen by the AI_MODE environment variable.
 
-/api/check:   ocr() -> extract() -> verify()   (Textract, then Bedrock with a forced tool, then pure Python)
-/api/explain: narrate()                        (Bedrock with a forced tool, dates only from the verified check)
+AI_MODE=off (default; the live site on the AWS Free plan, where Bedrock and Textract are not available):
+  /api/check:   text only (the browser reads photos and PDFs on the device) -> reader.extract() -> verify()
+  /api/explain: explain_templates.explain()     (written templates in English, Hindi and Spanish; no model)
+AI_MODE=on (built, switched off until the account can use Bedrock and Textract):
+  /api/check:   ocr() -> extract() -> verify()   (Textract, then Bedrock with a forced tool, then pure Python)
+  /api/explain: narrate()                        (Bedrock with a forced tool, dates only from the verified check)
+
+With AI_MODE=off no Textract or Bedrock client is ever created. Deadlines and dates are always worked out by code
+(verifier.py) and the explanation only repeats them.
 """
 import base64
 import binascii
+import hashlib
 import json
 import os
 import re
 import time
+from collections import namedtuple
 from datetime import date
+from functools import lru_cache
+from pathlib import Path
 
 import agencies
 import bedrock
+import explain_templates
+import reader
 import verifier
 
 MIN_OCR_CHARS = 40
 MIN_TRANSCRIPT_LETTERS = 20  # non-Latin letters a transcript must add before it counts as text the OCR missed
-MAX_TEXT_CHARS = 20000
+MAX_TEXT_CHARS = 20000         # AI_MODE=on: pasted text beyond this is cut off (unchanged behaviour)
+MAX_DEVICE_TEXT_CHARS = 30000  # AI_MODE=off: longer text is refused with a friendly 400
 MAX_IMAGE_B64_CHARS = 2_200_000
 MAX_CHECK_CHARS = 40_000  # the sample /api/check results (minus letter_text) are 4-8 KB
 TOTAL_BUDGET_MS = 25000
@@ -33,7 +47,38 @@ LEVELS = {
     "normal": "Write for a busy adult with no legal or financial background. Short, plain sentences.",
 }
 
+# What the browser says the text is -> grounding.source in the response.
+TEXT_SOURCES = {"typed": "pasted_text", "device_ocr": "device_ocr", "pdf_text": "pdf_text"}
+_TEXT_SOURCE_WORDS = {"typed": "the text you typed or pasted",
+                      "device_ocr": "the text your device read from the photo",
+                      "pdf_text": "the text inside the PDF"}
+# Files whose content decides an AI_MODE=off result; their hash is the "model" name in meta (rules-v<hash>).
+RULES_FILES = ("reader.py", "verifier.py", "lexicon.py", "contacts.py", "agencies.py", "dates.py", "grounding.py",
+               "registry.json", "explain_templates.py", "pipeline.py")
+IMAGE_OFF_MESSAGE = ("Plainly now reads photos and PDFs on your device, and only the text is sent to us. "
+                     "Please reload the page and add the photo again, or paste the letter's text.")
+
+CheckRequest = namedtuple("CheckRequest", "image_bytes image_format text today text_source")
+
 _textract = None
+
+
+def ai_mode():
+    """"off" unless AI_MODE is "on" (any case). Read on every call, so a test or a script can switch it."""
+    return "on" if os.environ.get("AI_MODE", "off").strip().lower() == "on" else "off"
+
+
+@lru_cache(maxsize=1)
+def rules_version():
+    """"rules-v" + the first 10 hex of a sha256 over the rules files, with line endings normalised so a Windows
+    and a Linux checkout of the same files give the same version."""
+    digest = hashlib.sha256()
+    here = Path(__file__).resolve().parent
+    for name in RULES_FILES:
+        path = here / name
+        if path.exists():
+            digest.update(name.encode() + b"\0" + path.read_bytes().replace(b"\r\n", b"\n") + b"\0")
+    return "rules-v" + digest.hexdigest()[:10]
 
 
 class BadRequest(ValueError):
@@ -65,9 +110,11 @@ class Budget:
 # ---------------------------------------------------------------- request parsing
 
 def parse_check_request(payload):
-    """-> (image_bytes | None, image_format | None, pasted_text, today)."""
+    """-> CheckRequest(image_bytes | None, image_format | None, text, today, text_source)."""
     if not isinstance(payload, dict):
         raise BadRequest("Send a photo of the letter or paste its text.")
+    if ai_mode() == "off":
+        return _parse_text_only(payload)
     image_bytes = image_format = None
     image = payload.get("image")
     if image:
@@ -93,7 +140,29 @@ def parse_check_request(payload):
     text = text.strip()[:MAX_TEXT_CHARS]
     if not image_bytes and not text:
         raise BadRequest("Add a photo of the letter, or paste its text.")
-    return image_bytes, image_format, text, _client_today(payload.get("today"))
+    return CheckRequest(image_bytes, image_format, text, _client_today(payload.get("today")),
+                        _text_source(payload))
+
+
+def _text_source(payload):
+    value = payload.get("text_source")
+    return value if isinstance(value, str) and value in TEXT_SOURCES else "typed"
+
+
+def _parse_text_only(payload):
+    """AI_MODE=off: the browser has already turned any photo or PDF into text, so only text is accepted."""
+    if payload.get("image"):
+        raise BadRequest(IMAGE_OFF_MESSAGE)
+    text = payload.get("text") or ""
+    if not isinstance(text, str):
+        raise BadRequest("The letter's text didn't come through. Please try again.")
+    text = text.strip()
+    if not text:
+        raise BadRequest("Add a photo of the letter, or paste its text.")
+    if len(text) > MAX_DEVICE_TEXT_CHARS:
+        raise BadRequest("That is more text than Plainly can check at once (about 30,000 characters). "
+                         "Please check the first pages, or paste the part that asks you to do something.")
+    return CheckRequest(None, None, text, _client_today(payload.get("today")), _text_source(payload))
 
 
 def _client_today(value):
@@ -248,7 +317,9 @@ def check_request(request, context=None, registry=None):
     """request: what parse_check_request returned."""
     budget = Budget(context)
     registry = registry or agencies.load_registry()
-    image_bytes, image_format, pasted, today = request
+    if ai_mode() == "off":
+        return _check_rules_only(request, budget, registry)
+    image_bytes, image_format, pasted, today = request[:4]
     trace = []
 
     ocr_text = ""
@@ -316,6 +387,82 @@ def check_request(request, context=None, registry=None):
         "grounding": checked["grounding"],
         "meta": meta,
     }
+
+
+def _check_rules_only(request, budget, registry):
+    """AI_MODE=off: the rules reader (reader.py) reads the text, then the same rules as ever decide.
+
+    The reader's answer goes through the record_letter schema exactly as a model's answer would, so this path gives
+    the verdicts the offline eval measured. Its quotes are copied from the same text the rules read, so grounding
+    confirms the quotes, not a second reading; the trace says so.
+    """
+    text, today = request.text, request.today
+    text_source = request.text_source if request.text_source in TEXT_SOURCES else "typed"
+    if request.image_bytes or not text:
+        raise BadRequest(IMAGE_OFF_MESSAGE)
+    started = time.perf_counter()
+    raw = reader.extract(text, reader.entries_from_registry(registry))
+    schema = record_letter_tool([a["key"] for a in registry["agencies"]])["inputSchema"]["json"]
+    extraction = reader.fit_schema(raw, schema)
+    lines = sum(1 for line in text.splitlines() if line.strip())
+    trace = [{"step": "extract", "status": "done", "ms": int((time.perf_counter() - started) * 1000),
+              "detail": f"Rules reader (keyword and date patterns in code, no AI model) read {lines} line(s) of "
+                        f"{_TEXT_SOURCE_WORDS[text_source]}"}]
+
+    checked = verifier.verify(text, extraction, grounding_source="pasted_text", today=today, registry=registry)
+    result = {
+        "verdict": checked["verdict"],
+        "verdict_label": checked["verdict_label"],
+        "headline": checked["headline"],
+        "agency": checked["agency"],
+        "report_channel": checked["report_channel"],
+        "flags": checked["flags"],
+        "trace": trace + checked["trace"],
+        "extracted": checked["extracted"],
+        "letter_text": checked["letter_text"],
+        "grounding": {**checked["grounding"], "source": TEXT_SOURCES[text_source]},
+        "meta": {"model": rules_version(), "reader": "rules", "ai_mode": "off", "ms": budget.elapsed_ms(),
+                 "input_tokens": 0, "output_tokens": 0},
+    }
+    _rules_reader_wording(result)
+    return result
+
+
+# verifier.py was written for the AI reader and says "the model" in a few trace lines and one flag. With the rules
+# reader those sentences would be untrue, so they are reworded here. Wording only: no verdict, flag or severity
+# changes.
+_WORDING = [
+    (re.compile(r"model quote\(s\) found in the pasted text\."),
+     "quote(s) from the rules reader found word for word in the text (it quotes the same text the rules read, so "
+     "this confirms the quotes, not the reading)."),
+    (re.compile(r"quote confirmed in the independently read text"), "quote found word for word in the text"),
+    (re.compile(r"quote NOT found in the independently read text"), "quote NOT found word for word in the text"),
+    (re.compile(r"\bReported by the model\b"), "Found by the rules reader"),
+    (re.compile(r"\bThe model reported\b"), "The rules reader found"),
+    (re.compile(r"\bThe AI reader noticed\b"), "The rules reader found"),
+    (re.compile(r"\bThe AI reader\b"), "The rules reader"),
+    (re.compile(r"\bThe model that read the letter\b"), "The rules reader"),
+    (re.compile(r"\bthe AI model\b"), "the rules reader"),
+    (re.compile(r"\bThe model\b"), "The rules reader"),
+    (re.compile(r"\bthe model\b"), "the rules reader"),
+    (re.compile(r"\bmodel quote"), "reader quote"),
+]
+
+
+def _reword(text):
+    if not isinstance(text, str):
+        return text
+    for pattern, replacement in _WORDING:
+        text = pattern.sub(replacement, text)
+    return text
+
+
+def _rules_reader_wording(result):
+    for step in result["trace"]:
+        step["detail"] = _reword(step.get("detail"))
+    for flag in result["flags"]:
+        flag["title"] = _reword(flag.get("title"))
+        flag["why"] = _reword(flag.get("why"))
 
 
 # ---------------------------------------------------------------- /api/explain
@@ -425,8 +572,18 @@ def _brief(check):
     }
 
 
+def _template_brief(check):
+    """_brief plus what the templates need: the rule ids of the flags (known ids only)."""
+    brief = _brief(check)
+    brief["rules"] = [f.get("rule") for f in _items(check.get("flags"), 12) if f.get("rule") in verifier.RULES]
+    return brief
+
+
 def narrate(letter_text, check, language, level, budget=None):
     budget = budget or Budget()
+    if ai_mode() == "off":
+        return explain_templates.explain(letter_text, _template_brief(check), language, level,
+                                         model=rules_version(), started=budget.started)
     brief = _brief(check)
     scam = brief["verdict"] == "likely_scam"
     system = NARRATE_SYSTEM.format(language=language, level=LEVELS[level],

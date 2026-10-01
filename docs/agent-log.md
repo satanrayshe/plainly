@@ -17,15 +17,32 @@ Entries before 19:30 on 30 Sep were written after the fact from file timestamps 
 | ~19:25 | Started parallel builders, each limited to its own area of the repo and coding against the contract: backend, infra and scripts, site, samples and eval, docs. No AWS calls and no pushes during this phase. | Build locally first; connect the agent to AWS and deploy after | This log; files under each area |
 | 19:29 onward | Docs agent checked every impact figure on its primary page before using it. The FTC release gives government-impersonator losses of about $920 million in 2025, up from $789 million in 2024; the red-team's $866 million correction was wrong (that figure is business impersonators). IC3 elder figures were confirmed from the PDF text. India figures were taken only from MHA parliamentary replies and a PIB release; the ₹22,495 crore figure from a secondary site was dropped. Fetched the Norton Genie and Bitdefender Scamio pages for the comparison. | | `docs/SUBMISSION.md` ("Sources for the figures", "Notes for the final pass"), `docs/comparison.md` |
 | 19:29 onward | Docs agent wrote the README, submission draft, architecture (Mermaid plus ASCII), comparison, this log, LICENSE and `.gitignore`. Description counted in code at 505 of 512 characters, with no words shared with the title. | | `README.md`, `docs/SUBMISSION.md`, `docs/architecture.md`, `docs/comparison.md`, `LICENSE`, `.gitignore` |
+| 20:18 | Integrated the parallel builds into one working app (offline: fake AWS clients, keyword reader) and committed locally. | | commit `43d16ac` |
+| 21:00 | Ran a review pass and applied its fixes (rules, grounding time budget, Bedrock timeouts, limits, infra, UI). | | commit `6001ae9`, `docs/CONTRACT.md` "Review fixes" |
+| ~21:00 to 23:10 | Rules workflow ("rules-v2"): collected 42 government-published dev examples, tuned the rules on dev and synthetic only, then a false-positive hunt with 25 genuine messages written from public templates. Froze the rules by sha256 at 23:01 and ran the holdout once at 23:03, offline. Results: dev scams 25/29 `likely_scam`, holdout scams 1/12, synthetic 11/12. No scam in any set was marked `consistent_with_genuine`, and no genuine letter in any set was marked `likely_scam`. 480 tests passing. | Rules stay frozen after the holdout; gaps are listed, not fixed | `eval/RULES_FROZEN.md`, `eval/results.md`, commit `06d6682` |
+| 22:14 to 22:15 | Shrey ran `aws login --region us-east-1 --profile plainly-admin` and approved it in the browser. The agent checked the identity: the CLI was signed in as the account root (account `****1486`). `aws freetier get-account-plan-state` returned `"accountPlanType": "FREE"`, `"accountPlanStatus": "ACTIVE"` and $100 of remaining credits. Nova inference profiles were listed (including `us.amazon.nova-2-lite-v1:0`); Lambda concurrency limit 10. | Connect AWS with his own login first | Session transcript; masked output here |
+| 22:15 | `scripts/smoke_bedrock.py` failed with `MissingDependencyException` on every model: boto3 needs `botocore[crt]` to use `aws login` credentials. Installed it. | | Session transcript |
+| 22:16 | With credentials working, Bedrock and Textract refused. The smoke test got `AccessDeniedException` for Nova 2 Lite, Nova Pro and Nova Lite. A plain `Converse` call got `An error occurred (ValidationException) when calling the Converse operation: Operation not allowed` for `us.amazon.nova-2-lite-v1:0`, `amazon.nova-lite-v1:0` and `us.amazon.nova-micro-v1:0`, and Bedrock reported `"authorizationStatus": "NOT_AUTHORIZED"` for Nova 2 Lite. Textract `DetectDocumentText` got `An error occurred (SubscriptionRequiredException) when calling the DetectDocumentText operation: The AWS Access Key Id needs a subscription for the service`. Read the AWS page on account plans: the Free plan covers selected services only. | | Session transcript; AWS docs "Choosing a plan" |
+| 22:17 | Tried to create the `plainly-boundary` and `plainly-agent-policy` policies and the `plainly-agent` user under the root login. Claude Code's auto-mode permission classifier blocked it ("Permission Grant"): granting permissions is a human decision. Wrote `infra/setup-agent-user.sh` for Shrey to read and run instead. | | `infra/setup-agent-user.sh` |
+| 22:17 to 22:20 | Explained that the Paid plan was needed for Bedrock and Textract. A read-only probe of which other services the Free plan allows was also blocked by the classifier ("Credential Exploration") because it ran under root. Proposed Option B: read letters in the browser with Tesseract.js, keep the rules verdict on Lambda, replace model explanations with written templates. | Shrey: can't upgrade the account | Session transcript |
+| 23:11 | Reported the rules workflow results to Shrey while the plan decision was open. | | `eval/results.md` |
+
+## Thursday 1 Oct 2026
+
+| Time (IST) | Agent did | Human decided | Evidence |
+|---|---|---|---|
+| 05:12 | Shrey asked whether to write to the organizers. No organizer email is published, so the agent drafted a question for the hackathon's Discussion tab: the exact Bedrock and Textract errors, whether Free-plan participants have a path to Bedrock, whether an entry on Free-plan services only is fine, and whether it would be judged differently. Recommended not waiting for an answer. | Shrey posts it himself if he wants; the agent posts nothing | Session transcript |
+| 05:16 | Started Option B as a workflow: backend (rules reader in production, template explanations in English, Hindi and Spanish, `AI_MODE` switch), frontend (Tesseract.js and pdf.js on the device), infra (`AiMode` parameter, no Bedrock or Textract grants when off, CSP for Tesseract), docs. No AWS calls, no pushes. | "start option b" | This log; `docs/CONTRACT.md` "Option B" |
+| ~05:20 | Checked which reader the frozen eval measured: `eval/mock_model.py`. The older fake reader in `backend/dev_mock.py` gives different results (on dev, one genuine e-Challan SMS becomes `likely_scam` and one scam drops to "Can't tell"). Told the main session that the production reader has to be the `mock_model` logic for the published numbers to hold. | | Scratchpad run on a copy of commit `06d6682` |
 
 ## Next entries
 
 Add a row for each of these as they happen, with the exact command or transcript excerpt and the path of the saved output:
 
-- Agent connection: `aws login`, `aws configure agent-toolkit`, `/mcp` showing aws-mcp connected, the "What AWS Regions are available?" answer.
-- CloudTrail trail with AWS MCP data events, created through MCP.
-- Bedrock smoke tests: Nova 2 Lite with an image, forced tool choice, and any exact error text for the Gotchas section.
-- First deploy, the live URL, and `curl` checks of every page path.
+- Option B integration: tests, sample results with `"mock": false`, `build_site.py --strict`, eval equal to `eval/results.md`, in-browser OCR check in headless Edge with the OCR time.
+- `infra/setup-agent-user.sh` run by Shrey (or the decision to deploy with `plainly-admin`), and `aws login` as `plainly-agent`.
+- First deploy with `AI_MODE=off`, the live URL, `curl` checks of every page and `/api/health` showing `"ai_mode": "off"`, and any Free-plan error with its exact text.
+- AWS MCP Server connection, if made: config, `/mcp` status, one call with its request id.
+- CloudTrail trail and the lock policy.
 - Builder Center project published (first version).
-- Any incident the agent diagnosed from CloudWatch Logs, with the query it ran and the fix commit.
-- Eval runs, before and after fixes.
+- Any answer from the organizers in the Discussion tab.

@@ -56,7 +56,7 @@ VERDICT_FALLBACK_LABEL = {"likely_scam": "Likely scam",
 SEVERITY_ORDER = {"strong": 0, "medium": 1, "info": 2}
 SEVERITY_LABEL = {"strong": "Strong sign", "medium": "Warning sign", "info": "Note"}
 MOCK_NOTE = "Illustrative result, not from the live checker. It will be replaced by live output before launch."
-REDACTED_TEXT = "[instruction aimed at AI tools — hidden for safety, visible in the image]"
+REDACTED_TEXT = "[instruction aimed at AI tools — hidden for safety, visible in the letter]"
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
           "September", "October", "November", "December"]
 

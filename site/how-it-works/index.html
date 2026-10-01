@@ -3,9 +3,9 @@
 <head>
 <!-- @head -->
 <title>How Plainly decides | Plainly</title>
-<meta name="description" content="How Plainly checks a letter: an independent reader (Amazon Textract), fixed rules and an official contacts registry in plain code, then Amazon Nova explains it in your language. The rules, the verdict logic, privacy and limits.">
+<meta name="description" content="How Plainly checks a letter: your device reads it with Tesseract, so the photo never leaves it; a rules engine on AWS Lambda checks the words against over 20 scam rules and a list of official contacts; explanations written by people. The rules, the verdict, privacy and limits.">
 <meta property="og:title" content="How Plainly decides whether a letter is real">
-<meta property="og:description" content="The model reads and explains. Plain code applies the rules and decides the verdict, and every check leaves a receipt.">
+<meta property="og:description" content="Your device reads the letter. Plain code applies the rules and decides the verdict, every check leaves a receipt, and people wrote the explanations.">
 <meta property="og:url" content="/how-it-works/">
 </head>
 <body>
@@ -14,7 +14,7 @@
 <main id="main">
   <div class="wrap page-head">
     <h1>How Plainly decides</h1>
-    <p class="lede">An AI model reads the letter and, later, explains it. It does not decide the verdict. Fixed rules written in plain code do that, using quotes that must appear in an independent reading of the letter.</p>
+    <p class="lede">Your device reads the letter. Fixed rules written in plain code decide the verdict, and each rule leaves a receipt. People wrote the explanations; nothing is generated.</p>
     <ul class="toc" aria-label="On this page">
       <li><a href="#pipeline">The steps</a></li>
       <li><a href="#rules">The rules</a></li>
@@ -22,6 +22,7 @@
       <li><a href="#never-safe">Why it never says "safe"</a></li>
       <li><a href="#privacy">Privacy</a></li>
       <li><a href="#limits">Limits</a></li>
+      <li><a href="#ai-off">Textract and Nova</a></li>
     </ul>
   </div>
 
@@ -30,17 +31,18 @@
       <div class="prose">
         <h2 id="pipeline-title">The steps</h2>
         <ol>
-          <li><strong>Your device shrinks the photo</strong> to at most 1.5 MB. A PDF's first three pages are drawn into one image, also on your device.</li>
-          <li><strong>Two readers, independently.</strong> Amazon Textract reads every line of text. Separately, Amazon Nova notes who the letter claims to be from, its date, deadlines, payment requests and threats, each with the exact words it found them in.</li>
-          <li><strong>Plain code checks.</strong> Each quote from Nova must appear in Textract's reading, or it is marked unconfirmed and counts for less. Phone numbers, web addresses and emails are pulled out by pattern matching, not by the model, and compared with an official contacts list. Deadlines like "within 21 days of this notice" are worked out by arithmetic.</li>
+          <li><strong>Your device reads the letter.</strong> A photo is shrunk to about 2000 pixels, turned grey for contrast and read by Tesseract, an open-source reader that runs inside your browser. A PDF made on a computer already carries its text, so that text is used as it is. The photo never leaves your device.</li>
+          <li><strong>You check the words.</strong> The text appears in a box, and you fix anything that was misread. Only this text is sent, when you press "Check this letter".</li>
+          <li><strong>The rules reader picks out the parts.</strong> On AWS Lambda, plain code finds who the letter says it is from, its date, deadlines, amounts, payment requests and threats, by keywords and patterns. Phone numbers, web addresses and emails are pulled out the same way.</li>
+          <li><strong>The rules and the official list.</strong> Over 20 rules run on the text, each based on a public source that is linked in the result. Phone numbers and web addresses are compared with a list of official contacts. Deadlines like "within 21 days of this notice" are worked out by date arithmetic.</li>
           <li><strong>The verdict and the receipts.</strong> The rules give a score, the score gives the verdict, and every rule leaves a line in the receipts, whether it passed or not.</li>
-          <li><strong>Amazon Nova explains.</strong> A second request writes the explanation, actions and a reply draft in your language. It is given the checked facts and dates; it does not work out dates itself.</li>
+          <li><strong>The explanation.</strong> People wrote a plain-words explanation for each verdict and each warning sign, in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span>. Plainly fills in the checked facts: who the letter claims to be from, the official number, the deadline. Nothing is generated.</li>
         </ol>
       </div>
       <figure class="diagram" aria-labelledby="diagram-caption">
-        <svg viewBox="0 0 360 716" role="img" aria-labelledby="diagram-title diagram-desc">
+        <svg viewBox="0 0 360 780" role="img" aria-labelledby="diagram-title diagram-desc">
           <title id="diagram-title">How a letter moves through Plainly</title>
-          <desc id="diagram-desc">Your letter goes to two independent readers, Amazon Textract and Amazon Nova. Plain code applies rules, the official contacts list, date arithmetic and quote checks, and produces the verdict with receipts. Amazon Nova then explains it in your language. All of this runs in memory in AWS Lambda, and Plainly stores nothing.</desc>
+          <desc id="diagram-desc">On your device, the camera, photo or PDF is read by Tesseract and you check the words. Only the text goes on, through Amazon CloudFront and Amazon API Gateway, to AWS Lambda. In Lambda, plain code runs the rules reader, the scam rules, the official contacts list, date arithmetic and the written explanations, and stores nothing. Lambda keeps only request counters and limits in Amazon DynamoDB, and sends the verdict, receipts and explanation back to you.</desc>
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0L10 5L0 10z" fill="#1c1b18"/>
@@ -52,63 +54,64 @@
             .inv .t { fill: #fffdf8; } .inv .s { fill: #e9e3d6; }
             .lbl { font: 600 12.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #4a463e; }
             .box { fill: #fffdf8; stroke: #1c1b18; stroke-width: 1.5; }
+            .inner { fill: #efe9dc; }
+            .row { fill: #fffdf8; }
+            .n { font: 700 12.5px ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; fill: #4a463e; }
+            .rt { font: 600 13.5px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #1c1b18; }
             .ln { stroke: #1c1b18; stroke-width: 1.5; fill: none; }
+            .dash { stroke-dasharray: 5 4; }
           </style>
 
-          <rect class="box" x="20" y="16" width="320" height="60" rx="6"/>
-          <text class="t" x="36" y="41">Your letter</text>
-          <text class="s" x="36" y="62">Photo, PDF or pasted text</text>
+          <rect class="box" x="20" y="16" width="320" height="130" rx="6"/>
+          <text class="t" x="36" y="41">Your device</text>
+          <text class="s" x="36" y="62">Camera, photo or PDF</text>
+          <rect class="inner" x="36" y="76" width="288" height="54" rx="4"/>
+          <text class="rt" x="48" y="98">Tesseract reads it, in the browser</text>
+          <text class="s" x="48" y="119">You check and fix the words</text>
 
-          <rect x="8" y="96" width="344" height="480" rx="10" fill="none" stroke="#8f8676" stroke-width="1.2" stroke-dasharray="5 4"/>
-          <text class="lbl" x="180" y="116" text-anchor="middle">Lambda: nothing stored</text>
+          <path class="ln" d="M180 146V184" marker-end="url(#arrow)"/>
+          <text class="lbl" x="192" y="170">Only the text</text>
 
-          <path class="ln" d="M97 76V124" marker-end="url(#arrow)"/>
-          <path class="ln" d="M263 76V124" marker-end="url(#arrow)"/>
+          <rect class="box" x="20" y="188" width="320" height="56" rx="6"/>
+          <text class="t" x="36" y="212">Amazon CloudFront</text>
+          <text class="s" x="36" y="233">The site's pages, and HTTPS</text>
 
-          <rect class="box" x="20" y="128" width="155" height="84" rx="6"/>
-          <text class="t" x="32" y="152">Amazon Textract</text>
-          <text class="s" x="32" y="173">Reads every line.</text>
-          <text class="s" x="32" y="192">Independent reader</text>
+          <path class="ln" d="M180 244V272" marker-end="url(#arrow)"/>
 
-          <rect class="box" x="185" y="128" width="155" height="84" rx="6"/>
-          <text class="t" x="197" y="152">Amazon Nova</text>
-          <text class="s" x="197" y="173">Notes sender, dates</text>
-          <text class="s" x="197" y="192">and exact quotes</text>
+          <rect class="box" x="20" y="276" width="320" height="56" rx="6"/>
+          <text class="t" x="36" y="300">Amazon API Gateway</text>
+          <text class="s" x="36" y="321">HTTP API, rate limited</text>
 
-          <path class="ln" d="M97 212V246" marker-end="url(#arrow)"/>
-          <path class="ln" d="M263 212V246" marker-end="url(#arrow)"/>
+          <path class="ln" d="M180 332V360" marker-end="url(#arrow)"/>
 
           <g class="inv">
-            <rect x="20" y="250" width="320" height="104" rx="6" fill="#1c1b18"/>
-            <text class="t" x="36" y="276">Plain code decides</text>
-            <text class="s" x="36" y="298">Rules and the official contacts list</text>
-            <text class="s" x="36" y="318">Deadlines by date arithmetic</text>
-            <text class="s" x="36" y="338">Quotes checked against Textract</text>
+            <rect x="20" y="364" width="320" height="282" rx="6" fill="#1c1b18"/>
+            <text class="t" x="36" y="390">AWS Lambda</text>
+            <text class="s" x="36" y="411">Plain code, no AI model, nothing stored</text>
           </g>
+          <rect class="row" x="36" y="428" width="288" height="32" rx="4"/>
+          <text class="n" x="48" y="449">1</text><text class="rt" x="68" y="449">Rules reader: sender, dates, links</text>
+          <rect class="row" x="36" y="470" width="288" height="32" rx="4"/>
+          <text class="n" x="48" y="491">2</text><text class="rt" x="68" y="491">Over 20 rules, each with a source</text>
+          <rect class="row" x="36" y="512" width="288" height="32" rx="4"/>
+          <text class="n" x="48" y="533">3</text><text class="rt" x="68" y="533">Official contacts list</text>
+          <rect class="row" x="36" y="554" width="288" height="32" rx="4"/>
+          <text class="n" x="48" y="575">4</text><text class="rt" x="68" y="575">Date arithmetic for deadlines</text>
+          <rect class="row" x="36" y="596" width="288" height="32" rx="4"/>
+          <text class="n" x="48" y="617">5</text><text class="rt" x="68" y="617">Explanations people wrote</text>
 
-          <path class="ln" d="M180 354V386" marker-end="url(#arrow)"/>
+          <path class="ln dash" d="M105 646V676" marker-end="url(#arrow)"/>
+          <path class="ln" d="M270 646V676" marker-end="url(#arrow)"/>
 
-          <rect class="box" x="20" y="390" width="320" height="70" rx="6"/>
-          <text class="t" x="36" y="415">Verdict and receipts</text>
-          <rect x="36" y="433" width="12" height="12" fill="#a3211b"/>
-          <text class="s" x="54" y="444">Scam</text>
-          <rect x="100" y="433" width="12" height="12" fill="#0b6453"/>
-          <text class="s" x="118" y="444">Consistent</text>
-          <rect x="202" y="433" width="12" height="12" fill="#e5b240"/>
-          <text class="s" x="220" y="444">Can't tell</text>
+          <rect class="box" x="20" y="680" width="172" height="84" rx="6"/>
+          <text class="t" x="32" y="704">Amazon DynamoDB</text>
+          <text class="s" x="32" y="725">Counters and limits</text>
+          <text class="s" x="32" y="744">only, no letter text</text>
 
-          <path class="ln" d="M180 460V492" marker-end="url(#arrow)"/>
-
-          <rect class="box" x="20" y="496" width="320" height="64" rx="6"/>
-          <text class="t" x="36" y="521">Amazon Nova explains</text>
-          <text class="s" x="36" y="543">In your language, from the checked facts</text>
-
-          <path class="ln" d="M180 560V612" marker-end="url(#arrow)"/>
-
-          <rect class="box" x="20" y="616" width="320" height="84" rx="6"/>
-          <text class="t" x="36" y="641">You get</text>
-          <text class="s" x="36" y="663">Plain words, deadlines as calendar files</text>
-          <text class="s" x="36" y="683">A reply draft, or where to report it</text>
+          <rect class="box" x="202" y="680" width="138" height="84" rx="6"/>
+          <text class="t" x="214" y="704">Back to you</text>
+          <text class="s" x="214" y="725">Verdict, receipts</text>
+          <text class="s" x="214" y="744">and explanation</text>
         </svg>
         <figcaption id="diagram-caption" class="visually-hidden">Pipeline diagram</figcaption>
       </figure>
@@ -118,7 +121,7 @@
   <section class="section" id="rules" aria-labelledby="rules-title">
     <div class="wrap">
       <h2 id="rules-title">The rules</h2>
-      <p class="measure">Each rule is a few lines of plain code that run on the letter's text and on the quotes the model found. A strong sign adds 3 points, a warning sign adds 1, a note adds nothing.</p>
+      <p class="measure">These are the rules in Plainly's code today, 21 in all. Each is a few lines of plain code that run on the letter's text and on the parts the rules reader picked out. A strong sign adds 3 points, a warning sign adds 1, a note adds nothing.</p>
       <div class="table-wrap stack">
         <table>
           <thead>
@@ -145,7 +148,7 @@
             <tr><td><code>shortened_or_raw_link</code></td><td>A short link (bit.ly, tinyurl), a bare internet address, or a free web host (vercel.app, blogspot)</td><td>Warning (1)</td></tr>
             <tr><td><code>press_to_connect</code></td><td>"Press 1 to speak to an officer", "press 9 now". A language menu doesn't count.</td><td>Warning (1)</td></tr>
             <tr><td><code>unknown_contact</code></td><td>A phone number or website not on the official list for the organisation, next to at least one official one. On its own this never makes a letter "likely scam".</td><td>Note (0), or Warning (1) when the organisation is on our list</td></tr>
-            <tr><td><code>injection_detected_model</code></td><td>The model itself reported text aimed at AI tools</td><td>Note (0)</td></tr>
+            <tr><td><code>injection_detected_model</code></td><td>The rules reader itself noticed text aimed at AI tools (a second, looser check than <code>ai_instruction</code>). The quote is never shown.</td><td>Note (0)</td></tr>
           </tbody>
         </table>
       </div>
@@ -158,10 +161,10 @@
       <div class="prose">
         <ul>
           <li><strong>Likely scam</strong> when the score is 3 or more: one strong sign, or three warning signs.</li>
-          <li><strong>Consistent with a genuine letter</strong> only when all of these hold: the organisation is on our official list, at least one of its web addresses or phone numbers in the letter matches the list, the score is 0, and the quotes were confirmed by the independent reading.</li>
+          <li><strong>Consistent with a genuine letter</strong> only when all of these hold: the organisation is on our official list, at least one of its web addresses or phone numbers in the letter matches the list, the score is 0, and no text in it is aimed at AI tools.</li>
           <li><strong>Can't tell</strong> in every other case.</li>
         </ul>
-        <p><strong>Quote checking.</strong> A quote counts as confirmed when, ignoring case, spacing and punctuation, it appears in Textract's reading of the letter or matches a passage very closely (a similarity of 0.85 or more). An unconfirmed strong sign is lowered to a warning sign and labelled as unconfirmed.</p>
+        <p><strong>Quotes.</strong> Every warning sign is shown with the words from the letter that set it off. They are copied from the text you sent, so you can find each one in your letter.</p>
         <p><strong>The official contacts list.</strong> Each organisation has its official web domains and phone numbers, the page we took them from and the date we checked. Web domains are matched first, phone numbers second, because real organisations publish many numbers.</p>
       </div>
     </div>
@@ -183,12 +186,13 @@
       <h2 id="privacy-title">Privacy</h2>
       <div class="prose">
         <ul>
-          <li>Plainly processes your letter in memory and drops it when the check ends. Plainly does not save it to a database, a file or a log.</li>
-          <li>To read the letter, Plainly sends it to two AWS services in us-east-1. Amazon Bedrock does not store it or use it to train models. Amazon Textract <a href="https://aws.amazon.com/textract/faqs/" rel="noopener">may keep inputs to improve the service</a> unless the AWS account has opted out with an <a href="https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_ai-opt-out.html" rel="noopener">AI services opt-out policy</a>. The opt-out for Plainly's account is listed on the <a href="/evidence/">evidence page</a> once it is in place.</li>
-          <li>Logs hold only a request id, the verdict, which rules fired, timings and token counts. Never the words of the letter.</li>
+          <li><strong>The photo never leaves your device.</strong> Tesseract reads it inside your browser. Plainly never receives the picture, and nor does anyone else.</li>
+          <li><strong>Only the words are sent,</strong> after you have checked them. Plainly's code on AWS Lambda (us-east-1) checks them in memory and drops them when the check ends. They are not saved to a database, a file or a log.</li>
+          <li><strong>No AI service sees your letter.</strong> Amazon Textract and Amazon Bedrock are switched off for this account (<a href="#ai-off">why</a>).</li>
+          <li>Logs hold only a request id, the verdict, which rules fired and timings. Never the words of the letter.</li>
           <li>There is no share link and no account, so there is nothing about your letter to look up later.</li>
-          <li>To stop abuse, we count requests per network address for an hour, and total checks per day. Those counters expire on their own.</li>
-          <li>Your language and reading-level choice are remembered in your own browser only.</li>
+          <li>To stop abuse, we count requests per network address for an hour, and total checks per day, in Amazon DynamoDB. Those counters hold no letter text and expire on their own.</li>
+          <li>Your language and reading-level choices are remembered in your own browser. So is the reader's language data, so your next letter is read sooner.</li>
         </ul>
       </div>
     </div>
@@ -199,12 +203,23 @@
       <h2 id="limits-title">Limits</h2>
       <div class="prose">
         <ul>
+          <li><strong>Reading on your device isn't perfect.</strong> Tesseract does well with clear, flat, printed pages and worse with glare, creases, handwriting or dim light. A missed word can hide a warning sign, which is why you see the words and can fix them before the check. For letters with Hindi, choose "English and हिन्दी"; it reads more slowly.</li>
+          <li><strong>Keywords, not understanding.</strong> The rules reader finds things by words and patterns. A scam worded in an unusual way can slip past it. On 12 real scam messages published by governments, which the rules were never tuned on, it marked 1 as "Likely scam" and the other 11 as "Can't tell". It called none of them genuine, and it called none of 11 genuine letters a scam.</li>
           <li><strong>A short official list.</strong> We cover a small set of organisations in India, the United States and the United Kingdom. For anyone else, the best answer may be "Can't tell".</li>
-          <li><strong>Scripts other than Latin.</strong> Textract does not read Devanagari. Letters in Hindi are read by the model alone and their quotes are marked as not independently confirmed.</li>
-          <li><strong>Blurry or partial photos</strong> lose words, and a missed word can hide a warning sign. A clear, flat, well-lit photo of the whole page works best.</li>
-          <li><strong>Scams change.</strong> The rules catch the common patterns, not every new one. A clean result is not a guarantee.</li>
+          <li><strong>Three languages.</strong> Explanations exist in English, <span lang="hi">हिन्दी</span> and <span lang="es">Español</span> only, because each one was written out by a person.</li>
+          <li><strong>Scams change.</strong> The rules catch common patterns, not every new one. A clean result is not a guarantee.</li>
           <li><strong>Not legal, tax or financial advice.</strong> For anything with money or legal steps at stake, use the official number or a trusted adviser.</li>
         </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ai-off" aria-labelledby="ai-off-title">
+    <div class="wrap split">
+      <h2 id="ai-off-title">Amazon Textract and Amazon Nova</h2>
+      <div class="prose">
+        <p>Plainly was designed to use Amazon Textract and Amazon Nova; the code is built and tested but switched off because this account is on the AWS Free plan, which doesn't include them. On an upgraded account, one setting turns Nova back on for the text your device reads; Textract would also need the page to upload the photo again, which reading on the device replaced.</p>
+        <p>Until then, Plainly calls no AI service. Everything described on this page runs on services the Free plan includes: CloudFront, S3, API Gateway, Lambda, DynamoDB and CloudWatch.</p>
       </div>
     </div>
   </section>

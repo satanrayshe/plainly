@@ -26,16 +26,30 @@ window for 143(1)(a)
 - `letters/<id>.html`: self-contained source (inline CSS). The canvas size is in `<meta name="plainly:render">`:
   794x1123 CSS px (A4) for letters, 412x892 for the SMS screenshot.
 - `letters/<id>.png`: rendered at device scale 2, then capped at a 2000 px long edge and under 1.5 MB.
-- `results/<id>.json`: pipeline output the site pre-renders. Live runs write here; offline runs write to
-  `results/mock/` so they never replace live results.
+- `letters/<id>.txt`: the letter's visible text taken from its HTML (watermark left out). It stands in for what
+  on-device OCR reads; it is not an OCR run. `run_samples.py --refresh-text` rebuilds it.
+- `results/<id>.json`: what the site pre-renders. The default run is the production path (`AI_MODE=off`: rules
+  reader, rules, template explanations in English, Hindi and Spanish; no AWS) and writes `"mock": false`.
+  `--ai-mock` (AI_MODE=on with faked Textract and Bedrock) writes to `results/mock/` so it never replaces these.
 
 ```
 python scripts/render_letters.py              # all letters (Edge or Chrome, headless; needs Pillow)
 python scripts/render_letters.py sim-block-sms
-python scripts/run_samples.py --live          # after AWS is connected
-python scripts/run_samples.py                 # offline check of the wiring
+python scripts/run_samples.py                 # production path, no AWS -> results/<id>.json
+python scripts/run_samples.py --live          # AI_MODE=on with real Textract + Bedrock (Paid plan only)
 ```
 
-`ai-instruction` is published only as the PNG. Its HTML source contains the hidden line as text, so don't link or
+Read through the real on-device OCR (Tesseract.js 5.1.1, English, headless Edge, 1 Oct 2026), the PNGs of
+`irs-balance-due`, `electricity-final-notice` and `digital-arrest-parcel` give the same verdicts as their `.txt`
+files, in 3 to 5 s each on a desktop. The OCR text is not identical:
+- `electricity-final-notice`: the red title and the bill table are not read, and the officer's mobile number breaks
+  across two lines, so `callback_unofficial` is medium instead of strong. Still "Likely scam" (UPI payment to a
+  personal handle, strong, plus the deadline tonight).
+- `irs-balance-due`: the two-column layout merges, so the deadline quote reads "Amount due by October 5, 2026
+  $1,284.60 govipay P pa pay P". The date (5 Oct 2026) and verdict are unchanged; the stray words appear in the
+  calendar entry unless the person fixes the text in the box before checking.
+- `digital-arrest-parcel`: same flags as the text.
+
+`ai-instruction` is published only as the PNG. Its HTML source and `.txt` contain the hidden line as text, so don't link or
 copy the `.html` into the site, and never quote that line in results, pages or the write-up. `run_samples.py`
 refuses to save a result that repeats it.

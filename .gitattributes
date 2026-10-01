@@ -4,3 +4,6 @@
 *.woff2 binary
 *.pdf binary
 *.pfb binary
+*.gz binary
+*.traineddata binary
+*.wasm binary

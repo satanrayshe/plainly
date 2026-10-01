@@ -1,0 +1,23 @@
+ELECTRICITY DISTRIBUTION DEPARTMENT
+Consumer Billing & Disconnection Section
+Notice No. : EDD/DISC/2026/0918
+Consumer No. : 0000 1234 5678
+Name : Mr. Rakesh Example
+Address : Flat 00, Sample Apartments, Example Nagar
+Date : 29-09-2026
+Division : North Zone
+FINAL NOTICE — POWER DISCONNECTION
+Dear Consumer,
+Your previous month electricity bill is not updated in our system. As per department records the amount below is still pending against your connection.
+Your electricity power will be disconnected TONIGHT at 9:30 PM from the electricity office if the bill is not updated immediately.
+Bill month Units Amount due Last date
+August 2026 214 ₹ 1,847.00 TODAY (29-09-2026)
+To avoid disconnection, contact our Electricity Officer Mr. S. Verma directly on his mobile 98765 43210 (WhatsApp available). Do not visit the office as it is closed for system update.
+Pay now by UPI: eb.officer.verma@okaxis
+Or send by PhonePe / GPay to 98765 43210 and share the screenshot on WhatsApp.
+Reconnection after disconnection will cost ₹ 2,500 extra and take 7 working days.
+This is the final notice. No further reminder will be sent.
+Sd/-
+Assistant Engineer (Billing)
+Electricity Distribution Department
+Synthetic sample made for Plainly. All names, numbers and handles are fictional.

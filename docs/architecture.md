@@ -1,142 +1,171 @@
 # Architecture
 
-Plainly runs in one AWS account in us-east-1. Everything except the account-level CloudTrail trail is defined in a single plain CloudFormation template, `infra/template.yaml`. The agent's own IAM policy and the permissions boundary for roles it creates are in `infra/agent-iam-policy.json` and `infra/plainly-boundary-policy.json`.
+Plainly runs in one AWS account in us-east-1. Everything except the account-level CloudTrail trail is in one plain CloudFormation template, `infra/template.yaml`. The agent's IAM policy and the permissions boundary for roles it creates are in `infra/agent-iam-policy.json` and `infra/plainly-boundary-policy.json`.
 
-Values in `{{...}}` are filled in after deploy.
+The live product runs with `AI_MODE=off` (the template parameter `AiMode`, default `off`). The account is on the AWS Free account plan, which doesn't include Amazon Bedrock or Amazon Textract, so the letter is read on the user's device and the Lambda runs deterministic code only. The Textract + Nova path is still in the code and is described at the end of this page.
 
 ## Diagram
 
 ```mermaid
 flowchart LR
-    user(["Browser<br/>phone or laptop"])
+    subgraph device ["User's phone or laptop"]
+        pick["Photo, PDF or pasted text"]
+        ocr["pdf.js text layer, or<br/>Tesseract.js OCR (eng + hin)<br/>photo stays on the device"]
+        edit["Editable text box<br/>user checks the reading"]
+        pick --> ocr --> edit
+    end
 
     subgraph edge ["CloudFront distribution"]
-        cff["CloudFront Function<br/>rewrites /path to /path/index.html"]
+        cff["CloudFront Function<br/>/path to /path/index.html"]
     end
 
-    subgraph static ["Static site"]
-        s3[("S3 bucket<br/>private, OAC")]
-    end
+    s3[("S3 bucket, private, OAC<br/>pre-rendered pages, sample results,<br/>Tesseract and pdf.js files")]
 
     subgraph api ["API"]
         apigw["API Gateway HTTP API<br/>stage throttling"]
-        lambda["Lambda<br/>Python 3.13, arm64, boto3 only"]
+        lambda["Lambda, Python 3.13 arm64<br/>rules reader, 21 rules,<br/>registry of 14 agencies, date math,<br/>template explanations en / hi / es"]
     end
 
-    textract["Amazon Textract<br/>DetectDocumentText"]
-    bedrock["Amazon Bedrock Converse<br/>Nova 2 Lite via us. profile<br/>fallback Nova Pro, Nova Lite"]
     ddb[("DynamoDB on-demand, TTL<br/>per-IP limits, daily cap,<br/>anonymous counters")]
-    cw["CloudWatch Logs<br/>JSON, no letter text"]
+    cw["CloudWatch<br/>JSON logs without letter text,<br/>alarms, dashboard"]
+    sns["SNS<br/>alarm email"]
+    budgets["AWS Budgets<br/>monthly alert"]
 
-    user -->|"HTTPS"| cff
-    cff -->|"default behavior"| s3
+    edit -->|"HTTPS, text only"| cff
+    cff -->|"default"| s3
     cff -->|"/api/*"| apigw
     apigw --> lambda
-    lambda -->|"1 ocr"| textract
-    lambda -->|"2 extract, 4 narrate"| bedrock
     lambda --> ddb
     lambda --> cw
+    cw --> sns
+    budgets --> sns
 
-    subgraph build ["Build and audit path"]
-        agent["Claude Code"] -->|"SigV4"| mcp["AWS MCP Server<br/>aws-mcp.us-east-1.api.aws"]
-        mcp --> awsapis["AWS APIs"]
-        awsapis --> trail[("CloudTrail trail<br/>incl. MCP data events")]
+    subgraph off ["Built, switched off (AI_MODE=off)"]
+        textract["Amazon Textract"]
+        bedrock["Amazon Bedrock, Nova 2 Lite"]
     end
+    lambda -.->|"only with AI_MODE=on"| textract
+    lambda -.->|"only with AI_MODE=on"| bedrock
 ```
 
-The `/api/*` path goes through the same CloudFront distribution as the site, so the browser only ever talks to one origin.
+The page and `/api/*` share one CloudFront distribution, so the browser talks to a single origin.
 
 ## ASCII fallback
 
 ```
-                          +---------------------------------------------+
-Browser ---- HTTPS -----> | CloudFront (one URL)                        |
-                          |   CloudFront Function: /x -> /x/index.html  |
-                          +-------------+-------------------+-----------+
-                                        | default           | /api/*
-                                        v                   v
-                          +-------------------+   +-----------------------------+
-                          | S3 bucket         |   | API Gateway HTTP API        |
-                          | private, OAC      |   | stage throttling            |
-                          | pre-rendered HTML |   +--------------+--------------+
-                          | + sample results  |                  |
-                          +-------------------+                  v
-                                                  +-----------------------------+
-                                                  | Lambda (Python 3.13, arm64) |
-                                                  |  POST /api/check            |
-                                                  |   1 ocr      -> Textract    |
-                                                  |   2 extract  -> Bedrock     |
-                                                  |   3 verify   (pure Python)  |
-                                                  |  POST /api/explain          |
-                                                  |   4 narrate  -> Bedrock     |
-                                                  +---+--------------+----------+
-                                                      |              |
-                                                      v              v
-                                           +----------------+  +-------------------+
-                                           | DynamoDB (TTL) |  | CloudWatch Logs   |
-                                           | rate limits,   |  | JSON, ids and     |
-                                           | daily cap,     |  | timings only,     |
-                                           | counters       |  | no letter text    |
-                                           +----------------+  +-------------------+
++------------------------------- user's device --------------------------------+
+|  photo / PDF / pasted text                                                   |
+|    -> pdf.js text layer (PDF with real text)                                 |
+|    -> or Tesseract.js OCR, eng + hin (photos, scanned PDFs)                  |
+|    -> editable text box: the user fixes misreadings                          |
+|  The photo never leaves the device. Only the text is sent.                   |
++------------------------------------+-----------------------------------------+
+                                     | HTTPS
+                                     v
+                    +-------------------------------------------+
+                    | CloudFront (one URL)                      |
+                    |  CloudFront Function: /x -> /x/index.html |
+                    +---------+-----------------------+---------+
+                              | default               | /api/*
+                              v                       v
+              +---------------------------+   +--------------------------+
+              | S3 bucket, private, OAC   |   | API Gateway HTTP API     |
+              | pre-rendered HTML,        |   | stage throttling         |
+              | sample results,           |   +------------+-------------+
+              | /vendor/tesseract, pdfjs  |                |
+              +---------------------------+                v
+                                   +-------------------------------------------+
+                                   | Lambda (Python 3.13, arm64), AI_MODE=off  |
+                                   |  POST /api/check                          |
+                                   |    reader.py   keyword + date reader      |
+                                   |    verifier.py 21 rules, score, verdict   |
+                                   |    registry    14 agencies, sourced       |
+                                   |    dates.py    deadline arithmetic        |
+                                   |  POST /api/explain                        |
+                                   |    explain_templates.py  en / hi / es     |
+                                   +------+----------------------+-------------+
+                                          |                      |
+                                          v                      v
+                              +------------------+   +------------------------+
+                              | DynamoDB (TTL)   |   | CloudWatch Logs,       |
+                              | rate limits,     |   | alarms, dashboard      |
+                              | daily cap,       |   |   -> SNS email         |
+                              | counters         |   | AWS Budgets -> email   |
+                              +------------------+   +------------------------+
 
-Build path:  Claude Code --SigV4--> AWS MCP Server --> AWS APIs --> CloudTrail trail
+Switched off (AI_MODE=off): Amazon Textract, Amazon Bedrock (Nova). No client is created, no IAM grant exists.
+Build path: Claude Code -> AWS CLI (aws login) / AWS MCP Server -> AWS APIs -> CloudTrail
 ```
 
 ## What happens when you check a letter
 
-1. The browser shrinks the photo to a JPEG of at most 1.5 MB (2000 px on the long edge). A PDF is rendered in the browser with pdf.js, and up to three pages are stacked into one JPEG. Pasted text skips this step.
-2. `POST /api/check` runs three steps in one Lambda call.
-   - ocr: Textract `DetectDocumentText` reads the image. Regular expressions pull phones, URLs and email addresses from that text. The model never supplies them.
-   - extract: Bedrock Converse with a forced tool call, `record_letter`. The model returns the claimed sender, agency, dates, deadlines, payment requests, threats and similar items, each with the exact quote it came from.
-   - verify: plain Python. Each model quote is checked against the Textract text. The rules in `backend/verifier.py` run, sender contacts are matched against `backend/registry.json` (domains first, then phones), relative deadlines are computed from the letter date, and the verdict is scored. Every step appends an entry to `trace[]`.
-3. The browser shows the verdict, the quoted flags and the trace, then calls `POST /api/explain`.
-4. `POST /api/explain` asks Bedrock for a plain explanation in the chosen language, next steps, jargon, questions to ask and, when the verdict is not "Likely scam", a reply draft. Dates come from the verified check result. The model is not allowed to compute them.
-5. The browser builds the `.ics` calendar file itself.
+1. The user picks a photo or PDF, or pastes text.
+   - A PDF with a real text layer (at least 80 characters over up to 3 pages) is read with pdf.js. No OCR.
+   - A photo or scanned PDF is shrunk to about 2000 px on the long edge, turned grayscale and read by Tesseract.js in a Web Worker, in English, or English plus Hindi. The language files and the WebAssembly core are served from the same site and only load when someone picks a file.
+2. The recognised text appears in an editable box. The user checks it against the letter and fixes anything misread.
+3. `POST /api/check` sends `{text, text_source, today}`. In one Lambda call:
+   - reader: `backend/reader.py` finds the claimed sender, letter date, deadlines, payment requests, threats, credential requests, links, call-back requests and similar items, each with the exact sentence it came from. Regular expressions pull phones, URLs and email addresses from the text.
+   - verify: `backend/verifier.py` runs 21 rules, matches the sender's contacts against `backend/registry.json` (domains first, then phones), computes relative deadlines from the letter date in `backend/dates.py`, and scores the verdict. Every rule appends a `trace` entry, including the ones that passed.
+4. The browser shows the verdict, the quoted flags and the trace, then calls `POST /api/explain` with the chosen language.
+5. `/api/explain` fills human-written templates: a short summary for the verdict, a plain line and an action for each flag, glossary entries for official terms found in the letter, questions to ask, and a reply draft when the verdict is not "Likely scam". Deadlines come from the verified check.
+6. The browser builds the `.ics` calendar file itself.
 
-The check and the explanation are separate requests because API Gateway HTTP APIs stop waiting after 30 seconds. Each request has its own budget: `/api/check` aims for 25 seconds, the extract call has a 14-second read timeout with at most one retry, and model fallbacks are skipped once the Lambda has less than 8 seconds left.
+A check makes no network call beyond DynamoDB, so its time is mostly Lambda start-up and Python. Measured latency: {{LATENCY}}.
+
+## Why the verdict is code
+
+The verdict was deterministic before the Free-plan problem: in the AI design the model only located quotes, and the rules decided. Dropping the model changed who reads the letter and left the decision where it was.
+
+For a scam verdict, fixed rules have practical advantages:
+
+- Every "Likely scam" can be traced to named rules, quoted lines and a points total. The receipts panel shows the whole calculation, and the same text always gets the same answer.
+- A model can't talk the checker into reassurance. A letter that says "this is a legitimate notice" or carries hidden instructions for AI tools gets flagged, and no generated sentence ever calls a fake letter genuine.
+- There is no per-check AI charge. A check costs Lambda time, one API request and a few DynamoDB writes, which is why the product can stay free.
+- Latency doesn't depend on a model queue or a retry chain.
+- It runs on the Free account plan.
+
+The cost is recall. A keyword reader misses scams phrased in ways the rules don't know. On the holdout set it caught 1 of 12 scams and called the other 11 "Can't tell" (details in [eval/results.md](../eval/results.md)). It never called a scam genuine.
 
 ## Services and why each one is here
 
 | Service | Role | Why this one |
 |---|---|---|
-| Amazon CloudFront | One public HTTPS URL for the site and the API | A stable AWS URL, and the bucket can stay private |
-| CloudFront Function | Rewrites `/how-it-works` to `/how-it-works/index.html` | An S3 REST origin behind OAC does not resolve directory paths. A blanket 403-to-index rule would also hide real API errors. |
-| Amazon S3 with Origin Access Control | Static, pre-rendered HTML, sample results, video | The landing page and the sample results can be read without JavaScript, by people and by crawlers |
-| Amazon API Gateway HTTP API | `/api/*` routes | Built-in throttling. A Lambda Function URL behind OAC would need every POST to carry an `x-amz-content-sha256` header. |
-| AWS Lambda (Python 3.13, arm64) | Handler, pipeline, verifier | No third-party dependencies: boto3 only, so the zip is small and there is nothing to patch |
-| Amazon Textract | Independent OCR | A second reader, so a model quote can be checked against text the model did not write |
-| Amazon Bedrock (Nova 2 Lite) | Extraction with quotes, then plain-language narration | Accepts images and supports tool calling. Cheap per call. |
-| Amazon DynamoDB (on-demand, TTL) | Per-IP rate limit, global daily cap, anonymous counters | Pay per request, and TTL cleans up rate-limit rows automatically. No letter content is written. |
-| Amazon CloudWatch | Structured logs without letter text (14-day retention), an ops dashboard, and four alarms: Lambda errors, Lambda p95 duration over 20 s, API 5xx responses and Bedrock throttles | Operations without storing personal data |
-| Amazon SNS | Sends alarm and budget notifications to email | The alarms need somewhere to go |
-| AWS CloudTrail (account level) | Audit trail, including AWS MCP Server data events | Shows which calls the coding agent made through MCP |
-| AWS Budgets | Monthly cost budget, $10 by default | An alert only. It does not stop spend, which is why the daily cap exists. |
+| Amazon CloudFront | One public HTTPS URL for the site and the API | A stable AWS URL, and the bucket stays private |
+| CloudFront Function | Rewrites `/how-it-works` to `/how-it-works/index.html` | An S3 REST origin behind OAC doesn't resolve directory paths, and a blanket 403-to-index rule would hide real API errors |
+| Amazon S3 with Origin Access Control | Pre-rendered HTML, sample results, the Tesseract.js and pdf.js files | The landing page and the sample results read without JavaScript. Self-hosting the OCR files keeps every request on one origin |
+| Amazon API Gateway HTTP API | `/api/*` routes | Built-in throttling. A Lambda Function URL behind OAC would need every POST to carry an `x-amz-content-sha256` header |
+| AWS Lambda (Python 3.13, arm64) | Reader, rules, registry match, date math, explanation templates | No third-party dependencies, so the zip is small and there is nothing to patch |
+| Amazon DynamoDB (on-demand, TTL) | Per-IP rate limit, global daily cap, anonymous counters | Pay per request, and TTL removes rate-limit rows on its own. No letter content is written |
+| Amazon CloudWatch | Logs without letter text (14-day retention), a dashboard, and alarms on Lambda errors, p95 duration over 20 s and API 5xx. The template's fourth alarm, on Bedrock throttles, only matters with `AI_MODE=on` | Operations without storing personal data |
+| Amazon SNS | Sends alarm notifications to email | The alarms need somewhere to go |
+| AWS Budgets | Monthly cost alert, $10 by default | An alert only. The daily cap is what limits use |
+| AWS CloudTrail (account level) | Audit trail of the agent's AWS calls | Shows what the coding agent did in the account |
+
+Tesseract.js (Apache-2.0) and pdf.js (Apache-2.0) run in the browser and are not AWS services.
 
 ## Guardrails
 
-- Plainly stores nothing about a letter; Textract's own retention is switched off with an AI services opt-out policy (RUNBOOK step 2). The letter text lives in the Lambda's memory for one request and is returned to the browser. Logs hold request ids, verdicts, rule ids, timings and token counts.
-- The per-IP limit is 20 checks an hour. The IP comes from the `CloudFront-Viewer-Address` header, which the client cannot set, falling back to the API Gateway source IP.
-- A global cap of 400 checks a day, counted in DynamoDB. Past either limit the API returns 429 or 503 and the page offers the pre-computed sample letters instead.
-- The server rejects image payloads over 2.2 MB of base64.
-- The Lambda role can write its own log group, read and write its own DynamoDB table, call Textract `DetectDocumentText`, and invoke Nova models through the `us.` inference profile and the foundation models in us-east-1, us-east-2 and us-west-2. It can carry the `plainly-boundary` permissions boundary.
-- API Gateway stage throttling is 5 requests a second with a burst of 10. The Lambda has 1024 MB and a 29-second timeout.
-- Instructions hidden in a letter and aimed at AI tools count as a strong scam signal. Their text is never shown anywhere; the flag says only that such an instruction was found.
+- The photo stays on the device. The text is held in the Lambda's memory for one request and returned to the browser. Plainly doesn't store it, and logs hold request ids, verdicts, rule ids and timings only.
+- The per-IP limit is 20 checks an hour. The IP comes from the `CloudFront-Viewer-Address` header, which the client can't set, falling back to the API Gateway source IP. IPv6 is counted per /64.
+- A global cap of 400 checks a day in DynamoDB. Past either limit the API returns 429 or 503 and the page offers the sample letters.
+- `/api/check` rejects an `image` field in off mode and limits the length of `text`.
+- CloudFront adds a secret `x-origin-verify` header, and the Lambda answers 403 without it, so the execute-api URL can't be used to dodge the per-IP limit.
+- In off mode the Lambda role can write its log group and read and write its own DynamoDB table, and nothing else. Bedrock and Textract statements exist only under the `AiOn` condition.
+- API Gateway stage throttling is 5 requests a second with a burst of 10.
+- Instructions hidden in a letter and aimed at AI tools are a strong scam signal. Their text is never shown anywhere; the flag says only that one was found.
 
-## Model access details
+## The AI path (AI_MODE=on, built and switched off)
 
-- Nova 2 Lite has no in-Region endpoint in us-east-1. Calls use the US geo inference profile `us.amazon.nova-2-lite-v1:0`, which routes to us-east-1, us-east-2 and us-west-2. The IAM policy has to allow the inference profile and the foundation model in all three Regions. ([model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.html))
-- The model card lists client-side tool calling as supported and structured outputs as not supported, so extraction uses a forced tool call. If `toolChoice: {"tool": ...}` is rejected, the code retries with `{"any": {}}`, and parses JSON from text as a last resort.
-- Fallback chain: `us.amazon.nova-2-lite-v1:0`, then `us.amazon.nova-pro-v1:0`, then `us.amazon.nova-lite-v1:0`.
+With `AiMode=on` the stack adds Bedrock and Textract permissions to the Lambda role, and `/api/check` accepts an image:
 
-## Cost per letter
+1. Textract `DetectDocumentText` reads the image.
+2. Nova 2 Lite, through the `us.amazon.nova-2-lite-v1:0` inference profile, extracts claims with a forced `record_letter` tool call and must quote the line behind each one. Fallbacks are Nova Pro and Nova Lite. If `toolChoice: {"tool": ...}` is rejected the code retries with `{"any": {}}`, then parses JSON from text.
+3. Python checks every model quote against the Textract text (normalised, fuzzy match at 0.85 or above). A strong flag whose quote isn't in the OCR text drops to medium and is marked "not grounded".
+4. The same rules, registry and date math decide the verdict.
+5. `/api/explain` asks Nova for the explanation in any language, with the verified deadlines as facts.
 
-| Item | Figure |
-|---|---|
-| Measured Bedrock tokens per check + explain | {{TOKENS_PER_LETTER}} (from the Converse `usage` fields) |
-| Measured cost per letter, all services | {{COST_PER_LETTER}} |
-| Textract `DetectDocumentText` | $0.0015 per page, first million pages ([AWS pricing page example, US West (Oregon)](https://aws.amazon.com/textract/pricing/)) |
-| Lambda, API Gateway, DynamoDB, CloudFront, S3 | Within free tier or pennies at hackathon traffic {{CONFIRM after a week of billing data}} |
+This path passes its tests with Bedrock and Textract faked. It has not run against real Bedrock or Textract: on this account both refused every call (errors in [docs/agent-log.md](agent-log.md)). Nova 2 Lite has no in-Region endpoint in us-east-1, so IAM has to allow the inference profile and the foundation model in us-east-1, us-east-2 and us-west-2 ([model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-amazon-nova-2-lite.html)).
 
 ## Deploy
 
-`scripts/deploy.sh` packages the Lambda zip, runs `aws cloudformation package` and `aws cloudformation deploy`, syncs `dist/` to the bucket and invalidates CloudFront. It runs in Git Bash on Windows. A deploy from the agent's shell is a CLI call, and CloudTrail records it that way; calls the agent makes through the AWS MCP Server appear with `eventSource` `aws-mcp.amazonaws.com`. {{CONFIRM: which production changes, if any, went through MCP change sets}}
+`scripts/deploy.sh` packages the Lambda zip, deploys the stack with `AiMode` from the `AI_MODE` environment variable (default `off`), builds the site, syncs `dist/` with explicit content types (`.wasm` as `application/wasm`) and invalidates CloudFront. It runs in Git Bash on Windows. The order of steps is in [docs/RUNBOOK.md](RUNBOOK.md).

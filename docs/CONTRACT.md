@@ -1,5 +1,11 @@
 # Plainly — build contract (source of truth for all builders)
 
+> **Live mode is Option B (`AI_MODE=off`) since 1 Oct 2026.** The AWS account is on the Free account plan, which
+> doesn't include Amazon Bedrock or Amazon Textract. The browser reads the letter (pdf.js text layer or Tesseract.js),
+> the Lambda runs the rules reader, the verifier and template explanations, and nothing calls a model. The sections
+> below describe the full design, including the Textract + Nova path that `AI_MODE=on` keeps. Where they disagree
+> with [Option B](#option-b-ai_modeoff-1-oct-2026), Option B wins for the live product.
+
 Product: **Plainly — Is this letter real?** Upload a photo/PDF/screenshot of an official-looking letter, SMS or email
 (or paste its text). Plainly returns a verdict — **Likely scam / Consistent with a genuine <agency> letter — confirm on
 the official number / Can't tell** (never "safe") — with every red flag quoted from the letter and checked in code, a
@@ -175,7 +181,7 @@ Regex (code, not model) extracts phones/urls/emails from letter_text; model list
   including the AI-instruction sample (image only, neutral alt text).
 - `/how-it-works/` pipeline diagram (inline SVG), the rules table, privacy (nothing stored), limitations.
 - `/evidence/` text mirror of the agent-connection proof (filled after AWS connect; placeholder sections now).
-- `/judges/` 60-second guided tour: numbered steps, links straight to each sample result, criteria mapping.
+- `/judges/` 90-second guided tour: numbered steps, links straight to each sample result, criteria mapping.
 - Design: warm "paper & ink" editorial look — off-white paper, near-black ink, one signal red for scam, one calm
   green-teal for consistent, amber for can't tell; serif display headings (e.g. "Fraunces" or "Newsreader" self-hosted
   or system serif fallback), readable 18px body; generous line height; WCAG AA contrast; big tap targets (elderly users);
@@ -220,7 +226,9 @@ Regex (code, not model) extracts phones/urls/emails from letter_text; model list
 - Sample results (`samples/results/<id>.json`, written by `scripts/run_samples.py`):
   `{id, title, image, mock, check: <check response minus letter_text>, explanations: {"English": <explain>, "Hindi": ..., "Spanish": ...}, generated_at}`.
   `build_site.py` prefers `samples/results/<id>.json` (live) and falls back to `samples/results/mock/<id>.json`
-  (offline run); `--strict` refuses mock data.
+  (offline run); `--strict` refuses mock data. (Option B: the default `run_samples.py` run is the production
+  AI_MODE=off path and writes `samples/results/<id>.json` with `"mock": false`; the old `results/mock/` files were
+  deleted, and only `--ai-mock` writes there now.)
 - PDFs are rendered 1100 px wide, up to 3 pages stacked (about 4300 px tall), still at most 1.5 MB; the server checks
   bytes, not pixels.
 
@@ -260,3 +268,65 @@ Regex (code, not model) extracts phones/urls/emails from letter_text; model list
 - `.bank.in` (open only to RBI-regulated banks) and `.sbi` count as official hosts, like `.gov.in`.
 - A message that also offers "visit your (nearest/home) branch" keeps link_bait for a hidden link at medium, and
   kyc_update_threat is not raised to strong by that link (short links and personal mobiles still make it strong).
+
+## Option B (AI_MODE=off, 1 Oct 2026)
+
+Why: the owner's account is on the AWS Free account plan. On 30 Sep at 22:16 IST, Bedrock `Converse` returned
+`ValidationException ... Operation not allowed` for every Nova model tried, and Textract `DetectDocumentText` returned
+`SubscriptionRequiredException ... The AWS Access Key Id needs a subscription for the service`. The owner can't upgrade,
+so the live product runs on Free-plan services only (Lambda, API Gateway HTTP API, CloudFront, S3, DynamoDB,
+CloudWatch, SNS, Budgets). The Textract + Nova path stays in the repo and comes back with `AI_MODE=on`.
+
+### Switch
+- Lambda env `AI_MODE` = `off` (default) | `on`. CloudFormation parameter `AiMode`, default `"off"`, sets it.
+- `off`: no boto3 `bedrock-runtime` or `textract` client is ever created, and the Lambda role has no Bedrock or
+  Textract statements (they are added only under the template's `AiOn` condition).
+- `on`: the design in the sections above, unchanged.
+
+### Reading happens on the device
+- Photos: the browser downscales to about 2000 px on the long edge, converts to grayscale and runs Tesseract.js
+  (self-hosted under `/vendor/tesseract/`, languages `eng` + `hin`). The photo never leaves the device.
+- PDFs: pdf.js `getTextContent` on up to 3 pages first. With at least 80 characters of real text, that text is used and
+  OCR is skipped. Otherwise the pages are rendered to canvas and OCR'd.
+- The recognised text appears in an editable box ("check the text matches your letter; fix anything misread") and is
+  sent only when the user presses Check.
+- If OCR fails, the page asks the user to paste the text.
+
+### POST /api/check (off)
+Request:
+```json
+{ "text": "the letter text (required)",
+  "text_source": "typed" | "device_ocr" | "pdf_text",
+  "today": "YYYY-MM-DD (optional)" }
+```
+- `image` is rejected with 400 and a friendly message saying the page reads photos on the device.
+- Text over 30,000 characters is refused with a friendly 400 (`MAX_DEVICE_TEXT_CHARS` in `pipeline.py`).
+- Extraction is done by the production rules reader `backend/reader.py`: the keyword and date reader that the frozen
+  offline eval measured (`eval/mock_model.py`), moved into the backend unchanged. Then the same `verifier.py` rules,
+  registry match and date math run as before.
+- `grounding.source` follows `text_source`: `typed` -> `"pasted_text"`, `device_ocr` -> `"device_ocr"`, `pdf_text` ->
+  `"pdf_text"`. Quotes come from the text itself, so grounding is exact by construction; it proves only that the quote is in the text the user sent.
+- The server trace starts at the reader step. The device's reading step is shown by the page, not the server trace.
+- `meta.model` is `"rules-v<hash prefix>"`; token counts are 0.
+- Response shape is otherwise identical to the contract above.
+
+### POST /api/explain (off)
+- Same request and response shape. No model: `backend/explain_templates.py` builds the answer from human-written
+  strings, per verdict (tldr, 3 to 5 points) and per flagged rule (what it means, what to do).
+- Standard actions: `likely_scam` = don't pay, don't call or click anything in the message, call the official number
+  shown, report it through the country's channel. `consistent_with_genuine` = still confirm on the official number, pay
+  only through the official site, add the deadline to the calendar. `cant_tell` = how to check it yourself.
+- `jargon` comes from a glossary of common official-letter terms (notice, arrears, penalty, KYC, PAN, TDS, lien,
+  appeal and so on) found in the letter text. `reply_draft` is `""` for `likely_scam`; otherwise a polite template
+  (confirm the notice, ask for a payment plan or more time) filled from the extracted sender, date and amounts.
+- Deadlines come from the verified `check`. Nothing does date math except `dates.py`.
+- Languages: English, Hindi (हिन्दी) and Spanish, all written out. Any other requested language gets English with
+  `meta.fallback_language: true`.
+
+### GET /api/health (off)
+`{"ok": true, "version": "...", "ai_mode": "off"}`
+
+### Headers the site needs
+Tesseract runs a Web Worker and WebAssembly, so any Content-Security-Policy must allow `worker-src 'self' blob:` and
+`script-src 'self' 'wasm-unsafe-eval'`. `.wasm` files are served as `application/wasm`; the `.traineddata.gz` language
+files as `application/octet-stream` without a `Content-Encoding` header (Tesseract unzips them itself).

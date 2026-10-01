@@ -4,7 +4,7 @@ import { h, icon } from "./dom.js";
 import { formatDay, daysFromToday, describeCountdown, parseDay } from "./dates.js";
 import { buildIcs, downloadIcs } from "./ics.js";
 
-export const REDACTED_TEXT = "[instruction aimed at AI tools — hidden for safety, visible in the image]";
+export const REDACTED_TEXT = "[instruction aimed at AI tools — hidden for safety, visible in the letter]";
 
 const VERDICTS = {
   likely_scam: { cls: "stamp-scam", icon: "scam", label: "Likely scam" },
@@ -23,8 +23,10 @@ const SEVERITY = {
 };
 
 const STEP_NAMES = {
-  ocr: "Independent reading (Amazon Textract)",
-  extract: "Sender, dates and quotes (Amazon Nova)",
+  ocr: "Reading the letter",
+  read: "Reading the letter",
+  device: "Reading on your device",
+  extract: "Sender, dates, links and amounts",
   registry: "Official contacts list",
   contacts: "Phone numbers, links and emails in the text",
   dates: "Deadline arithmetic",
@@ -54,7 +56,7 @@ const STEP_NAMES = {
   "rule:press_to_connect": "\"Press 1\" to be connected",
   "rule:impersonation_mismatch": "Official name, someone else's contacts",
   "rule:unknown_contact": "Contact not on the official list",
-  "rule:injection_detected_model": "AI-aimed text noticed by the model",
+  "rule:injection_detected_model": "AI-aimed text noticed by the reader",
 };
 
 const CHIP = {
@@ -109,10 +111,10 @@ function renderFlag(flag) {
   }
   let grounding = null;
   if (flag.grounded === true) {
-    grounding = h("p", { class: "grounding" }, "Found word for word in the independent reading of the letter.");
+    grounding = h("p", { class: "grounding" }, "Found word for word in the letter's text.");
   } else if (flag.grounded === false) {
     grounding = h("p", { class: "grounding no" },
-      "Could not be matched to the independent reading, so it counts as a weaker sign.");
+      "Could not be matched to the letter's text, so it counts as a weaker sign.");
   }
   const source = safeHref(flag.source?.url)
     ? h("p", { class: "grounding" }, "Source: ", h("a", { href: flag.source.url, rel: "noopener" }, flag.source.name || hostOf(flag.source.url)))
@@ -246,31 +248,43 @@ function saveDeadline(deadline, check) {
 
 // ---------- receipts ----------
 
-function renderReceipts(check) {
-  const trace = check.trace || [];
+// deviceStep: the reading done in the browser, which the server never sees, shown as the first receipt line.
+function renderReceipts(check, deviceStep = null) {
+  const trace = deviceStep ? [deviceStep, ...(check.trace || [])] : check.trace || [];
   const flagged = trace.filter((t) => t.status === "flag").length;
-  const seconds = check.meta?.ms ? `${(check.meta.ms / 1000).toFixed(1)} s` : null;
+  const ms = check.meta?.ms;
+  const seconds = typeof ms === "number" && ms > 0 ? (ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`) : null;
   const note = [`${trace.length} steps`, `${flagged} flagged`, seconds].filter(Boolean).join(" · ");
 
   const g = check.grounding;
+  const meta = check.meta || {};
+  // A model only took part when the account has AI switched on (AI_MODE=on); then it reports tokens.
+  const usedModel = meta.input_tokens > 0 && Boolean(meta.model);
+  const against = {
+    textract: "the independent reading (Amazon Textract)",
+    device_ocr: "the text read on your device",
+    pdf_text: "the PDF's own text",
+    pasted_text: "the text that was sent for checking",
+    typed: "the text that was sent for checking",
+  }[g?.source];
   let groundingLine = null;
-  if (g?.source === "textract") {
-    groundingLine = `Quotes found in the independent reading (Amazon Textract): ${g.grounded} of ${g.total}.`;
+  if (against && g.total > 0) {
+    groundingLine = `Quotes found word for word in ${against}: ${g.grounded} of ${g.total}.`;
     if (g.partial) {
-      groundingLine += ` Part of the letter is in a script Textract can't read, so the AI model's reading of it was used and ${g.unverified || 0} quote(s) from it could not be checked.`;
+      groundingLine += ` Part of the letter is in a script the reader can't read, so the AI model's reading of it was used and ${g.unverified || 0} quote(s) from it could not be checked.`;
     }
-  } else if (g?.source === "pasted_text") {
-    groundingLine = `Quotes checked against the text you pasted: ${g.grounded} of ${g.total}.`;
   } else if (g?.source === "none") {
     groundingLine = "Quotes could not be checked against an independent reading, so strong signs count for less.";
   }
-  const meta = check.meta || {};
-  const tokens = meta.input_tokens > 0 ? `, ${meta.input_tokens} tokens in, ${meta.output_tokens} out` : "";
+  const tokens = usedModel ? `, ${meta.input_tokens} tokens in, ${meta.output_tokens} out` : "";
+  const intro = usedModel
+    ? "Each line is one step, in order. The rules are plain code; the AI model only read the letter."
+    : "Each line is one step, in order. The checks are plain code, so the same text always gets the same result.";
 
   return h("details", { class: "receipts" },
     h("summary", null, h("span", null, h("span", { class: "sum-title" }, "Receipts: every check we ran"), h("span", { class: "sum-note" }, note))),
     h("div", { class: "receipts-body" },
-      h("p", null, "Each line is one step, in order. The rules are plain code; the AI model only reads the letter and explains it."),
+      h("p", null, intro),
       h("ol", { class: "trace" }, trace.map((t) =>
         h("li", null,
           h("span", null, h("span", { class: `chip chip-${t.status}` }, CHIP[t.status] || String(t.status || "").toUpperCase())),
@@ -279,13 +293,14 @@ function renderReceipts(check) {
           t.detail ? h("span", { class: "detail" }, t.detail) : null
         ))),
       groundingLine ? h("p", { class: "mt" }, groundingLine) : null,
-      meta.model ? h("p", { class: "small muted" }, `Model: ${meta.model}${tokens}.`) : null
+      usedModel ? h("p", { class: "small muted" }, `Model: ${meta.model}${tokens}.`)
+        : meta.model ? h("p", { class: "small muted" }, `Rules version: ${meta.model}.`) : null
     ));
 }
 
 // ---------- whole check ----------
 
-export function renderCheck(check, { sample = null } = {}) {
+export function renderCheck(check, { sample = null, deviceStep = null } = {}) {
   const sheet = h("article", { class: "result-sheet", "aria-labelledby": "verdict-title" });
   if (sample) {
     sheet.append(h("p", { class: "sample-banner" },
@@ -306,7 +321,7 @@ export function renderCheck(check, { sample = null } = {}) {
   sheet.append(top, renderOfficial(check), renderFlags(check));
   const deadlines = renderDeadlines(check, sample);
   if (deadlines) sheet.append(deadlines);
-  sheet.append(renderReceipts(check));
+  sheet.append(renderReceipts(check, deviceStep));
   return sheet;
 }
 

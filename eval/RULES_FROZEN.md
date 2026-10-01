@@ -91,3 +91,24 @@ after a fresh clone. Here are the sha256 values of the committed (LF) blobs for 
 
 On a Linux or macOS checkout, `run_eval.py` prints prefixes of the LF values. On a Windows checkout with
 `core.autocrlf=true`, it prints prefixes of the CRLF values.
+
+## Option B (1 Oct 2026): what changed and what didn't
+
+The live product now runs with `AI_MODE=off` (AWS Free plan: no Bedrock, no Textract). For that:
+
+- **Unchanged (same sha256 as the 23:01 freeze):** `verifier.py`, `lexicon.py`, `contacts.py`, `agencies.py`,
+  `registry.json`.
+- **Changed:** `backend/pipeline.py`, now `752e77608a78eac098344b87986d036dde1bb6af49ed9af65d80978b1b306564`
+  (LF; the working copy is LF too). It adds the `AI_MODE` switch, the text-only `/api/check` request, the rules-only
+  path and template explanations, and rewords trace and flag text that said "the model". No rule, threshold or
+  verdict logic changed.
+- **New:** `backend/reader.py` (`5ecd9ba5285a859ee0caa726d42de59f6990e7cacb4e63092d7117456c62546b`). It is the
+  keyword and date reader from `eval/mock_model.py` (the reader every offline number above was measured with), moved
+  into the backend unchanged; `backend/tests/test_reader.py` checks it against `mock_model.extract` and against
+  golden hashes of the old output.
+- **Check:** `python eval/run_eval.py --set all --out eval/results-rules-reader.md` through the production path gives,
+  for all 114 letters, the same verdict, flags, agency, deadlines, grounding and status as
+  `results-offline-frozen.json`. So the frozen numbers are the production engine's numbers. `run_eval.py` now also
+  prints a `reader.py` hash prefix.
+- The site and `/api/check` report the engine as `rules-v<10 hex>`, a hash over the reader, rules, registry,
+  templates and pipeline (`pipeline.RULES_FILES`), so it changes when any of those files change, including wording.

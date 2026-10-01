@@ -1,4 +1,8 @@
-"""Pipeline with the offline fakes: OCR thresholds, degraded paths, narrate guarantees."""
+"""AI_MODE=on with the offline fakes (dev_mock): OCR thresholds, degraded paths, narrate guarantees.
+
+This is the Textract + Bedrock path, built and kept working but switched off on the AWS Free plan. The default
+path (AI_MODE=off) is tested in test_pipeline_off.py.
+"""
 import base64
 
 import pytest
@@ -30,6 +34,7 @@ class Ctx:
 
 @pytest.fixture(autouse=True)
 def fresh_clients(monkeypatch):
+    monkeypatch.setenv("AI_MODE", "on")
     monkeypatch.delenv("PLAINLY_MOCK_FAIL", raising=False)
     monkeypatch.setattr(pipeline, "_textract", None)
     bedrock.reset_client()
@@ -145,7 +150,7 @@ def test_bad_requests(payload, message):
 def test_data_url_prefix_and_png_accepted():
     payload = image_payload("hello", "image/png")
     payload["image"]["data"] = "data:image/png;base64," + payload["image"]["data"]
-    image, fmt, _text, _today = pipeline.parse_check_request(payload)
+    image, fmt = pipeline.parse_check_request(payload)[:2]
     assert fmt == "png" and image.startswith(b"\x89PNG")
 
 

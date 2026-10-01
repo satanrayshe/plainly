@@ -12,6 +12,7 @@ sys.path.insert(0, str(BACKEND))
 os.environ["PLAINLY_MOCK"] = "1"
 os.environ["REGISTRY_PATH"] = str(FIXTURE_REGISTRY)
 os.environ.pop("TABLE_NAME", None)
+os.environ.pop("AI_MODE", None)  # tests run the default (off) unless they set it
 
 import agencies  # noqa: E402
 import verifier  # noqa: E402

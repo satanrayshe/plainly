@@ -1,9 +1,9 @@
 """Plainly API: one Lambda behind CloudFront's /api/* behavior.
 
 Routes
-  POST /api/check     {image?: {type, data(base64)}, text?, today?}         -> verdict, flags, trace, ...
+  POST /api/check     {text, text_source?, today?} (AI_MODE=off; image only with AI_MODE=on) -> verdict, ...
   POST /api/explain   {letter_text, check, language, level}                -> plain-language explanation
-  GET  /api/health                                                          -> {ok, version}
+  GET  /api/health                                                          -> {ok, version, ai_mode}
   GET  /api/stats                                                           -> anonymous counters
 
 Nothing about a letter is stored. Logs are structured JSON with ids, verdicts, rule ids, timings and token
@@ -169,7 +169,7 @@ def explain(event, context, fields):
 
 
 def health(event, context, fields):
-    return respond(200, {"ok": True, "version": VERSION})
+    return respond(200, {"ok": True, "version": VERSION, "ai_mode": pipeline.ai_mode()})
 
 
 def stats(event, context, fields):

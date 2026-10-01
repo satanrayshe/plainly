@@ -1,8 +1,9 @@
-// /try/ page: collect a letter, call /api/check then /api/explain, render the results.
+// /try/ page: read a letter on the device, let the person check the words, call /api/check then /api/explain,
+// render the results. The photo itself never leaves the browser; only the reviewed text is sent.
 
 import { h, scrollToEl } from "./js/dom.js";
 import { todayIso } from "./js/dates.js";
-import { prepareFile, blobToBase64, UserFacingError } from "./js/prepare.js";
+import { prepareFile, UserFacingError } from "./js/prepare.js";
 import { postJson, getSample, ApiError } from "./js/api.js";
 import { renderCheck, renderProgress, renderExplanation } from "./js/render.js";
 
@@ -14,9 +15,10 @@ const resultsRegion = $("#results");
 const results = $("#results-body");
 const resultsStatus = $("#results-status");
 const textInput = $("#text-input");
+const textLabel = $("#text-label");
+const textHint = $("#text-hint");
 const languageSelect = $("#language");
-const otherWrap = $("#other-lang-wrap");
-const otherInput = $("#other-lang");
+const ocrLangSelect = $("#ocr-lang");
 const formError = $("#form-error");
 const submitBtn = $("#submit-btn");
 const chosen = $("#chosen");
@@ -24,9 +26,14 @@ const dropzone = $("#dropzone");
 
 const PREFS_KEY = "plainly.prefs";
 const LANGUAGE_NAMES = { English: "English", Hindi: "हिन्दी", Spanish: "Español" };
+const TEXT_HINT_PASTE = textHint.textContent;
+const LOW_CONFIDENCE = 70; // Tesseract's mean word confidence, 0-100
 
-// The prepared image for the next submit: { promise, blob, previewUrl } or null.
-let prepared = null;
+// The chosen file: { file, prepared, previewUrl, status: "preparing"|"reading"|"done"|"failed", langs, ms, seq }.
+let letter = null;
+// Where the text in the box came from: "typed", "device_ocr" or "pdf_text". Edits keep the source; emptying
+// the box makes it "typed" again.
+let textSource = "typed";
 // The last check shown, used by "explain in another language".
 let current = null;
 // Bumped whenever the results area moves on (new check, sample, start over), so a slow /api/check answer
@@ -34,6 +41,10 @@ let current = null;
 let viewSeq = 0;
 // Bumped whenever the explanation slot moves on, so only the newest /api/explain answer is shown.
 let explainSeq = 0;
+// Bumped whenever the chosen file changes or its reading is cancelled.
+let readSeq = 0;
+// The OCR module, imported only when a photo or scanned PDF needs reading.
+let ocrModule = null;
 
 // ---------- preferences ----------
 
@@ -46,34 +57,28 @@ function loadPrefs() {
   }
   const browser = (navigator.language || "").slice(0, 2);
   const language = prefs.language || { hi: "Hindi", es: "Spanish" }[browser] || "English";
-  if (LANGUAGE_NAMES[language]) {
-    languageSelect.value = language;
-  } else {
-    languageSelect.value = "other";
-    otherInput.value = language;
-  }
+  languageSelect.value = LANGUAGE_NAMES[language] ? language : "English";
+  ocrLangSelect.value = prefs.ocrLangs === "eng+hin" || (!prefs.ocrLangs && (browser === "hi" || language === "Hindi"))
+    ? "eng+hin" : "eng";
   if (prefs.level === "normal") $("#level-normal").checked = true;
-  syncOtherLanguage();
 }
 
 function savePrefs() {
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({ language: chosenLanguage() || "English", level: chosenLevel() }));
+    localStorage.setItem(PREFS_KEY, JSON.stringify({
+      language: chosenLanguage(), level: chosenLevel(), ocrLangs: ocrLangSelect.value,
+    }));
   } catch {
     // Storage can be unavailable; preferences are a convenience only.
   }
 }
 
 function chosenLanguage() {
-  return languageSelect.value === "other" ? otherInput.value.trim().slice(0, 40) : languageSelect.value;
+  return LANGUAGE_NAMES[languageSelect.value] ? languageSelect.value : "English";
 }
 
 function chosenLevel() {
   return form.elements.level.value === "normal" ? "normal" : "simple";
-}
-
-function syncOtherLanguage() {
-  otherWrap.hidden = languageSelect.value !== "other";
 }
 
 // ---------- choosing a file ----------
@@ -81,46 +86,185 @@ function syncOtherLanguage() {
 function setFile(file) {
   clearFile();
   hideFormError();
-  const entry = { blob: null, previewUrl: null };
-  entry.promise = prepareFile(file).then((out) => {
-    entry.blob = out.blob;
-    entry.previewUrl = URL.createObjectURL(out.blob);
-    showChosen(file, out, entry.previewUrl);
-    return out;
+  const seq = ++readSeq;
+  letter = { file, prepared: null, previewUrl: null, status: "preparing", langs: null, ms: null, seq };
+  showChosen();
+  prepareFile(file).then((prepared) => {
+    if (seq !== readSeq) return revoke(prepared.preview);
+    letter.prepared = prepared;
+    letter.previewUrl = prepared.preview;
+    if (prepared.kind === "pdf_text") {
+      letter.status = "done";
+      fillText(prepared.text, "pdf_text");
+      showChosen();
+    } else {
+      readLetter();
+    }
+  }, (err) => {
+    if (seq !== readSeq) return;
+    letter.status = "failed";
+    letter.error = err instanceof UserFacingError ? err.message : "We couldn't open that file. Try a photo or a PDF.";
+    showChosen();
   });
-  entry.promise.catch((err) => {
-    if (prepared === entry) clearFile();
-    showFormError(err instanceof UserFacingError ? err.message : "We couldn't open that file. Try a photo or a PDF.");
-  });
-  prepared = entry;
-  chosen.hidden = false;
-  chosen.replaceChildren(h("p", { class: "muted", role: "status" }, `Preparing ${file.name}…`));
 }
 
-function showChosen(file, out, previewUrl) {
-  const kb = Math.round(out.blob.size / 1024);
-  let detail = `Ready to send: ${kb} KB.`;
-  if (out.pages) {
-    detail = `PDF: we will read ${out.pages === 1 ? "page 1" : `pages 1 to ${out.pages}`}` +
-      `${out.totalPages > out.pages ? ` of ${out.totalPages}` : ""}. ${detail}`;
+async function readLetter() {
+  const seq = ++readSeq;
+  const entry = letter;
+  entry.seq = seq;
+  entry.status = "reading";
+  entry.langs = ocrLangSelect.value;
+  entry.progress = { fraction: 0, phase: "load", page: 1, pages: entry.prepared.images.length };
+  showChosen();
+  try {
+    ocrModule ??= await import("./js/ocr.js");
+  } catch {
+    if (seq !== readSeq) return;
+    return readFailed(entry, "We couldn't load the reader. Check your connection, or type or paste the letter's words below.");
   }
-  chosen.replaceChildren(
-    h("div", { class: "chosen" },
-      h("img", { src: previewUrl, alt: "Preview of the letter you chose" }),
-      h("div", null,
-        h("p", null, h("strong", null, file.name)),
-        h("p", { class: "muted small" }, detail),
-        h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: () => { clearFile(); $("#file-input").focus(); } }, "Remove")))
-  );
+  try {
+    const out = await ocrModule.recognize(entry.prepared.images, entry.langs, (p) => {
+      if (seq !== readSeq) return;
+      entry.progress = p;
+      updateProgress(entry);
+    });
+    if (seq !== readSeq) return;
+    if (out.text.replace(/\s/g, "").length < 10) {
+      return readFailed(entry, "We couldn't find any words in this picture. Try a clearer, closer photo in good light, or type or paste the words below.");
+    }
+    entry.status = "done";
+    entry.ms = out.ms;
+    entry.confidence = out.confidence;
+    fillText(out.text, "device_ocr");
+    showChosen();
+  } catch (err) {
+    if (seq !== readSeq || err?.name === "OcrCancelled") return;
+    readFailed(entry, "We couldn't read this letter on your device. Type or paste its words below instead.");
+  }
+}
+
+function readFailed(entry, message) {
+  entry.status = "failed";
+  entry.error = message;
+  showChosen();
+  textInput.focus({ preventScroll: true });
+}
+
+function cancelReading() {
+  readSeq++;
+  ocrModule?.cancelOcr();
+  if (letter) {
+    letter.status = "cancelled";
+    showChosen();
+  }
+}
+
+function fillText(text, source) {
+  textInput.value = text.slice(0, Number(textInput.maxLength) || 30000);
+  textSource = source;
+  syncTextLabel();
+}
+
+function syncTextLabel() {
+  const fromLetter = textSource !== "typed";
+  textLabel.textContent = fromLetter ? "Check the words we read" : "Or paste the text";
+  textHint.textContent = fromLetter
+    ? "Check the text matches your letter; fix anything misread. This is exactly what will be checked."
+    : TEXT_HINT_PASTE;
+  textInput.classList.toggle("from-letter", fromLetter);
+}
+
+function describeFile(entry) {
+  const p = entry.prepared;
+  if (!p?.pages) return null;
+  const range = p.pages === 1 ? "page 1" : `pages 1 to ${p.pages}`;
+  return `PDF: ${range}${p.totalPages > p.pages ? ` of ${p.totalPages}` : ""}.`;
+}
+
+function showChosen() {
+  const entry = letter;
+  chosen.hidden = !entry;
+  if (!entry) return chosen.replaceChildren();
+  const removeBtn = h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: removeFile }, "Remove");
+  const thumb = entry.previewUrl
+    ? h("img", { src: entry.previewUrl, alt: "Preview of the letter you chose" })
+    : h("span", { class: "chosen-blank", "aria-hidden": "true" });
+  const lines = [h("p", null, h("strong", null, entry.file.name))];
+  const pdfLine = describeFile(entry);
+  let extra = null;
+
+  if (entry.status === "preparing") {
+    lines.push(h("p", { class: "muted small", role: "status" }, "Opening the file…"));
+  } else if (entry.status === "reading") {
+    const bar = h("progress", { max: 100, value: 0, "aria-labelledby": "read-status" });
+    const pct = h("span", { class: "read-pct" }, "0%");
+    const stage = h("span", { class: "muted small", id: "read-stage" });
+    extra = h("div", { class: "reading" },
+      h("p", { class: "read-status", id: "read-status" }, "Reading on your device… ", pct),
+      bar,
+      h("div", { class: "reading-foot" }, stage,
+        h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: cancelReading }, "Cancel")));
+    entry.ui = { bar, pct, stage };
+    updateProgress(entry);
+  } else if (entry.status === "done") {
+    const how = entry.prepared.kind === "pdf_text"
+      ? "Text taken from the PDF itself, no reading needed."
+      : `Read on your device in ${(entry.ms / 1000).toFixed(1)} s. The ${entry.prepared.pages ? "PDF" : "photo"} was not uploaded.`;
+    lines.push(h("p", { class: "muted small" }, [pdfLine, how].filter(Boolean).join(" ")));
+    if (entry.confidence != null && entry.confidence < LOW_CONFIDENCE) {
+      lines.push(h("p", { class: "small warn-line" }, "Some words were hard to read. Compare the text below with your letter carefully."));
+    }
+  } else if (entry.status === "cancelled") {
+    lines.push(h("p", { class: "muted small" }, "Reading stopped. Read it again, or type or paste the words below."));
+  } else if (entry.status === "failed") {
+    lines.push(h("p", { class: "small warn-line", role: "alert" }, entry.error));
+  }
+
+  const canReread = entry.prepared?.images && (entry.status === "cancelled"
+    || entry.status === "failed" || (entry.status === "done" && entry.langs !== ocrLangSelect.value));
+  const actions = entry.status === "reading" ? null : h("div", { class: "btn-row" },
+    canReread ? h("button", { type: "button", class: "btn btn-small", onclick: readLetter },
+      entry.status === "done" ? "Read again in this language" : "Read it again") : null,
+    removeBtn);
+
+  chosen.replaceChildren(h("div", { class: "chosen" }, thumb, h("div", null, ...lines),
+    extra || actions ? h("div", { class: "chosen-wide" }, extra, actions) : null));
+}
+
+function updateProgress(entry) {
+  const ui = entry.ui;
+  const p = entry.progress;
+  if (!ui || !p) return;
+  const percent = Math.round(p.fraction * 100);
+  ui.bar.value = percent;
+  ui.pct.textContent = `${percent}%`;
+  ui.stage.textContent = p.phase === "load"
+    ? "Getting the reader ready. The first time takes a few seconds."
+    : p.pages > 1 ? `Page ${p.page} of ${p.pages}` : "Reading the words";
+}
+
+function revoke(url) {
+  if (url) URL.revokeObjectURL(url);
 }
 
 function clearFile() {
-  if (prepared?.previewUrl) URL.revokeObjectURL(prepared.previewUrl);
-  prepared = null;
-  chosen.hidden = true;
-  chosen.replaceChildren();
+  if (letter?.status === "reading") ocrModule?.cancelOcr();
+  readSeq++;
+  revoke(letter?.previewUrl);
+  letter = null;
+  showChosen();
   $("#file-input").value = "";
   $("#camera-input").value = "";
+}
+
+function removeFile() {
+  clearFile();
+  if (textSource !== "typed") {
+    textInput.value = "";
+    textSource = "typed";
+    syncTextLabel();
+  }
+  $("#file-input").focus();
 }
 
 for (const input of [$("#file-input"), $("#camera-input")]) {
@@ -145,6 +289,18 @@ dropzone.addEventListener("drop", (e) => {
 window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => e.preventDefault());
 
+textInput.addEventListener("input", () => {
+  if (!textInput.value.trim() && textSource !== "typed") {
+    textSource = "typed";
+    syncTextLabel();
+  }
+});
+
+ocrLangSelect.addEventListener("change", () => {
+  savePrefs();
+  if (letter && letter.status !== "reading") showChosen();
+});
+
 // ---------- form errors ----------
 
 function showFormError(message) {
@@ -159,81 +315,74 @@ function hideFormError() {
 
 // ---------- the check ----------
 
-const CHECK_STEPS_IMAGE = [
-  { key: "prep", label: "Preparing your photo", who: "On your device" },
-  { key: "ocr", label: "Reading the letter", who: "Amazon Textract, an independent reader" },
-  { key: "extract", label: "Finding the sender, dates and exact quotes", who: "Amazon Nova" },
-  { key: "rules", label: "Checking rules and official contacts", who: "Plain code, no AI" },
-];
-const CHECK_STEPS_TEXT = [
-  { key: "extract", label: "Finding the sender, dates and exact quotes", who: "Amazon Nova" },
-  { key: "rules", label: "Checking rules and official contacts", who: "Plain code, no AI" },
+const CHECK_STEPS = [
+  { key: "extract", label: "Finding the sender, dates, links and amounts", who: "Plainly's rules engine on AWS Lambda" },
+  { key: "rules", label: "Checking the scam rules and the official contacts list", who: "Plain code, each rule with its source" },
 ];
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideFormError();
-  const text = textInput.value.trim();
-  const language = chosenLanguage();
-  if (!prepared && !text) {
-    showFormError("Add a photo or PDF of the letter, or paste its text, first.");
+  if (letter?.status === "reading" || letter?.status === "preparing") {
+    showFormError("Wait until your device has finished reading the letter, or press Cancel and paste the text.");
     return;
   }
-  if (!language) {
-    showFormError("Type the language you would like the explanation in.");
-    otherInput.focus();
+  const text = textInput.value.trim();
+  if (!text) {
+    showFormError(letter
+      ? "We have no words from this letter yet. Type or paste them in the box, then check."
+      : "Add a photo or PDF of the letter, or paste its text, first.");
+    (letter ? textInput : $("#file-input")).focus();
     return;
   }
   savePrefs();
-
-  let image = null;
-  if (prepared) {
-    try {
-      await prepared.promise;
-    } catch {
-      return; // the preparation error is already on screen
-    }
-    image = { type: "image/jpeg", data: await blobToBase64(prepared.blob) };
-  }
-  await runLiveCheck({ image, text, language, level: chosenLevel() });
+  await runLiveCheck({ text, textSource, language: chosenLanguage(), level: chosenLevel(), deviceStep: deviceStep() });
 });
 
-async function runLiveCheck({ image, text, language, level }) {
+// The receipt line for the reading done in this browser (the server's trace starts after it).
+function deviceStep() {
+  if (!letter || letter.status !== "done" || textSource === "typed") return null;
+  if (letter.prepared.kind === "pdf_text") {
+    return { step: "device", status: "done", detail: "Text taken from the PDF's own text layer (pdf.js), in your browser", ms: null };
+  }
+  const conf = letter.confidence != null ? `, average confidence ${Math.round(letter.confidence)}%` : "";
+  return { step: "device", status: "done", ms: letter.ms,
+    detail: `Tesseract read the ${letter.prepared.pages ? "PDF pages" : "photo"} in your browser (${letter.langs === "eng+hin" ? "English and Hindi" : "English"}${conf}); the file was not uploaded` };
+}
+
+async function runLiveCheck({ text, textSource: source, language, level, deviceStep: device = null }) {
   const view = ++viewSeq;
   submitBtn.disabled = true;
-  const steps = image ? CHECK_STEPS_IMAGE : CHECK_STEPS_TEXT;
-  const progress = renderProgress("Checking your letter", steps);
+  const progress = renderProgress("Checking your letter", CHECK_STEPS);
   showInResults(progress.el);
   scrollToEl(resultsRegion);
-
-  // The check is one request; the steps advance on typical timings so the wait is legible.
-  const timeline = image ? [["ocr", 0], ["extract", 2500], ["rules", 8000]] : [["extract", 0], ["rules", 5000]];
-  const timers = timeline.map(([key, at]) => setTimeout(() => progress.set(key), at));
+  progress.set("extract");
+  const timer = setTimeout(() => progress.set("rules"), 600);
 
   let check;
   try {
-    check = await postJson("/check", { image, text: text || null, today: todayIso() });
+    check = await postJson("/check", { text, text_source: source, today: todayIso() });
   } catch (err) {
-    if (view === viewSeq) showCheckError(err, () => runLiveCheck({ image, text, language, level }));
+    if (view === viewSeq) showCheckError(err, () => runLiveCheck({ text, textSource: source, language, level, deviceStep: device }));
     return;
   } finally {
-    timers.forEach(clearTimeout);
+    clearTimeout(timer);
     submitBtn.disabled = false;
   }
   if (view !== viewSeq) return;
 
-  const { letter_text: letterText = "", ...publicCheck } = check;
+  const { letter_text: letterText = text, ...publicCheck } = check;
   current = { check: publicCheck, letterText, sample: null };
-  showResult(publicCheck, null);
+  showResult(publicCheck, null, device);
   await explainLive(language, level);
 }
 
-function showResult(check, sample) {
+function showResult(check, sample, deviceStep = null) {
   explainSeq++;
   const explainSlot = h("section", { class: "block panel", id: "explanation", "aria-labelledby": "explain-title" },
     h("h2", { id: "explain-title" }, "In plain words"));
   showInResults(
-    renderCheck(check, { sample }),
+    renderCheck(check, { sample, deviceStep }),
     explainSlot,
     h("p", null, h("button", { type: "button", class: "btn btn-quiet", onclick: startOver }, "Check another letter"))
   );
@@ -253,8 +402,8 @@ async function explainLive(language, level) {
   const shown = current;
   const stale = () => seq !== explainSeq || shown !== current;
   const slot = explanationSlot();
-  const progress = renderProgress(`Writing the explanation in ${LANGUAGE_NAMES[language] || language}`,
-    [{ key: "narrate", label: "Explaining in plain words", who: "Amazon Nova, using only the checked facts above" }]);
+  const progress = renderProgress(`Getting the explanation in ${LANGUAGE_NAMES[language] || language}`,
+    [{ key: "narrate", label: "Putting it in plain words", who: "Using only the checked facts above" }]);
   progress.set("narrate");
   slot.append(progress.el);
   try {
@@ -267,7 +416,7 @@ async function explainLive(language, level) {
     if (stale()) return;
     progress.el.remove();
     slot.append(h("div", { class: "notice notice-error" },
-      h("h3", null, "The explanation couldn't be written just now"),
+      h("h3", null, "The explanation couldn't be shown just now"),
       h("p", null, `${friendlyError(err).body} The check above still stands.`),
       h("button", { type: "button", class: "btn btn-small", onclick: () => explainLive(language, level) }, "Try the explanation again")));
   }
@@ -291,34 +440,29 @@ function announce(message) {
   setTimeout(() => { resultsStatus.textContent = message; }, 50);
 }
 
-// When no model could write the explanation, the server sends a short English one built from the check.
+// When the server could not give the explanation in the language asked for, it sends a short English one.
 function fallbackNote(explain, language, level) {
   const sameLanguage = (explain.language || "").toLowerCase() === language.toLowerCase();
-  if (!explain.meta?.fallback && sameLanguage) return null;
+  if (!explain.meta?.fallback && !explain.meta?.fallback_language && sameLanguage) return null;
   const wanted = LANGUAGE_NAMES[language] || language;
   const text = language.toLowerCase() === "english"
-    ? "We couldn't write the full explanation just now, so here is a short version. "
-    : `We couldn't write this in ${wanted} just now, so here is a short version in English. `;
+    ? "We couldn't get the full explanation just now, so here is a short version. "
+    : `We couldn't get this in ${wanted} just now, so here is a short version in English. `;
   return [text, h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: () => explainLive(language, level) },
     "Try again")];
 }
 
 function renderLanguageSwitch(currentLanguage) {
   const select = h("select", { id: "relang" },
-    Object.entries(LANGUAGE_NAMES).map(([value, name]) => h("option", { value }, name)),
-    h("option", { value: "other" }, "Another language…"));
+    Object.entries(LANGUAGE_NAMES).map(([value, name]) => h("option", { value }, name)));
   select.value = LANGUAGE_NAMES[currentLanguage] ? currentLanguage : "English";
-  const other = h("input", { type: "text", maxlength: 40, placeholder: "Which language?", "aria-label": "Which language?", hidden: true });
-  select.addEventListener("change", () => { other.hidden = select.value !== "other"; });
   const go = () => {
-    const language = select.value === "other" ? other.value.trim() : select.value;
-    if (!language) return other.focus();
-    if (current.sample) showSampleExplanation(language);
-    else explainLive(language, chosenLevel());
+    if (current.sample) showSampleExplanation(select.value);
+    else explainLive(select.value, chosenLevel());
   };
   return h("div", { class: "explain-lang" },
     h("label", { for: "relang" }, "Explain it in another language"),
-    h("div", null, select, other),
+    h("div", null, select),
     h("button", { type: "button", class: "btn btn-quiet btn-small", onclick: go }, "Explain again"));
 }
 
@@ -339,6 +483,8 @@ function startOver() {
   showInResults();
   clearFile();
   textInput.value = "";
+  textSource = "typed";
+  syncTextLabel();
   scrollToEl(form);
   $("#file-input").focus({ preventScroll: true });
 }
@@ -348,7 +494,7 @@ function startOver() {
 function friendlyError(err) {
   const status = err instanceof ApiError ? err.status : -1;
   if (status === 400 || status === 413) {
-    return { title: "We couldn't read that", body: err.message || "Try a clearer, closer photo of the letter, or paste its text instead.", limit: false };
+    return { title: "We couldn't check that", body: err.message || "Check the text in the box matches your letter, then try again.", limit: false };
   }
   if (status === 429) {
     return { title: "You've checked a lot of letters this hour",
@@ -361,8 +507,8 @@ function friendlyError(err) {
   if (status === 0) {
     return { title: "We couldn't reach Plainly", body: "Check your internet connection and try again.", limit: false };
   }
-  return { title: "Something went wrong while reading the letter",
-    body: "Please try again in a minute. If it keeps happening, try a clearer photo or paste the text instead.", limit: false };
+  return { title: "Something went wrong while checking the letter",
+    body: "Please try again in a minute. Your text is still in the box above.", limit: false };
 }
 
 function showCheckError(err, retry) {
@@ -402,7 +548,7 @@ async function openSample(tile) {
   };
   current = { check: publicCheck, letterText: "", sample };
   showResult(publicCheck, sample);
-  showSampleExplanation(chosenLanguage() || "English");
+  showSampleExplanation(chosenLanguage());
   history.replaceState(null, "", `?sample=${encodeURIComponent(id)}`);
 }
 
@@ -416,15 +562,14 @@ function showSampleExplanation(language) {
   explainSeq++;
   const all = current.sample.explanations;
   const key = Object.keys(all).find((k) => k.toLowerCase() === language.toLowerCase());
-  if (key) return showExplanation(all[key]);
+  if (key) return showExplanation(all[key], null, key);
   const fallback = all.English || Object.values(all)[0];
   if (!fallback) {
-    explanationSlot().append(h("p", null, "This sample has no prepared explanation. Check a letter of your own to get one in any language."));
+    explanationSlot().append(h("p", null, "This sample has no prepared explanation. Check a letter of your own to get one."));
     return;
   }
   const available = Object.keys(all).map((k) => LANGUAGE_NAMES[k] || k).join(" and ");
-  showExplanation(fallback,
-    `This sample was prepared in ${available} only. For ${language}, check a letter of your own; the live checker writes in any language.`);
+  showExplanation(fallback, `This sample was prepared in ${available} only.`, "English");
 }
 
 for (const tile of document.querySelectorAll(".tile[data-sample]")) {
@@ -433,11 +578,8 @@ for (const tile of document.querySelectorAll(".tile[data-sample]")) {
 
 // ---------- start ----------
 
-languageSelect.addEventListener("change", () => {
-  syncOtherLanguage();
-  if (languageSelect.value === "other") otherInput.focus();
-});
 loadPrefs();
+syncTextLabel();
 
 const deepLink = new URLSearchParams(location.search).get("sample");
 if (deepLink) {
