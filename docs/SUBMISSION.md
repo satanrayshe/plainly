@@ -79,7 +79,7 @@ Scammers pose as tax offices, pension agencies, police, customs and electricity 
 - The FBI's Internet Crime Complaint Center received 201,266 complaints from people aged 60 and over in 2025, reporting $7.7 billion in losses. ([IC3 2025 Annual Report](https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf))
 - In India, citizens reported ₹22,845.73 crore lost to cyber fraud in 2024, up from ₹7,465.18 crore in 2023, according to the Ministry of Home Affairs. ([MHA, Lok Sabha unstarred question 432, 2 Dec 2025](https://www.mha.gov.in/MHA1/Par2017/pdfs/par2025-pdfs/LS02122025/432.pdf))
 
-The tools on either side of this don't join up. Letter explainers assume the letter is genuine and happily explain a fake. Scam checkers stop at "scam or not", so someone holding a real notice still doesn't know what it asks for or by when. See [docs/comparison.md](https://github.com/satanrayshe/plainly/blob/main/docs/comparison.md) for Norton Genie and Bitdefender Scamio.
+The tools on either side of this don't join up. Letter explainers assume the letter is genuine and happily explain a fake. Scam checkers stop at "scam or not", so someone holding a real notice still doesn't know what it asks for or by when. See [docs/comparison.md](https://github.com/satanrayshe/plainly/blob/master/docs/comparison.md) for Norton Genie and Bitdefender Scamio.
 
 ### What I shipped
 
@@ -155,7 +155,7 @@ About two days before the deadline, the AWS account turned out to be on the Free
 | Re-architected for the Free plan: on-device OCR, rules reader in production, template explanations in three languages, `AI_MODE` switch | "start option b" | `docs/CONTRACT.md` "Option B" |
 | Deployed as `plainly-agent`. When CloudFront refused the unverified account, made CloudFront optional and served the site from the Lambda, then ran read-only checks and a guardrail test through the AWS MCP Server | Ran the IAM setup script, published the policy fix, connected the MCP server | `docs/agent-log.md`, `/evidence/` |
 
-The full timestamped log is in [docs/agent-log.md](https://github.com/satanrayshe/plainly/blob/main/docs/agent-log.md).
+The full timestamped log is in [docs/agent-log.md](https://github.com/satanrayshe/plainly/blob/master/docs/agent-log.md).
 
 ### Proof of coding agent connection to the AWS console
 
@@ -243,7 +243,7 @@ Built and switched off: Amazon Textract, Amazon Bedrock (Nova 2 Lite)
 
 The live stack has no CloudFront. This is a brand-new AWS Free-plan account, and CloudFront refused to create a distribution: `Your account must be verified before you can add new CloudFront resources.` So the stack runs with `UseCloudFront=false`: API Gateway's `$default` route sends page requests to the same Lambda, which serves the site from its package, and `/api/*` goes to the Lambda's API handler. The CloudFront + S3 setup is still in the template, to switch on once AWS verifies the account.
 
-The full diagram (Mermaid and ASCII), a service table with the reason for each service, and the request flow are in [docs/architecture.md](https://github.com/satanrayshe/plainly/blob/main/docs/architecture.md).
+The full diagram (Mermaid and ASCII), a service table with the reason for each service, and the request flow are in [docs/architecture.md](https://github.com/satanrayshe/plainly/blob/master/docs/architecture.md).
 
 | Measured | Figure |
 |---|---|
