@@ -48,6 +48,8 @@ export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*"
 REGION=us-east-1
 PROFILE="${AWS_PROFILE:-plainly-agent}"
 AI_MODE="${AI_MODE:-off}"
+# false: no CloudFront; the HTTP API serves the site from the Lambda (accounts not yet verified for CloudFront)
+USE_CLOUDFRONT="${USE_CLOUDFRONT:-false}"
 APP_NAME="${APP_NAME:-plainly}"
 STACK_NAME="${STACK_NAME:-$APP_NAME}"
 TEMPLATE=infra/template.yaml
@@ -190,7 +192,11 @@ ensure_artifacts_bucket() {
 
 upload_lambda() {
   local zip
-  zip="$(py_out scripts/package_lambda.py)"
+  if [[ "$USE_CLOUDFRONT" == true ]]; then
+    zip="$(py_out scripts/package_lambda.py)"
+  else
+    zip="$(PLAINLY_SITE_DIR=dist py_out scripts/package_lambda.py)"
+  fi
   CODE_KEY="lambda/$(basename "$zip")"
   if aws_ s3api head-object --bucket "$ARTIFACTS" --key "$CODE_KEY" >/dev/null 2>&1; then
     log "Lambda package $CODE_KEY already uploaded"
@@ -202,7 +208,8 @@ upload_lambda() {
 
 # Template parameters as KEY=VALUE words, only for values we actually know.
 collect_parameters() {
-  PARAMS=(AppName="$APP_NAME" CodeBucket="$ARTIFACTS" CodeKey="$CODE_KEY" AiMode="$AI_MODE")
+  PARAMS=(AppName="$APP_NAME" CodeBucket="$ARTIFACTS" CodeKey="$CODE_KEY" AiMode="$AI_MODE"
+          UseCloudFront="$USE_CLOUDFRONT")
   PARAMS+=(PermissionsBoundaryArn="${PERMISSIONS_BOUNDARY_ARN-arn:aws:iam::${ACCOUNT_ID}:policy/plainly-boundary}")
   local pair
   for pair in AlertEmail:ALERT_EMAIL ModelIds:MODEL_IDS DailyCap:DAILY_CAP \
@@ -250,7 +257,6 @@ deploy_stack() {
     --capabilities CAPABILITY_NAMED_IAM \
     --no-fail-on-empty-changeset \
     --parameter-overrides "${PARAMS[@]}" \
-    --tags app="$APP_NAME" project=zero-to-shipped \
     ${role_args[@]+"${role_args[@]}"}
 }
 
@@ -292,7 +298,6 @@ EOF
     --template-url "$template_url" \
     --parameters "file://$params_file" \
     --capabilities CAPABILITY_NAMED_IAM \
-    --tags Key=app,Value="$APP_NAME" Key=project,Value=zero-to-shipped \
     ${role_args[@]+"${role_args[@]}"} \
     --query Id)" || { rm -f "$params_file"; die "create-change-set failed (see the error above)"; }
   rm -f "$params_file"  # it may hold the generated secrets
@@ -412,6 +417,50 @@ publish_site() {
   fi
 }
 
+# ------------------------------------------------------------------ site without CloudFront
+
+stack_output() {
+  aws_text cloudformation describe-stacks --stack-name "$STACK_NAME"     --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" 2>/dev/null || true
+}
+
+build_site_dist() {
+  local strict=(--strict)
+  [[ "${ALLOW_MOCK_SAMPLES:-}" == 1 ]] && strict=()
+  log "Building site into dist/ (SITE_URL=${1:-unset})"
+  SITE_URL="$1" "$PY" scripts/build_site.py ${strict[@]+"${strict[@]}"}
+  [[ -f dist/index.html ]] || die "scripts/build_site.py did not produce dist/index.html"
+}
+
+# UseCloudFront=false: the site ships inside the Lambda zip and the HTTP API serves everything.
+# The public URL is only known after the first create, so a first deploy builds twice.
+deploy_lambda_site() {
+  local built_for status
+  built_for="$(stack_output SiteUrl)"; [[ "$built_for" == None ]] && built_for=""
+  build_site_dist "$built_for"
+  upload_lambda
+  collect_parameters
+  add_secret_parameters "$STATUS"
+  deploy_stack
+  SITE_URL="$(stack_output SiteUrl)"
+  DASHBOARD_URL="$(stack_output DashboardUrl)"
+  if [[ "$SITE_URL" != "$built_for" ]]; then
+    log "Rebuilding for the real URL $SITE_URL"
+    build_site_dist "$SITE_URL"
+    upload_lambda
+    collect_parameters
+    status="$(stack_status)"
+    add_secret_parameters "$status"
+    deploy_stack
+  fi
+  if command -v curl >/dev/null 2>&1; then
+    if curl -fsS -m 20 "$SITE_URL/api/health" >/dev/null && curl -fsS -m 20 -o /dev/null "$SITE_URL/"; then
+      log "Health check OK: $SITE_URL/ and $SITE_URL/api/health"
+    else
+      log "Health check failed for $SITE_URL (see /aws/lambda/$APP_NAME-api logs)"
+    fi
+  fi
+}
+
 # ------------------------------------------------------------------ main
 
 check_function_in_sync
@@ -447,11 +496,15 @@ then wait for the stack, and publish the site with: scripts/deploy.sh --site-onl
     refuse_rolled_back_stack "$STATUS"
     require_alert_email_for_create "$STATUS"
     ensure_artifacts_bucket
-    upload_lambda
-    collect_parameters
-    add_secret_parameters "$STATUS"
-    deploy_stack
-    publish_site
+    if [[ "$USE_CLOUDFRONT" == true ]]; then
+      upload_lambda
+      collect_parameters
+      add_secret_parameters "$STATUS"
+      deploy_stack
+      publish_site
+    else
+      deploy_lambda_site
+    fi
     ;;
 esac
 

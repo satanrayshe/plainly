@@ -15,6 +15,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import io
+import os
 import sys
 import zipfile
 from pathlib import Path
@@ -83,9 +84,27 @@ def check_sources(files: list[Path]) -> None:
         sys.exit("Refusing to package:\n  " + "\n  ".join(problems))
 
 
+def site_files() -> list[tuple[str, Path]]:
+    """With PLAINLY_SITE_DIR=dist, the built site goes into the zip under site/ (served by static_site.py
+    when the account has no CloudFront)."""
+    site_dir = os.environ.get("PLAINLY_SITE_DIR")
+    if not site_dir:
+        return []
+    base = (ROOT / site_dir).resolve()
+    if not (base / "index.html").is_file():
+        sys.exit(f"PLAINLY_SITE_DIR={site_dir} has no index.html; run scripts/build_site.py first")
+    return sorted((f"site/{p.relative_to(base).as_posix()}", p) for p in base.rglob("*") if p.is_file())
+
+
 def build_zip(files: list[Path]) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+        for name, path in site_files():
+            info = zipfile.ZipInfo(name, date_time=FIXED_DATE)
+            info.external_attr = 0o100644 << 16
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
+            zf.writestr(info, path.read_bytes())
         for path in files:
             info = zipfile.ZipInfo(path.name, date_time=FIXED_DATE)
             info.external_attr = 0o100644 << 16

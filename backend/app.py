@@ -18,6 +18,7 @@ import time
 
 import limits
 import pipeline
+import static_site
 
 VERSION = os.environ.get("APP_VERSION", "dev")
 MAX_BODY_CHARS = 2_500_000
@@ -214,7 +215,11 @@ def handler(event, context):
     fields = {"route": path, "method": method,
               "request_id": getattr(context, "aws_request_id", None)}
     try:
-        if not from_cloudfront(event):
+        raw_path = event.get("rawPath") or http.get("path") or "/"
+        if not raw_path.startswith("/api/") and raw_path != "/api" and static_site.enabled():
+            response = static_site.serve(event)
+            fields["route"] = "static"
+        elif not from_cloudfront(event):
             response = respond(403, {"error": "Forbidden."})
         elif method == "OPTIONS":
             response = respond(204, {})

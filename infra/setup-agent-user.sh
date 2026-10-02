@@ -91,19 +91,33 @@ attach_user arn:aws:iam::aws:policy/SignInLocalDevelopmentAccess
 
 step "Console sign-in for plainly-agent"
 PW=""
+new_password() {
+  "$PY" -c "import secrets,string;a=string.ascii_letters+string.digits;print('Pl-'+''.join(secrets.choice(a) for _ in range(18))+'-9x')" | tr -d '\r'
+}
 if aws iam get-login-profile --user-name plainly-agent >/dev/null 2>&1; then
-  kept "console login for plainly-agent (password not shown or changed)"
+  if [[ "${RESET_PASSWORD:-}" == 1 ]]; then
+    PW=$(new_password)
+    aws iam update-login-profile --user-name plainly-agent --password "$PW" --no-password-reset-required >/dev/null
+    made "new password for plainly-agent"
+  else
+    kept "console login for plainly-agent (password not shown; RESET_PASSWORD=1 sets a new one)"
+  fi
 else
-  PW=$("$PY" -c "import secrets,string;a=string.ascii_letters+string.digits;print('Pl-'+''.join(secrets.choice(a) for _ in range(18))+'-9x')" | tr -d '\r')
+  PW=$(new_password)
   aws iam create-login-profile --user-name plainly-agent --password "$PW" --no-password-reset-required >/dev/null
   made "console login for plainly-agent"
+fi
+if [[ -n "$PW" ]]; then
+  printf '   user name: plainly-agent\n   password:  %s\n   sign-in:   https://%s.signin.aws.amazon.com/console\n' "$PW" "$ACCT"
 fi
 
 step "CloudFormation service role plainly-cfn-deploy"
 if aws iam get-role --role-name plainly-cfn-deploy >/dev/null 2>&1; then
   kept "role plainly-cfn-deploy"
 else
-  TRUST=$(mktemp)
+  # Relative path inside the repo: Windows aws.exe can't open Git Bash's /tmp.
+  mkdir -p build
+  TRUST=build/cfn-trust.json
   cat > "$TRUST" <<EOF
 {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"cloudformation.amazonaws.com"},"Action":"sts:AssumeRole","Condition":{"StringEquals":{"aws:SourceAccount":"$ACCT"}}}]}
 EOF

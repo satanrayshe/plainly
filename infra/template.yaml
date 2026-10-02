@@ -35,6 +35,14 @@ Parameters:
     AllowedPattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
     ConstraintDescription: must be an email address.
     Description: Receives alarm and budget emails. Confirm the SNS subscription email after the first deploy.
+  UseCloudFront:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: >-
+      true puts CloudFront in front (S3 site + /api/* to the HTTP API). false serves the whole site from the
+      Lambda through the HTTP API, for accounts that AWS has not yet verified for CloudFront.
+
   AiMode:
     Type: String
     Default: "off"
@@ -94,6 +102,7 @@ Parameters:
 Conditions:
   HasPermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundaryArn, ""]]
   AiOn: !Equals [!Ref AiMode, "on"]
+  WithCdn: !Equals [!Ref UseCloudFront, "true"]
 
 Resources:
   # ---------------------------------------------------------------- static site
@@ -116,6 +125,7 @@ Resources:
         RestrictPublicBuckets: true
 
   SiteBucketPolicy:
+    Condition: WithCdn
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref SiteBucket
@@ -153,6 +163,7 @@ Resources:
                 aws:SecureTransport: "false"
 
   SiteOriginAccessControl:
+    Condition: WithCdn
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
@@ -163,6 +174,7 @@ Resources:
         SigningProtocol: sigv4
 
   UriRewriteFunction:
+    Condition: WithCdn
     Type: AWS::CloudFront::Function
     Properties:
       Name: !Sub ${AppName}-uri-rewrite
@@ -184,6 +196,7 @@ Resources:
         }
 
   ApiOriginRequestPolicy:
+    Condition: WithCdn
     Type: AWS::CloudFront::OriginRequestPolicy
     Properties:
       OriginRequestPolicyConfig:
@@ -213,6 +226,7 @@ Resources:
   #   font-src data:                 pdf.js may load embedded PDF fonts as data: URLs while rendering
   # All libraries, fonts and language data are self-hosted under /vendor/ and /assets/.
   SecurityHeadersPolicy:
+    Condition: WithCdn
     Type: AWS::CloudFront::ResponseHeadersPolicy
     Properties:
       ResponseHeadersPolicyConfig:
@@ -259,6 +273,7 @@ Resources:
               Override: true
 
   Distribution:
+    Condition: WithCdn
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -382,6 +397,14 @@ Resources:
           "integrationError":"$context.integrationErrorMessage","bytes":"$context.responseLength",
           "edgeIp":"$context.identity.sourceIp"}
 
+  # Everything that is not /api/* (pages, assets, OCR engine) is served by the same Lambda.
+  SiteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: $default
+      Target: !Sub integrations/${ApiIntegration}
+
   ApiInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -476,7 +499,8 @@ Resources:
           RATE_LIMIT_PER_HOUR: !Ref RateLimitPerHour
           LOG_LEVEL: !Ref LogLevel
           APP_VERSION: !Ref CodeKey
-          ORIGIN_VERIFY: !Ref OriginVerifySecret
+          ORIGIN_VERIFY: !If [WithCdn, !Ref OriginVerifySecret, ""]
+          SERVE_SITE: "true"
           IP_HASH_SALT: !Ref IpHashSalt
 
   # ---------------------------------------------------------------- data
@@ -642,11 +666,11 @@ Resources:
                 [".", "IntegrationLatency", ".", ".", {"stat": "p95", "label": "integration p95"}]
               ]}},
             {"type": "metric", "x": 16, "y": 6, "width": 8, "height": 6, "properties": {
-              "title": "CloudFront requests and error rates", "region": "us-east-1", "view": "timeSeries", "period": 300,
+              "title": "Requests and errors", "region": "${AWS::Region}", "view": "timeSeries", "period": 300,
               "metrics": [
-                ["AWS/CloudFront", "Requests", "DistributionId", "${Distribution}", "Region", "Global", {"stat": "Sum"}],
-                [".", "4xxErrorRate", ".", ".", ".", ".", {"stat": "Average", "yAxis": "right"}],
-                [".", "5xxErrorRate", ".", ".", ".", ".", {"stat": "Average", "yAxis": "right"}]
+                ["AWS/ApiGateway", "Count", "ApiId", "${HttpApi}", {"stat": "Sum"}],
+                [".", "4xx", ".", ".", {"stat": "Sum", "yAxis": "right"}],
+                [".", "5xx", ".", ".", {"stat": "Sum", "yAxis": "right"}]
               ]}},
             {"type": "alarm", "x": 0, "y": 12, "width": 24, "height": 3, "properties": {
               "title": "Alarms",
@@ -700,9 +724,10 @@ Resources:
 
 Outputs:
   SiteUrl:
-    Description: Public URL (CloudFront)
-    Value: !Sub https://${Distribution.DomainName}
+    Description: Public URL (CloudFront when UseCloudFront=true, otherwise the HTTP API)
+    Value: !If [WithCdn, !Sub "https://${Distribution.DomainName}", !GetAtt HttpApi.ApiEndpoint]
   DistributionId:
+    Condition: WithCdn
     Value: !Ref Distribution
   SiteBucket:
     Value: !Ref SiteBucket

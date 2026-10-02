@@ -83,6 +83,7 @@
         "apigateway:PUT",
         "apigateway:PATCH",
         "apigateway:DELETE",
+        "apigateway:TagResource",
         "apigateway:UntagResource"
       ],
       "Resource": "arn:aws:apigateway:us-east-1::/*"
