@@ -71,9 +71,10 @@ def log(**fields):
 
 def client_ip(event):
     """Viewer IP from CloudFront-Viewer-Address ("ip:port", IPv4 or IPv6); else the direct source IP.
-    X-Forwarded-For is deliberately ignored: the client controls its first entry."""
+    X-Forwarded-For is deliberately ignored: the client controls its first entry. So is CloudFront-Viewer-Address
+    when there is no CloudFront in front (ORIGIN_VERIFY unset): then anyone could send it and rotate the key."""
     headers = {k.lower(): v for k, v in (event.get("headers") or {}).items()}
-    viewer = (headers.get("cloudfront-viewer-address") or "").strip()
+    viewer = (headers.get("cloudfront-viewer-address") or "").strip() if os.environ.get("ORIGIN_VERIFY") else ""
     if viewer:
         return viewer.rsplit(":", 1)[0].strip("[]") if ":" in viewer else viewer
     return event.get("requestContext", {}).get("http", {}).get("sourceIp", "unknown")

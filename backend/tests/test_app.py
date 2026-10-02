@@ -1,6 +1,7 @@
 """Routing, limits and counters through the Lambda handler, with a fake DynamoDB table."""
 import base64
 import json
+import os
 import re
 from decimal import Decimal
 
@@ -65,6 +66,8 @@ def table(monkeypatch):
 
 def event(method, path, body=None, ip="203.0.113.7", headers=None):
     h = {"cloudfront-viewer-address": f"{ip}:51234"} if ip else {}
+    if os.environ.get("ORIGIN_VERIFY"):
+        h["x-origin-verify"] = os.environ["ORIGIN_VERIFY"]
     h.update(headers or {})
     return {"version": "2.0", "rawPath": path, "headers": h,
             "requestContext": {"http": {"method": method, "path": path, "sourceIp": "130.176.0.1"}},
@@ -111,6 +114,7 @@ def test_wrong_method_and_unknown_route(table):
 
 
 def test_rate_limit_per_viewer_ip(table, monkeypatch):
+    monkeypatch.setenv("ORIGIN_VERIFY", "cdn-secret")  # behind CloudFront: the viewer header is trusted
     monkeypatch.setenv("RATE_LIMIT_PER_HOUR", "20")
     for _ in range(20):
         assert call("POST", "/api/check", {"text": SCAM}, ip="198.51.100.1")[0] == 200
@@ -164,9 +168,17 @@ def test_limiter_failure_fails_open(monkeypatch):
     ({"cloudfront-viewer-address": "2001:db8::1:51234"}, "2001:db8::1"),
     ({"x-forwarded-for": "6.6.6.6"}, "130.176.0.1"),
 ])
-def test_client_ip(header, expected):
+def test_client_ip(header, expected, monkeypatch):
+    monkeypatch.setenv("ORIGIN_VERIFY", "cdn-secret")
     ev = event("GET", "/api/health", ip=None, headers=header)
     assert app.client_ip(ev) == expected
+
+
+def test_viewer_header_ignored_without_cloudfront(monkeypatch):
+    """No CloudFront in front (ORIGIN_VERIFY unset): a client-sent CloudFront-Viewer-Address must not move the key."""
+    monkeypatch.delenv("ORIGIN_VERIFY", raising=False)
+    ev = event("GET", "/api/health", ip="9.9.9.9")
+    assert app.client_ip(ev) == "130.176.0.1"
 
 
 def test_payload_size_limit(table, monkeypatch):
@@ -235,7 +247,7 @@ def test_response_headers(table):
 
 def test_origin_verify_header_required_when_configured(table, monkeypatch):
     monkeypatch.setenv("ORIGIN_VERIFY", "stack-uuid")
-    assert call("GET", "/api/health")[0] == 403
+    assert call("GET", "/api/health", headers={"x-origin-verify": ""})[0] == 403  # helper adds it by default
     assert call("GET", "/api/health", headers={"x-origin-verify": "wrong"})[0] == 403
     assert call("GET", "/api/health", headers={"X-Origin-Verify": "stack-uuid"})[0] == 200
 

@@ -69,7 +69,7 @@
             </tr>
             <tr>
               <th scope="row">Implementation Quality</th>
-              <td>Serverless on AWS Free plan services: CloudFront, S3, API Gateway, Lambda and DynamoDB, with Tesseract.js self-hosted and loaded only when a photo is chosen. Amazon Textract and Amazon Nova are built and tested but switched off, because the Free plan doesn't include them; one setting turns Nova back on after an upgrade. Least-privilege access, per-address and daily limits, and Plainly stores nothing about a letter.</td>
+              <td>Serverless on AWS Free plan services: API Gateway, Lambda and DynamoDB, with one Lambda serving both the pages and the checks (CloudFront and S3 are ready in the template, waiting for AWS to verify the new account), and Tesseract.js self-hosted and loaded only when a photo is chosen. Amazon Textract and Amazon Nova are built and tested but switched off, because the Free plan doesn't include them; one setting turns Nova back on after an upgrade. Least-privilege access, per-address and daily limits, and Plainly stores nothing about a letter.</td>
               <td><a href="/evidence/">Evidence</a>, <a href="/how-it-works/#privacy">Privacy</a>, <a href="/how-it-works/#ai-off">Textract and Nova</a></td>
             </tr>
             <tr>

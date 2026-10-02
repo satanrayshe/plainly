@@ -2,8 +2,6 @@
 
 Paste the fields below into the project form on the hackathon's "Your project" tab. Publishing is submitting: publish early, then keep editing until Oct 2, 11:59 PM PDT.
 
-Fill every `{{...}}` placeholder before the final publish. The list is at the bottom of this file.
-
 ## Form fields
 
 Title (47 of 255 characters):
@@ -30,14 +28,14 @@ Tags (five maximum; the first two are required):
 
 - `#daily-life-enhancement` is the category and `#startups` (plural, as confirmed by the organiser) the lane.
 - `#aws-lambda`: the whole engine runs in one Lambda function.
-- `#serverless`: every piece of the stack is serverless (CloudFront, S3, API Gateway HTTP API, Lambda, DynamoDB on-demand).
+- `#serverless`: every piece of the stack is serverless (API Gateway HTTP API, Lambda, DynamoDB on-demand; CloudFront and S3 are in the template, off until AWS verifies the account).
 - `#security`: it is a scam and impersonation checker.
 - `#amazon-bedrock` was dropped because Bedrock doesn't run in the live product. Check on the form that `#aws-lambda`, `#serverless` and `#security` exist in exactly this spelling before publishing.
 
 Links:
 
-- Endpoint or live demo: {{LIVE_URL}}
-- GitHub repository: {{REPO_URL}} (public, on the satanrayshe account)
+- Endpoint or live demo: https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com
+- GitHub repository: https://github.com/satanrayshe/plainly (public, on the satanrayshe account)
 - Notebook: leave empty
 
 Cover image: 1200x675, no text in the image, under 2 MB: `docs/cover.png` (source `docs/art/cover.html`, rendered by `python scripts/render_art.py`).
@@ -47,22 +45,21 @@ Cover image: 1200x675, no text in the image, under 2 MB: `docs/cover.png` (sourc
 | Criterion (25% each) | Where the write-up answers it |
 |---|---|
 | Technical Innovation & Originality | On-device OCR so the photo never leaves the phone; 21 deterministic rules with quoted evidence and a receipts trace; a sourced registry of 14 agencies; date math in code; hidden AI instructions treated as a scam signal; why rules are the right design for a verdict; the AI path built and switched off by one parameter |
-| Implementation Quality | One CloudFormation template; `AiMode` switch with no Bedrock or Textract permissions when off; boto3-only Lambda; rate limits, daily cap and origin secret; tests including false-positive regressions; frozen-rules eval with a holdout run once; alarms, dashboard and budget |
+| Implementation Quality | One CloudFormation template; `AiMode` switch with no Bedrock or Textract permissions when off; boto3-only Lambda; rate limits and daily cap (origin secret once CloudFront is on); tests including false-positive regressions; frozen-rules eval with a holdout run once; alarms, dashboard and budget |
 | Community/Market Impact | Families handling official mail in a second language (India and US); cited loss figures; "digital arrest" pattern flagged directly; free to use because no per-check AI cost; privacy of letter photos |
 | Creativity & Storytelling | Look-alike genuine and fake samples with opposite verdicts; the Free-plan twist and the re-architecture that followed; "keep the receipts" as the thread through product and build |
-| Ship gate (pass/fail): documented proof of coding agent connection to the AWS console | "How the coding agent helped me ship", "Proof of coding agent connection" (`{{AGENT_PROOF}}`), `docs/agent-log.md` |
+| Ship gate (pass/fail): documented proof of coding agent connection to the AWS console | "How the coding agent helped me ship", "Proof of coding agent connection" (text: `aws login`, MCP config and calls, the guardrail AccessDenied, CloudTrail events), `docs/agent-log.md` |
 
 ## Body
 
-Paste everything from here down to the "Placeholders to fill" heading into the body field.
+Paste everything from here down to the "Notes for the final pass" heading into the body field.
 
 ### TL;DR
 
-- Live app: {{LIVE_URL}}
-- Try it in one click: {{LIVE_URL}}/judges/ is a 90-second tour: three sample letters that open instantly, then a photo read on your own device. No sign-in.
-- Video (90 seconds): {{VIDEO_URL}}
-- Code: {{REPO_URL}}
-- Serverless on AWS (CloudFront, S3, API Gateway, Lambda, DynamoDB, CloudWatch, SNS, Budgets), all on the AWS Free account plan. Built with Claude Code connected to the AWS account.
+- Live app: https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com
+- Try it in one click: https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com/judges/ is a 90-second tour: three sample letters that open instantly, then a photo read on your own device. No sign-in.
+- Code: https://github.com/satanrayshe/plainly
+- Serverless on AWS (API Gateway, Lambda, DynamoDB, CloudWatch, SNS, Budgets), all on the AWS Free account plan. One Lambda serves both the site and the API, because AWS hasn't yet verified this new account for CloudFront; CloudFront and S3 are ready in the template behind one switch. Built with Claude Code connected to the AWS account.
 
 Plainly gives one of three verdicts:
 
@@ -82,7 +79,7 @@ Scammers pose as tax offices, pension agencies, police, customs and electricity 
 - The FBI's Internet Crime Complaint Center received 201,266 complaints from people aged 60 and over in 2025, reporting $7.7 billion in losses. ([IC3 2025 Annual Report](https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf))
 - In India, citizens reported ₹22,845.73 crore lost to cyber fraud in 2024, up from ₹7,465.18 crore in 2023, according to the Ministry of Home Affairs. ([MHA, Lok Sabha unstarred question 432, 2 Dec 2025](https://www.mha.gov.in/MHA1/Par2017/pdfs/par2025-pdfs/LS02122025/432.pdf))
 
-The tools on either side of this don't join up. Letter explainers assume the letter is genuine and happily explain a fake. Scam checkers stop at "scam or not", so someone holding a real notice still doesn't know what it asks for or by when. See [docs/comparison.md]({{REPO_URL}}/blob/main/docs/comparison.md) for Norton Genie and Bitdefender Scamio.
+The tools on either side of this don't join up. Letter explainers assume the letter is genuine and happily explain a fake. Scam checkers stop at "scam or not", so someone holding a real notice still doesn't know what it asks for or by when. See [docs/comparison.md](https://github.com/satanrayshe/plainly/blob/main/docs/comparison.md) for Norton Genie and Bitdefender Scamio.
 
 ### What I shipped
 
@@ -96,7 +93,7 @@ The tools on either side of this don't join up. Letter explainers assume the let
 
 Plainly's verdict comes from code you can read, and every step of it is shown to the user.
 
-1. On-device reading. Tesseract.js and pdf.js run in the browser, self-hosted on the same CloudFront origin and loaded only when someone picks a file. The photo of a tax notice, with the reader's name, address and account numbers on it, never reaches a server. Only the text does, after the reader has seen it.
+1. On-device reading. Tesseract.js and pdf.js run in the browser, self-hosted on the site's own origin and loaded only when someone picks a file. The photo of a tax notice, with the reader's name, address and account numbers on it, never reaches a server. Only the text does, after the reader has seen it.
 2. A rules engine on Lambda. A keyword and date reader pulls out the sender, dates, deadlines, payment demands, threats, credential requests, links and call-back numbers, each with the sentence it came from. Then 21 rules in `backend/verifier.py` score the evidence: gift cards, crypto and wire transfers, UPI payments to a personal handle, OTP and password requests, arrest and "digital arrest" threats, demanded video calls, lookalike domains (edit distance, confusable characters, punycode), shortened or raw-IP links, link bait, KYC block threats, prize and refund bait, fees before a release, "press 1" prompts, call-backs to unofficial numbers, sender impersonation, free-mail addresses posing as official, secrecy, short deadlines and unknown contacts. Strong flags are worth 3 points and medium flags 1; 3 or more is "Likely scam". "Consistent with genuine" needs a matched agency, at least one contact that matches the registry and zero points.
 3. A registry of 14 agencies (5 US, 7 India, 2 UK), domains first and phones second, each entry with its source URL and the date it was checked (`backend/registry.json`, `docs/registry-sources.md`).
 4. Dates are arithmetic. "Pay within 30 days of the date of this notice" becomes a date computed in Python from the quoted letter date. The explanation receives it as a fact.
@@ -120,11 +117,11 @@ None of the 150 projects in the public gallery on 30 Sep 2026 mentioned scams, p
 
 ### Implementation Quality
 
-- One plain CloudFormation template (`infra/template.yaml`) for the whole stack: S3 with Origin Access Control, CloudFront with a URI-rewrite function, an API Gateway HTTP API, the Lambda function, a DynamoDB table with TTL, CloudWatch alarms and dashboard, an SNS topic and a budget. The coding agent's IAM policy, a permissions boundary for any role it creates and a setup script for the owner sit next to it in `infra/`.
+- One plain CloudFormation template (`infra/template.yaml`) for the whole stack: an API Gateway HTTP API, the Lambda function, a DynamoDB table with TTL, CloudWatch alarms and dashboard, an SNS topic and a budget. A `UseCloudFront` parameter adds a private S3 bucket with Origin Access Control and CloudFront with a URI-rewrite function. It is `false` on the live stack because CloudFront refused this new, unverified account, so the Lambda serves the site itself (`backend/static_site.py`: the same CSP and security headers CloudFront would add, clean URLs, gzip). The coding agent's IAM policy, a permissions boundary for any role it creates and a setup script for the owner sit next to it in `infra/`.
 - One switch for the AI path. The `AiMode` parameter (default `off`) sets `AI_MODE` on the Lambda. With it off, no Bedrock or Textract client is created and the Lambda role has no Bedrock or Textract permissions.
 - The Lambda has no third-party dependencies, only boto3. It runs Python 3.13 on arm64.
 - Privacy: the photo stays on the device, and Plainly stores nothing about a letter. Logs are structured JSON with request ids, verdicts, rule ids and timings, and no letter text. The share feature from an earlier draft was removed because it kept results for 7 days.
-- Abuse and cost controls: a per-IP limit of 20 checks an hour keyed on the `CloudFront-Viewer-Address` header that CloudFront adds (not the client-supplied `X-Forwarded-For`), a global cap of 400 checks a day, HTTP API stage throttling, a text-size limit on the server, and a secret origin header so the API can't be called around CloudFront. When a limit is hit, the page offers the sample letters.
+- Abuse and cost controls: a per-IP limit of 20 checks an hour (never keyed on the client-supplied `X-Forwarded-For`), a global cap of 400 checks a day, HTTP API stage throttling (5 requests a second, burst 10) and a text-size limit on the server. When a limit is hit, the page offers the sample letters. With CloudFront on, the per-IP key is the `CloudFront-Viewer-Address` header CloudFront adds, and a secret origin header stops callers going around CloudFront. On the live stack, without CloudFront, the origin secret is off and the key falls back to the API Gateway source IP, but a caller who forges `CloudFront-Viewer-Address` can still spread checks across made-up addresses. Until CloudFront is on, the daily cap and the stage throttling are what bound use and cost.
 - Tests: pytest covers the reader, every rule, the verdict, the registry, date math, routing, the template explanations in all three languages, and the AI path with Bedrock and Textract faked. `python -m pytest backend/tests -q` runs them.
 - Regression tests for false positives: 25 genuine messages (bank OTP alerts, re-KYC notices, police fraud-awareness texts, a jury summons and others) that once read as scams are pinned in `backend/tests/test_false_positives.py`.
 - Evaluation on real, government-published examples, scored separately from our own letters, with every miss listed. See the Evaluation section below.
@@ -156,21 +153,75 @@ About two days before the deadline, the AWS account turned out to be on the Free
 | Tuned the rules on a dev set of 67 messages, hunted its own false positives, froze the rules by hash and ran the holdout once | Rules stay frozen after the holdout; gaps are listed, not fixed | `eval/RULES_FROZEN.md`, `eval/results.md` |
 | Connected to AWS, found the Free plan, captured the exact Bedrock and Textract errors, and wrote an IAM setup script when Claude Code's permission classifier stopped it from creating IAM users itself | Not to upgrade the account; to ship Option B | `docs/agent-log.md`, `infra/setup-agent-user.sh` |
 | Re-architected for the Free plan: on-device OCR, rules reader in production, template explanations in three languages, `AI_MODE` switch | "start option b" | `docs/CONTRACT.md` "Option B" |
+| Deployed as `plainly-agent`. When CloudFront refused the unverified account, made CloudFront optional and served the site from the Lambda, then ran read-only checks and a guardrail test through the AWS MCP Server | Ran the IAM setup script, published the policy fix, connected the MCP server | `docs/agent-log.md`, `/evidence/` |
 
-The full timestamped log is in [docs/agent-log.md]({{REPO_URL}}/blob/main/docs/agent-log.md).
+The full timestamped log is in [docs/agent-log.md](https://github.com/satanrayshe/plainly/blob/main/docs/agent-log.md).
 
 ### Proof of coding agent connection to the AWS console
 
-{{AGENT_PROOF}}
+The coding agent is Claude Code. In AWS it acts as a dedicated IAM user, `plainly-agent`, never as the account root. The owner created that user by running `infra/setup-agent-user.sh`, because Claude Code's permission classifier stopped the agent from creating IAM users itself. The account id is masked as `********1486`. Times are UTC on 2 Oct 2026.
 
-This section will hold, as text (screenshots too, with text copies in case image moderation rejects them), with the account id masked:
+1. Connection. The agent's CLI profile is signed in with `aws login`:
 
-1. The `aws login` session the agent used and `aws sts get-caller-identity` for it.
-2. The deploy of the `plainly` stack and `/api/health` answering `"ai_mode": "off"`.
-3. If the AWS MCP Server is connected: the Claude Code MCP configuration and calls the agent made through it, with request ids and timestamps.
-4. CloudTrail events for the agent's calls.
+```
+$ aws login --region us-east-1 --profile plainly-agent
+Updated profile plainly-agent to use arn:aws:iam::********1486:user/plainly-agent credentials.
+```
 
-The same proof is mirrored on the live site at {{LIVE_URL}}/evidence/.
+2. AWS MCP Server. The project-scoped entry in `.mcp.json` (no secrets: it names the CLI profile the proxy signs with), then `/mcp` in Claude Code:
+
+```json
+"aws-mcp": {
+  "type": "stdio",
+  "command": "uvx",
+  "args": ["mcp-proxy-for-aws-cli@latest", "https://aws-mcp.us-east-1.api.aws/mcp",
+           "--metadata", "AWS_REGION=us-east-1"],
+  "env": {"AWS_PROFILE": "plainly-agent", "AWS_REGION": "us-east-1"}
+}
+```
+
+```
+/mcp -> Reconnected to aws-mcp.
+```
+
+3. Calls the agent made through the MCP server (tool `aws___run_script`), reading back what it had deployed:
+
+```
+sts GetCallerIdentity            -> arn:aws:iam::********1486:user/plainly-agent
+cloudformation DescribeStacks    -> plainly  UPDATE_COMPLETE  2026-10-02T15:14:04Z
+apigatewayv2 GetApis             -> plainly-api  HTTP
+lambda ListFunctions             -> plainly-api  python3.13  arm64  1024 MB
+dynamodb ListTables              -> plainly-data
+cloudwatch DescribeAlarms        -> 4 alarms, all OK
+```
+
+4. Guardrail test through the MCP server. The agent's policy denies destructive actions when the call comes through MCP:
+
+```
+cloudformation DeleteStack StackName=plainly-mcp-guardrail-test
+-> AccessDenied: User: arn:aws:iam::********1486:user/plainly-agent is not authorized to perform:
+   cloudformation:DeleteStack on resource:
+   arn:aws:cloudformation:us-east-1:********1486:stack/plainly-mcp-guardrail-test/*
+   with an explicit deny in an identity-based policy:
+   arn:aws:iam::********1486:policy/plainly-agent-policy
+```
+
+The same user's `DeleteStack` from the plain CLI at 15:07 UTC, cleaning up the stack CloudFront had blocked, was allowed: the deny is conditioned on `aws:ViaAWSMCPService`.
+
+5. CloudTrail event history (`LookupEvents` for user `plainly-agent`, run through the MCP server):
+
+```
+15:16:39  DestroySession    source aws-mcp.amazonaws.com  user agent mcp-proxy-for-aws/1.7.0 claude-code/2.1.287
+15:14:04  ExecuteChangeSet  cloudformation                user agent aws-cli/2.37.6
+15:11:32  ExecuteChangeSet  cloudformation                user agent aws-cli/2.37.6
+15:03:40  ExecuteChangeSet  cloudformation                user agent aws-cli/2.37.6
+```
+
+The deploys ran from the agent's shell through the AWS CLI, not through MCP. The MCP server was connected afterwards and used for the read-back and the guardrail test.
+
+6. Gaps. There was no time to set up a dedicated CloudTrail trail with MCP data events, or a deny-only lock policy. The event history above covers management events for 90 days.
+
+The same proof is mirrored on the live site at https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com/evidence/.
 
 ### Architecture on AWS
 
@@ -178,21 +229,25 @@ The same proof is mirrored on the live site at {{LIVE_URL}}/evidence/.
 Phone / laptop: photo or PDF -> pdf.js text layer or Tesseract.js OCR -> editable text   (photo stays here)
       |
       v  HTTPS, text only
-CloudFront -+- default -> S3 (private, OAC): pre-rendered HTML, sample results, Tesseract.js + pdf.js
-            +- /api/*  -> API Gateway HTTP API -> Lambda (Python 3.13, arm64, AI_MODE=off)
-                            /api/check:   rules reader -> 21 rules -> registry (14 agencies) -> date math
-                            /api/explain: written templates, English / Hindi / Spanish
-                            DynamoDB (rate limits, daily cap, counters; TTL)
-                            CloudWatch Logs (no letter text) -> alarms -> SNS email
+API Gateway HTTP API (HTTPS, stage throttling) -> one Lambda (Python 3.13, arm64, 1024 MB, AI_MODE=off)
+      $default route -> static_site.py: the built site from the Lambda package (pre-rendered HTML, sample
+                        results, Tesseract.js + pdf.js), with CSP and security headers, clean URLs, gzip
+      /api/check     -> rules reader -> 21 rules -> registry (14 agencies) -> date math
+      /api/explain   -> written templates, English / Hindi / Spanish
+                        DynamoDB (rate limits, daily cap, counters; TTL)
+                        CloudWatch Logs (no letter text) -> alarms -> SNS email
 Also in the stack: CloudWatch dashboard, a $10 budget alert
+In the template, off until AWS verifies the account (UseCloudFront=true): CloudFront + private S3 (OAC) for the pages
 Built and switched off: Amazon Textract, Amazon Bedrock (Nova 2 Lite)
 ```
 
-The full diagram (Mermaid and ASCII), a service table with the reason for each service, and the request flow are in [docs/architecture.md]({{REPO_URL}}/blob/main/docs/architecture.md).
+The live stack has no CloudFront. This is a brand-new AWS Free-plan account, and CloudFront refused to create a distribution: `Your account must be verified before you can add new CloudFront resources.` So the stack runs with `UseCloudFront=false`: API Gateway's `$default` route sends page requests to the same Lambda, which serves the site from its package, and `/api/*` goes to the Lambda's API handler. The CloudFront + S3 setup is still in the template, to switch on once AWS verifies the account.
+
+The full diagram (Mermaid and ASCII), a service table with the reason for each service, and the request flow are in [docs/architecture.md](https://github.com/satanrayshe/plainly/blob/main/docs/architecture.md).
 
 | Measured | Figure |
 |---|---|
-| Latency: on-device reading and `/api/check` | {{LATENCY}} |
+| Latency: on-device reading and `/api/check` | `/api/check` round trip from India to us-east-1, 12 timed `curl` calls on the live stack: p50 0.76 s, p95 0.87 s. On-device OCR of a sample letter photo: about 2 s in desktop Edge (headless test), longer on phones. The first use also downloads about 7 MB of OCR engine once (8.5 MB with Hindi). |
 | AI tokens per letter | 0 (no model call with `AI_MODE=off`) |
 
 ### Evaluation
@@ -233,11 +288,13 @@ Hit during the build, with exact error text:
 - The AWS Free account plan blocks Amazon Bedrock and Amazon Textract. On a new account (`aws freetier get-account-plan-state`: `"accountPlanType": "FREE"`, $100 in credits), every Nova model tried returned `An error occurred (ValidationException) when calling the Converse operation: Operation not allowed`, and Bedrock reported `"authorizationStatus": "NOT_AUTHORIZED"` for Nova 2 Lite even though `list-inference-profiles` listed it. Textract returned `An error occurred (SubscriptionRequiredException) when calling the DetectDocumentText operation: The AWS Access Key Id needs a subscription for the service`. The owner couldn't upgrade, so we re-architected in hours. OCR moved onto the device, which also means the photo never leaves the phone. The verdict was already deterministic code. Explanations became fixed templates, drafted with the coding agent; nothing is generated per letter. The Nova and Textract path is built, passes its tests with the services faked, and is switched off by `AI_MODE`; after an upgrade, `AI_MODE=on scripts/deploy.sh` turns Nova back on for the text the device sends. Textract would also need the page to upload the photo again.
 - boto3 can't use `aws login` credentials without the CRT extra. Every call failed with `MissingDependencyException` until `pip install "botocore[crt]"`.
 - Claude Code's permission classifier stopped the agent from creating IAM policies and users under the root login ("Permission Grant"), and from probing services under root ("Credential Exploration"). A human decides permission grants, so the agent wrote `infra/setup-agent-user.sh` for the owner to read and run.
+- A brand-new Free-plan account can't create CloudFront distributions until AWS verifies it. The stack create was refused with `Your account must be verified before you can add new CloudFront resources.` and rolled back. The agent made CloudFront optional (`UseCloudFront`, default `false`), had the same Lambda serve the site (`backend/static_site.py`), deleted the rolled-back stack and redeployed; the site was live about ten minutes later.
+- The first two deploys as `plainly-agent` failed on `apigateway:TagResource`. Removing the stack tags wasn't enough; the permission had to be added to the agent's policy, which the owner published as version 2.
 
 Designed around, from the documentation:
 
 - Tesseract.js runs in a Web Worker with WebAssembly, so the site's Content-Security-Policy has to allow `'wasm-unsafe-eval'` and the worker, and the `.traineddata.gz` language files must be served without a `Content-Encoding: gzip` header, because Tesseract unzips them itself.
-- An S3 REST origin behind Origin Access Control does not map `/judges/` style paths to `index.html`, which is why a CloudFront Function does the rewrite.
+- For the CloudFront path (in the template, off on the live stack): an S3 REST origin behind Origin Access Control does not map `/judges/` style paths to `index.html`, which is why a CloudFront Function does the rewrite. Without CloudFront, `backend/static_site.py` does the same mapping.
 - API Gateway HTTP APIs stop waiting after 30 seconds, which is why the check and the explanation are separate requests. That mattered most for the model path.
 - For the AI path: Nova 2 Lite has no in-Region endpoint in us-east-1, so calls use the `us.amazon.nova-2-lite-v1:0` inference profile and IAM must allow the profile and the model in us-east-1, us-east-2 and us-west-2. Nova 2 Lite supports tool calling but not structured outputs, so extraction is a forced tool call.
 
@@ -283,23 +340,10 @@ Every figure above was read on the primary page on 30 Sep 2026. Secondary report
 | I4C blocked more than 3,962 Skype IDs and 83,668 WhatsApp accounts used for "digital arrest" | PIB (Ministry of Home Affairs), "Incidents of Digital Arrest", 25 Mar 2025: https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2114750 |
 | "Gift cards are for gifts. Only gifts. Not for payments." | FTC consumer advice, "Avoiding and Reporting Gift Card Scams": https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams |
 
-## Placeholders to fill
-
-Not part of the body.
-
-| Placeholder | Fill with | Where it comes from |
-|---|---|---|
-| `{{LIVE_URL}}` | CloudFront URL, `https://...cloudfront.net` | Stack output after deploy |
-| `{{REPO_URL}}` | `https://github.com/satanrayshe/<repo>` | After the repo is made public |
-| `{{VIDEO_URL}}` | The video upload link | After recording |
-| `{{AGENT_PROOF}}` | The text blocks listed in that section, account id and stack ids masked | After deploy (RUNBOOK step 4) |
-| `{{LATENCY}}` | On-device reading time for a sample photo, and `/api/check` p50 / p95 | Headless-Edge run or a phone; CloudWatch `Duration` or timed curl calls |
-
-Rules for filling them: no invented numbers, no user counts, no letter content from real people, and never quote the hidden AI instruction from the injection sample.
-
 ## Notes for the final pass
 
-- Honesty line for every surface (form, video, site): Bedrock, Textract and Nova are built and switched off on the Free plan. Never say they run in the live product. If the account is upgraded and `AI_MODE=on` is deployed, rewrite the Technical Innovation, Architecture, Gotchas and Evaluation sections, and publish live eval numbers next to the rules-reader ones instead of replacing them.
+- Rules for every edit: no invented numbers, no user counts, no letter content from real people, and never quote the hidden AI instruction from the injection sample.
+- Honesty line for every surface (form, site): Bedrock, Textract and Nova are built and switched off on the Free plan. Never say they run in the live product. If the account is upgraded and `AI_MODE=on` is deployed, rewrite the Technical Innovation, Architecture, Gotchas and Evaluation sections, and publish live eval numbers next to the rules-reader ones instead of replacing them.
 - The research brief gave the 2024 government-impersonator figure as $789 million, and the red-team said it should be $866 million. The FTC release says $789 million for government impersonators and $866 million for business impersonators, so $789 million is right.
 - The IC3 elder figures above come from the PDF itself (elder fraud section, and the age-group chart description on the 2025 complaints page).
 - The India figure of ₹22,495 crore for 2025 in the research notes came from a secondary site and does not appear in the MHA replies checked here, so it is not used.

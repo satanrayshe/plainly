@@ -42,7 +42,7 @@
       <figure class="diagram" aria-labelledby="diagram-caption">
         <svg viewBox="0 0 360 780" role="img" aria-labelledby="diagram-title diagram-desc">
           <title id="diagram-title">How a letter moves through Plainly</title>
-          <desc id="diagram-desc">On your device, the camera, photo or PDF is read by Tesseract and you check the words. Only the text goes on, through Amazon CloudFront and Amazon API Gateway, to AWS Lambda. In Lambda, plain code runs the rules reader, the scam rules, the official contacts list, date arithmetic and the written explanations, and stores nothing. Lambda keeps only request counters and limits in Amazon DynamoDB, and sends the verdict, receipts and explanation back to you.</desc>
+          <desc id="diagram-desc">On your device, the camera, photo or PDF is read by Tesseract and you check the words. Only the text goes on, over HTTPS through Amazon API Gateway, to AWS Lambda; the same Lambda also serves the site's pages. In Lambda, plain code runs the rules reader, the scam rules, the official contacts list, date arithmetic and the written explanations, and stores nothing. Lambda keeps only request counters and limits in Amazon DynamoDB, and sends the verdict, receipts and explanation back to you.</desc>
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0 0L10 5L0 10z" fill="#1c1b18"/>
@@ -73,14 +73,14 @@
           <text class="lbl" x="192" y="170">Only the text</text>
 
           <rect class="box" x="20" y="188" width="320" height="56" rx="6"/>
-          <text class="t" x="36" y="212">Amazon CloudFront</text>
-          <text class="s" x="36" y="233">The site's pages, and HTTPS</text>
+          <text class="t" x="36" y="212">Amazon API Gateway (HTTPS)</text>
+          <text class="s" x="36" y="233">HTTP API, one URL, rate limited</text>
 
           <path class="ln" d="M180 244V272" marker-end="url(#arrow)"/>
 
           <rect class="box" x="20" y="276" width="320" height="56" rx="6"/>
-          <text class="t" x="36" y="300">Amazon API Gateway</text>
-          <text class="s" x="36" y="321">HTTP API, rate limited</text>
+          <text class="t" x="36" y="300">/api/check gets the text</text>
+          <text class="s" x="36" y="321">The pages come from the same Lambda</text>
 
           <path class="ln" d="M180 332V360" marker-end="url(#arrow)"/>
 
@@ -220,7 +220,7 @@
       <h2 id="ai-off-title">Amazon Textract and Amazon Nova</h2>
       <div class="prose">
         <p>Plainly was designed to use Amazon Textract and Amazon Nova; the code is built and tested but switched off because this account is on the AWS Free plan, which doesn't include them. On an upgraded account, one setting turns Nova back on for the text your device reads; Textract would also need the page to upload the photo again, which reading on the device replaced.</p>
-        <p>Until then, Plainly calls no AI service. Everything described on this page runs on services the Free plan includes: CloudFront, S3, API Gateway, Lambda, DynamoDB and CloudWatch.</p>
+        <p>Until then, Plainly calls no AI service. Everything described on this page runs on services the Free plan includes: API Gateway, Lambda, DynamoDB and CloudWatch. The same Lambda serves the site's pages, because AWS hasn't yet verified this new account for CloudFront; the CloudFront and S3 setup is ready in the template for when it does.</p>
       </div>
     </div>
   </section>

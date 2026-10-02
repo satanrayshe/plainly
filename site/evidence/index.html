@@ -27,53 +27,77 @@
   <div class="wrap narrow">
     <section class="section prose" id="connection" aria-labelledby="connection-title">
       <h2 id="connection-title">Agent connection</h2>
-      <p>Claude Code was connected to the AWS account with the Agent Toolkit for AWS (<code>aws login</code>, then <code>aws configure agent-toolkit</code>), which links it to the managed AWS MCP Server. It used a dedicated IAM identity, <code>plainly-agent</code>.</p>
-      <div class="placeholder">
-        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
-        <p>Output of <code>aws configure agent-toolkit</code>, the masked result of <code>aws sts get-caller-identity</code>, and the agent's first MCP call, each with its timestamp.</p>
-        <pre>$ aws sts get-caller-identity --profile plainly-agent
-{
-  "UserId": "AIDA************",
-  "Account": "************",
-  "Arn": "arn:aws:iam::************:user/plainly-agent"
-}</pre>
-      </div>
+      <p>Claude Code (the coding agent) was connected to the AWS account on 2 October 2026 with <code>aws login</code>, which signs the CLI in with AWS console credentials, and then to the managed AWS MCP Server through the official <code>mcp-proxy-for-aws</code>. It acts as a dedicated IAM user, <code>plainly-agent</code>, never as the account root. The account id is masked below.</p>
+      <pre>$ aws login --region us-east-1 --profile plainly-agent
+Updated profile plainly-agent to use arn:aws:iam::********1486:user/plainly-agent credentials.
+
+# First call through the AWS MCP Server (tool aws___run_script -> sts:GetCallerIdentity), 2026-10-02 ~15:20 UTC
+{"caller_arn": "arn:aws:iam::********1486:user/plainly-agent"}</pre>
+      <p>Through the same MCP connection the agent then read back what it had shipped:</p>
+      <pre>cloudformation:DescribeStacks  plainly       UPDATE_COMPLETE  (last update 2026-10-02T15:14:04Z)
+apigatewayv2:GetApis           plainly-api   HTTP  https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com
+lambda:ListFunctions           plainly-api   python3.13  arm64  1024 MB
+dynamodb:ListTables            plainly-data
+cloudwatch:DescribeAlarms      plainly-api-5xx, plainly-lambda-errors, plainly-lambda-duration-p95,
+                               plainly-bedrock-throttles  -> all OK</pre>
     </section>
 
     <section class="section prose" id="mcp" aria-labelledby="mcp-title">
       <h2 id="mcp-title">MCP configuration</h2>
-      <p>The MCP server entry Claude Code used, with the profile it was allowed to act as.</p>
-      <div class="placeholder">
-        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
-        <p>The <code>aws-mcp</code> entry from the Claude Code MCP configuration, with <code>AWS_MCP_PROXY_PROFILES=plainly-agent</code>, and the <code>/mcp</code> status line showing it connected.</p>
-      </div>
+      <p>The project-scoped entry in <code>.mcp.json</code>. It holds no secrets: it names the CLI profile the proxy signs requests with.</p>
+      <pre>{
+  "mcpServers": {
+    "aws-mcp": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-proxy-for-aws-cli@latest", "https://aws-mcp.us-east-1.api.aws/mcp",
+               "--metadata", "AWS_REGION=us-east-1"],
+      "env": { "AWS_PROFILE": "plainly-agent", "AWS_REGION": "us-east-1" }
+    }
+  }
+}
+
+/mcp  ->  Reconnected to aws-mcp.</pre>
     </section>
 
     <section class="section prose" id="cloudtrail" aria-labelledby="cloudtrail-title">
       <h2 id="cloudtrail-title">CloudTrail events</h2>
-      <p>A CloudTrail trail records management events and AWS MCP Server data events. Actions the agent took through MCP show <code>aws-mcp.amazonaws.com</code> as the event source. Deploys run from the agent's shell with the AWS CLI are ordinary CLI calls, and are listed as such.</p>
-      <div class="placeholder">
-        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
-        <p>A CloudWatch Logs Insights query over the trail filtered on <code>eventSource = aws-mcp.amazonaws.com</code>, and a short table of events: time, event name, resource, request id.</p>
-      </div>
+      <p>From CloudTrail event history (<code>cloudtrail:LookupEvents</code> filtered on user <code>plainly-agent</code>, itself run through MCP). Calls that went through the MCP server carry the MCP proxy and Claude Code in the user agent. The stack deploys ran from the agent's shell with the AWS CLI, so they show the CLI user agent. We list both rather than claim more than happened. Source IPs are left out.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time (UTC)</th><th>Event</th><th>Source</th><th>User agent</th></tr></thead>
+        <tbody>
+          <tr><td>15:16:39</td><td>DestroySession</td><td>aws-mcp.amazonaws.com</td><td>mcp-proxy-for-aws/1.7.0 claude-code/2.1.287</td></tr>
+          <tr><td>15:14:04</td><td>ExecuteChangeSet</td><td>cloudformation</td><td>aws-cli/2.37.6 (deploy, second pass with the real URL)</td></tr>
+          <tr><td>15:11:32</td><td>ExecuteChangeSet</td><td>cloudformation</td><td>aws-cli/2.37.6 (deploy, first pass)</td></tr>
+          <tr><td>15:07:07</td><td>DeleteStack</td><td>cloudformation</td><td>aws-cli/2.37.6 (removing the stack CloudFront had blocked)</td></tr>
+          <tr><td>15:03:40</td><td>ExecuteChangeSet</td><td>cloudformation</td><td>aws-cli/2.37.6 (attempt refused by CloudFront account verification)</td></tr>
+        </tbody>
+      </table></div>
     </section>
 
     <section class="section prose" id="policy" aria-labelledby="policy-title">
       <h2 id="policy-title">Least-privilege policy</h2>
-      <p>The agent's permissions cover only the services Plainly uses. An explicit deny applies whenever a call comes through the MCP server, so the agent cannot delete the stack, bucket, table or IAM entities, and cannot create access keys. It can never write to, overwrite or delete the CloudTrail log files. The agent created the trail itself; once it was running, the account owner attached a second, deny-only policy, so the agent can no longer stop or reconfigure the trail, change its bucket, log group or delivery role, or silence the alarm and budget emails. One limit remains: a CloudFormation change set run through MCP can still remove stack resources, because CloudFormation makes those calls itself.</p>
-      <div class="placeholder">
-        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
-        <p>The final policy JSON as deployed, including the deny statement conditioned on <code>aws:ViaAWSMCPService</code>, and the permissions boundary on roles the agent can create.</p>
-      </div>
+      <p>The agent's permissions (<code>infra/agent-iam-policy.json</code>, attached as <code>plainly-agent-policy</code>) cover only the services Plainly uses, only for <code>plainly-*</code> resources, only in us-east-1. Roles it creates must carry the <code>plainly-boundary</code> permissions boundary. An explicit deny applies whenever a call arrives through the MCP server (<code>aws:ViaAWSMCPService</code> is true): the agent cannot delete stacks, buckets, tables or IAM entities, stop or delete a CloudTrail trail, or create users and access keys.</p>
+      <p>We tested the deny on purpose. The agent asked, through MCP, to delete a stack:</p>
+      <pre>cloudformation:DeleteStack  StackName=plainly-mcp-guardrail-test   (via AWS MCP Server)
+AccessDenied: User: arn:aws:iam::********1486:user/plainly-agent is not authorized to perform:
+cloudformation:DeleteStack on resource: arn:aws:cloudformation:us-east-1:********1486:stack/plainly-mcp-guardrail-test/*
+with an explicit deny in an identity-based policy: arn:aws:iam::********1486:policy/plainly-agent-policy</pre>
+      <p>The same user deleting a failed stack from the plain CLI at 15:07 was allowed. The deny is about the agent acting through MCP, which is the point. Creating IAM users and granting permissions was left to the account owner: Claude Code's own permission check stopped the agent from doing it, and the owner ran <code>infra/setup-agent-user.sh</code> instead.</p>
+      <p>Not done in time: a dedicated CloudTrail trail with MCP data events, and the deny-only lock policy described in <code>infra/README-infra.md</code>. Event history covers management events for 90 days.</p>
     </section>
 
     <section class="section prose" id="log" aria-labelledby="log-title">
       <h2 id="log-title">Build log excerpt</h2>
-      <p>From <code>docs/agent-log.md</code>: what the agent did, what the human decided, and the evidence for each step.</p>
-      <div class="placeholder">
-        <span class="ph-label">Placeholder: filled in after the AWS account is connected</span>
-        <p>Timestamped excerpts, including one incident the agent diagnosed from CloudWatch Logs through MCP and the fix it made.</p>
-      </div>
+      <p>From <code>docs/agent-log.md</code>. Times are 2 October 2026, UTC.</p>
+      <ul>
+        <li><strong>Before AWS:</strong> a research workflow on the rules, judges and field; 18 concepts scored; a parallel build with integration and adversarial review; scam rules tuned on a dev set and frozen before a single holdout run.</li>
+        <li><strong>First AWS calls:</strong> the account is on the Free plan. Bedrock answered <code>ValidationException: Operation not allowed</code> and Textract <code>SubscriptionRequiredException</code>. The owner chose not to upgrade, so reading moved onto the device (Tesseract.js) and the rules engine runs alone. The AI path stays in the code, switched off.</li>
+        <li><strong>Before 15:03</strong> Two stack creates failed: the deploy role lacked <code>apigateway:TagResource</code>, which API Gateway needs when it creates a stage. Fixed in the policy file; the owner published version 2 at 15:02:50.</li>
+        <li><strong>15:03 to 15:07</strong> The next create was refused by CloudFront: <em>"Your account must be verified before you can add new CloudFront resources."</em> The agent made CloudFront optional (<code>UseCloudFront=false</code>) and served the site from the same Lambda behind the HTTP API, with the same security headers and CSP.</li>
+        <li><strong>15:11 to 15:14</strong> Deployed in two passes (the second rebuilds pages with the real URL). Live checks: every page returns 200, a scam SMS returns "Likely scam" with four flags.</li>
+        <li><strong>~15:20</strong> AWS MCP Server connected; reads, the alarm check and the guardrail test above, all through MCP.</li>
+      </ul>
     </section>
   </div>
 </main>

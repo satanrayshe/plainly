@@ -36,14 +36,26 @@ Entries before 19:30 on 30 Sep were written after the fact from file timestamps 
 | ~05:20 | Checked which reader the frozen eval measured: `eval/mock_model.py`. The older fake reader in `backend/dev_mock.py` gives different results (on dev, one genuine e-Challan SMS becomes `likely_scam` and one scam drops to "Can't tell"). Told the main session that the production reader has to be the `mock_model` logic for the published numbers to hold. | | Scratchpad run on a copy of commit `06d6682` |
 | ~06:20 | Applied a review of the Option B build (commit `658aba3`). Templates: the reply draft no longer uses message text (one SMS put an OTP in the addressee line) as the addressee; Hindi grammar (`के आधिकारिक नंबर ... पर`); the verdict's own steps are never cut by deadlines; scam actions no longer say to check the unknown contact; past deadlines get past-tense advice; Spanish singular amounts. API: explain accepts any check that `/api/check` accepted, and gets 5x the hourly limit with AI off. Honesty: the site and docs said the explanations were "written by people"; they were drafted by the agent in this workflow, so the wording now says "fixed, pre-written templates". The sample results were labelled as read on the device but come from text transcribed from the HTML; they now carry `text_source: sample_text`, and the judges page says on-device OCR may not read the faint line in the AI-instruction sample. Browser: OCR cancel during loading, worker reuse, monotonic progress, screen-reader announcements and focus, typed text no longer overwritten. Runbook: CloudFront pre-check, MCP order, CloudTrail bucket policy. | | 689 tests; `eval/results-rules-reader.md` identical field by field to the frozen run; headless Edge smoke of `/try/` with `irs-balance-due.png` (read in 1.9 s) |
 
-## Next entries
+## Friday 2 Oct 2026: deploy and AWS MCP Server
 
-Add a row for each of these as they happen, with the exact command or transcript excerpt and the path of the saved output:
+Times in this section are UTC (IST is UTC+5:30). The account id is masked as `********1486`. Rows without a time happened before 15:00 UTC, in this order.
 
-- Option B integration: tests, sample results with `"mock": false`, `build_site.py --strict`, eval equal to `eval/results.md`, in-browser OCR check in headless Edge with the OCR time.
-- `infra/setup-agent-user.sh` run by Shrey (or the decision to deploy with `plainly-admin`), and `aws login` as `plainly-agent`.
-- First deploy with `AI_MODE=off`, the live URL, `curl` checks of every page and `/api/health` showing `"ai_mode": "off"`, and any Free-plan error with its exact text.
-- AWS MCP Server connection, if made: config, `/mcp` status, one call with its request id.
-- CloudTrail trail and the lock policy.
-- Builder Center project published (first version).
-- Any answer from the organizers in the Discussion tab.
+| Time (UTC) | Agent did | Human decided | Evidence |
+|---|---|---|---|
+| before 15:00 | | Shrey signed the CLI back in with his admin login to run the IAM setup | Session transcript |
+| before 15:00 | The first run of `infra/setup-agent-user.sh` failed: the Windows `aws.exe` couldn't read a policy file written to Git Bash's `/tmp`, and the script hadn't printed the console password. The agent fixed both in the script. | Shrey re-ran it with `RESET_PASSWORD=1`, creating the `plainly-agent` user, its policy and the permissions boundary | `infra/setup-agent-user.sh` |
+| before 15:00 | Signed the agent's profile in: `aws login --region us-east-1 --profile plainly-agent` returned `Updated profile plainly-agent to use arn:aws:iam::********1486:user/plainly-agent credentials.` From here on the agent acts as `plainly-agent`, not root. | | `/evidence/` |
+| before 15:02 | Deploys 1 and 2 failed on `apigateway:TagResource`. The agent first removed the stack tags, which wasn't enough, then added the permission to `infra/agent-iam-policy.json`. | Shrey published the policy as version 2 at 15:02:50 | `infra/agent-iam-policy.json` |
+| 15:03 | Deploy 3 (`ExecuteChangeSet` at 15:03:40) was refused by CloudFront: `Your account must be verified before you can add new CloudFront resources.` The stack rolled back. | | CloudTrail event history; `/evidence/` |
+| 15:03 to 15:07 | Made CloudFront optional (`UseCloudFront`, default `false`) and had the Lambda serve the site behind the HTTP API's `$default` route (`backend/static_site.py`: same CSP and security headers, clean URLs, gzip). Deleted the rolled-back stack from the CLI at 15:07. | | `infra/template.yaml`, `backend/static_site.py`, `scripts/deploy.sh` |
+| 15:11 to 15:14 | Deployed in two passes (`ExecuteChangeSet` at 15:11:32 and 15:14:04, user agent `aws-cli/2.37.6`): the first pass creates the API and learns its URL, the second rebuilds the site for that URL. Live at https://3nf75pgrv4.execute-api.us-east-1.amazonaws.com. Checked every page (200) and sent an electricity-scam SMS: `likely_scam` with 4 flags. | | Stack `plainly` `UPDATE_COMPLETE` 2026-10-02T15:14:04Z |
+| ~15:16 to 15:20 | Claude Code's permission classifier blocked the agent from editing its own MCP configuration, so the owner added the AWS MCP Server entry to `.mcp.json` and ran `/mcp` ("Reconnected to aws-mcp."). Through MCP (`aws___run_script`) the agent ran `sts GetCallerIdentity`, `DescribeStacks`, `GetApis`, `ListFunctions`, `ListTables`, `DescribeAlarms` (4 alarms OK) and CloudTrail `LookupEvents` (a `DestroySession` from `aws-mcp.amazonaws.com` at 15:16:39, user agent `mcp-proxy-for-aws/1.7.0 claude-code/2.1.287`). A guardrail test, `DeleteStack` on `plainly-mcp-guardrail-test` through MCP, got `AccessDenied` with an explicit deny from `plainly-agent-policy`; the same user's CLI `DeleteStack` at 15:07 had been allowed, because the deny is conditioned on `aws:ViaAWSMCPService`. | Shrey connected the MCP server | `.mcp.json`, `/evidence/`, README "Proof of coding agent connection" |
+| later on 2 Oct | Measured `/api/check` from India: 12 timed `curl` calls, p50 0.76 s, p95 0.87 s. | | README "Architecture on AWS" |
+
+The deploys ran from the agent's shell with the AWS CLI. The MCP server was connected after them and used for the read-back and the guardrail test.
+
+## Not done
+
+- A dedicated CloudTrail trail with MCP data events, and the deny-only lock policy. The event history covers management events for 90 days.
+- CloudFront, until AWS verifies the account; then deploy with `USE_CLOUDFRONT=true`.
+- Builder Center project published, and any answer from the organizers in the Discussion tab.
